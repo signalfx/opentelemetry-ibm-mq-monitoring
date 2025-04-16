@@ -61,6 +61,7 @@ queueManagers:
 
     # IBM Cipher Suite e.g. "SSL_RSA_WITH_AES_128_CBC_SHA256"..
     # For translation to IBM Cipher  http://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.dev.doc/q113210_.htm
+    # A cipher working for IBM Cloud MQ and Temurin JDK 8 is TLS_AES_128_GCM_SHA256
     #cipherSuite: ""
 
 

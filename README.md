@@ -564,3 +564,21 @@ Always feel free to fork and contribute any changes directly via [GitHub](https:
 	
 **Note**: While extensions are maintained and supported by customers under the open-source licensing model, they interact with agents and Controllers that are subject to [AppDynamics’ maintenance and support policy](https://docs.appdynamics.com/latest/en/product-and-release-announcements/maintenance-support-for-software-versions). Some extensions have been tested with AppDynamics 4.5.13+ artifacts, but you are strongly recommended against using versions that are no longer supported.
 		
+# ADDENDUM: OpenTelemetry
+
+We have added OpenTelemetry support to this library, as an experiment.
+
+To run the OpenTelemetry version, run `mvn package`.
+
+Then run the standalone jar alongside the IBM jar you must download separately:
+
+```shell
+java \
+   -Djavax.net.ssl.keyStore=key.jks \
+   -Djavax.net.ssl.keyStorePassword=<password> \
+   -Djavax.net.ssl.trustStore=key.jks \
+   -Djavax.net.ssl.trustStorePassword=<password> \
+   -cp target/websphere-mq-monitoring-extension-opentelemetry.jar:lib/com.ibm.mq.allclient.jar \
+   com.appdynamics.extensions.opentelemetry.Main \
+   ./my-config.yml
+```

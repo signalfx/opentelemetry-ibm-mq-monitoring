@@ -9,6 +9,7 @@ package com.appdynamics.extensions.webspheremq;
 
 import com.appdynamics.extensions.ABaseMonitor;
 import com.appdynamics.extensions.Constants;
+import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.TasksExecutionServiceProvider;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.util.AssertUtils;
@@ -26,6 +27,16 @@ public class WMQMonitor extends ABaseMonitor {
 
 	public static final Logger logger = ExtensionsLoggerFactory.getLogger(WMQMonitor.class);
 
+	private final MetricWriteHelper overrideHelper;
+
+	public WMQMonitor() {
+		this(null);
+	}
+
+	public WMQMonitor(MetricWriteHelper overrideHelper) {
+		this.overrideHelper = overrideHelper;
+	}
+
 	protected String getDefaultMetricPrefix() {
 		return "Custom Metrics|WMQMonitor|";
 	}
@@ -38,6 +49,10 @@ public class WMQMonitor extends ABaseMonitor {
 		List<Map> queueManagers = (List<Map>) this.getContextConfiguration().getConfigYml().get("queueManagers");
 		AssertUtils.assertNotNull(queueManagers, "The 'queueManagers' section in config.yml is not initialised");
 		ObjectMapper mapper = new ObjectMapper();
+		// we override this helper to pass in our opentelemetry helper instead.
+		if (this.overrideHelper != null) {
+			tasksExecutionServiceProvider = new TasksExecutionServiceProvider(this, this.overrideHelper);
+		}
 		for (Map queueManager : queueManagers) {
 			QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
 			WMQMonitorTask wmqTask = new WMQMonitorTask(tasksExecutionServiceProvider, this.getContextConfiguration(), qManager);
