@@ -72,11 +72,9 @@
             <systemPath>${lib.dir}/connector.jar</systemPath>
         </dependency>-->
         <dependency>
-            <groupId>com.ibm</groupId>
+            <groupId>com.ibm.mq</groupId>
             <artifactId>com.ibm.mq.allclient</artifactId>
-            <scope>system</scope>
             <version>${ibm.mq.lib.version}</version>
-            <systemPath>${lib.dir}/com.ibm.mq.allclient.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.appdynamics</groupId>
@@ -176,6 +174,7 @@
                                 <excludes>
                                     <exclude>com.appdynamics:machineagent-repackaged</exclude>
                                     <exclude>org.slf4j:slf4j-simple</exclude>
+                                    <exclude>com.ibm.mq:*</exclude>
                                 </excludes>
                             </artifactSet>
                         </configuration>
@@ -197,6 +196,11 @@
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
+                            <artifactSet>
+                                <excludes>
+                                    <exclude>com.ibm.mq:*</exclude>
+                                </excludes>
+                            </artifactSet>
                         </configuration>
                     </execution>
                 </executions>
