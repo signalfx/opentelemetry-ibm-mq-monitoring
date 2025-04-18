@@ -1,54 +1,60 @@
 package com.appdynamics.extensions.opentelemetry;
 
-import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_METRICS;
-
+import com.appdynamics.extensions.util.YmlUtils;
 import com.appdynamics.extensions.webspheremq.WMQMonitor;
+import com.appdynamics.extensions.yml.YmlReader;
 import com.singularity.ee.agent.systemagent.api.TaskExecutionContext;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
-import io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil;
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
-import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporterBuilder;
-import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
 
+import java.io.File;
 import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
   public static void main(String[] args) {
-    String configFile = args[0]; // TODO args checks.
+    if (args.length == 0) {
+      System.err.println("Usage: Main <config-file>");
+      System.exit(1);
+    }
 
-    OtlpGrpcMetricExporterBuilder builder = OtlpGrpcMetricExporter.builder();
-    DefaultConfigProperties config = DefaultConfigProperties.create(new HashMap<>());
+    String configFile = args[0];
+    Map<String, ?> config = YmlReader.readFromFileAsMap(new File(configFile));
 
-    OtlpConfigUtil.configureOtlpExporterBuilder(
-        DATA_TYPE_METRICS,
-        config,
-        builder::setEndpoint,
-        builder::addHeader,
-        builder::setCompression,
-        builder::setTimeout,
-        builder::setTrustedCertificates,
-        builder::setClientTls,
-        builder::setRetryPolicy,
-        builder::setMemoryMode);
+    Config.setUpSSLConnection(config);
 
-    WMQMonitor monitor = new WMQMonitor(new OpenTelemetryMetricWriteHelper(builder.build()));
+    OtlpGrpcMetricExporter exporter = Config.createOtlpGrpcMetricsExporter(config);
+
+    WMQMonitor monitor = new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter));
     TaskExecutionContext ctxt = new TaskExecutionContext();
 
-    Timer timer = new Timer();
-    TimerTask timerTask = new TimerTask() {
-      public void run() {
-        try {
-          monitor.execute(new HashMap<String, String>() {{
-            put("config-file", configFile);
-          }}, ctxt);
-        } catch (TaskExecutionException e) {
-          throw new RuntimeException(e);
-        }
+    int numberOfThreads = 1;
+    int taskDelaySeconds = 60;
+    int initialDelaySeconds = 10;
+    if (config.get("taskSchedule") instanceof Map) {
+      Map taskSchedule = (Map) config.get("taskSchedule");
+      numberOfThreads = YmlUtils.getInt(taskSchedule.get("numberOfThreads"), numberOfThreads);
+      taskDelaySeconds = YmlUtils.getInt(taskSchedule.get("taskDelaySeconds"), taskDelaySeconds);
+      initialDelaySeconds = YmlUtils.getInt(taskSchedule.get("initialDelaySeconds"), initialDelaySeconds);
+    }
+    final ScheduledExecutorService service = Executors.newScheduledThreadPool(numberOfThreads);
+    service.scheduleAtFixedRate(() -> {
+      try {
+        monitor.execute(new HashMap<String, String>() {{
+          put("config-file", configFile);
+        }}, ctxt);
+      } catch (TaskExecutionException e) {
+        throw new RuntimeException(e);
       }
-    };
-    timer.schedule(timerTask, 0, 60000); // TODO make this configurable.
+    }, initialDelaySeconds, taskDelaySeconds, TimeUnit.SECONDS);
+
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+      service.shutdown();
+      exporter.shutdown();
+    }));
   }
 }

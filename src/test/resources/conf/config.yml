@@ -229,12 +229,15 @@ taskSchedule:
 sslConnection:
   trustStorePath: ""
   trustStorePassword: ""
-  trustStoreEncryptedPassword: ""
+  trustStoreEncryptedPassword: "" # TODO not supported with OpenTelemetry
 
   keyStorePath: ""
   keyStorePassword: ""
-  keyStoreEncryptedPassword: ""
+  keyStoreEncryptedPassword: "" # TODO not supported with OpenTelemetry
 
+# Configure the OTLP exporter using system properties keys following the specification https://opentelemetry.io/docs/languages/java/configuration/
+otlpExporter:
+  otel.exporter.otlp.endpoint: https://localhost:4317
 
 # If any of the following fields are not set, the values of the specific fields are set from the system properties of the corresponding fields as specified in the comments.
 # If the system properties are not set for the field, then the data is retrieved from machine agent configFile. Please refer to ControllerInfoFactory for more details.
