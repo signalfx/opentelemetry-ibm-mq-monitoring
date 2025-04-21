@@ -19,9 +19,9 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
-import com.ibm.mq.pcf.PCFException;
-import com.ibm.mq.pcf.PCFMessage;
-import com.ibm.mq.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.pcf.PCFException;
+import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 
@@ -93,36 +93,34 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
 					logger.debug("Unexpected Error while PCFMessage.send(), response is either null or empty");
 					return;
 				}
-				for (int i = 0; i < response.length; i++) {
-					String channelName = response[i].getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
-					Set<ExcludeFilters> excludeFilters = this.queueManager.getChannelFilters().getExclude();
-					if(!isExcluded(channelName,excludeFilters)) { //check for exclude filters
-						logger.debug("Pulling out metrics for channel name {}",channelName);
-						Iterator<String> itr = getMetricsToReport().keySet().iterator();
-						List<Metric> metrics = Lists.newArrayList();
-						while (itr.hasNext()) {
-							String metrickey = itr.next();
-							WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
-							int metricVal = response[i].getIntParameterValue(wmqOverride.getConstantValue());
-							Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getAtrifact(), channelName, metrickey);
-							metrics.add(metric);
-							if ("Status".equals(metrickey)) {
-								if (metricVal == 3) {
-									activeChannels.add(channelName);
-								}
-							}
-						}
-						publishMetrics(metrics);
-					}
-					else{
-						logger.debug("Channel name {} is excluded.",channelName);
-					}
-				}
+                for (PCFMessage pcfMessage : response) {
+                    String channelName = pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
+                    Set<ExcludeFilters> excludeFilters = this.queueManager.getChannelFilters().getExclude();
+                    if (!isExcluded(channelName, excludeFilters)) { //check for exclude filters
+                        logger.debug("Pulling out metrics for channel name {}", channelName);
+                        Iterator<String> itr = getMetricsToReport().keySet().iterator();
+                        List<Metric> metrics = Lists.newArrayList();
+                        while (itr.hasNext()) {
+                            String metrickey = itr.next();
+                            WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+                            int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
+                            Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), channelName, metrickey);
+                            metrics.add(metric);
+                            if ("Status".equals(metrickey)) {
+                                if (metricVal == 3) {
+                                    activeChannels.add(channelName);
+                                }
+                            }
+                        }
+                        publishMetrics(metrics);
+                    } else {
+                        logger.debug("Channel name {} is excluded.", channelName);
+                    }
+                }
 			}
 			catch (PCFException pcfe) {
-				String errorMsg = "";
 				if (pcfe.getReason() == MQConstants.MQRCCF_CHL_STATUS_NOT_FOUND) {
-					errorMsg = "Channel- " + channelGenericName + " :";
+					String errorMsg = "Channel- " + channelGenericName + " :";
 					errorMsg += "Could not collect channel information as channel is stopped or inactive: Reason '3065'\n";
 					errorMsg += "If the channel type is MQCHT_RECEIVER, MQCHT_SVRCONN or MQCHT_CLUSRCVR, then the only action is to enable the channel, not start it.";
 					logger.error(errorMsg,pcfe);
@@ -135,7 +133,7 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
 		}
 
 		logger.info("Active Channels in queueManager {} are {}", WMQUtil.getQueueManagerNameFromConfig(queueManager), activeChannels);
-		Metric activeChannelsCountMetric = createMetric(queueManager,"ActiveChannelsCount", activeChannels.size(), null, getAtrifact(), "ActiveChannelsCount");
+		Metric activeChannelsCountMetric = createMetric(queueManager,"ActiveChannelsCount", activeChannels.size(), null, getArtifact(), "ActiveChannelsCount");
 		publishMetrics(Arrays.asList(activeChannelsCountMetric));
 
 		long exitTime = System.currentTimeMillis() - entryTime;
@@ -143,7 +141,7 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
 
 	}
 
-	public String getAtrifact() {
+	public String getArtifact() {
 		return artifact;
 	}
 

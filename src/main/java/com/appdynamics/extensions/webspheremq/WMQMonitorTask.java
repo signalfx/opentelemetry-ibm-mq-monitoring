@@ -21,7 +21,8 @@ import com.appdynamics.extensions.webspheremq.metricscollector.*;
 import com.google.common.base.Strings;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
-import com.ibm.mq.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.MQDataException;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 
@@ -33,7 +34,7 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * Encapsulates all metrics collection for all artifacts related to a queue manager.
- * 
+ *
  * @author rajeevsingh,kunalgup
  * @version 2.0
  *
@@ -120,8 +121,8 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 			if(queueManager.getEncoding() != Integer.MIN_VALUE){
 				agent.setEncoding(queueManager.getEncoding());
 			}
-			logger.debug("Intialized PCFMessageAgent for queueManager {} in thread {}", agent.getQManagerName(), Thread.currentThread().getName());
-		} catch (MQException mqe) {
+			logger.debug("Initialized PCFMessageAgent for queueManager {} in thread {}", agent.getQManagerName(), Thread.currentThread().getName());
+		} catch (MQDataException mqe) {
 			logger.error(mqe.getMessage(), mqe);
 		}
 		return agent;
@@ -182,7 +183,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 	/**
 	 * Destroy the agent and disconnect from queue manager
-	 * 
+	 *
 	 */
 	private void cleanUp(MQQueueManager ibmQueueManager, PCFMessageAgent agent) {
 		// Disconnect the agent.
@@ -198,7 +199,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		}
 
 		// Disconnect queue manager
-		
+
 		if (ibmQueueManager != null) {
 			try {
 				ibmQueueManager.disconnect();

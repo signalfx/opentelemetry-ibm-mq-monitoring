@@ -10,9 +10,12 @@ The metrics for queue manager, queue, topic, channel and listener can be configu
 The MQ Monitor currently supports IBM Websphere MQ version 7.x, 8.x and 9.x.
  
 ## Prerequisites
-1. Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Monitoring-Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed with the extension installation if the specified prerequisites are not met.
+1. Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Monitoring-Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed 
+   with the extension installation if the specified prerequisites are not met.
 
-2. Download and install [Apache Maven](https://maven.apache.org/) which is configured with `Java 8` to build the extension artifact from source. You can check the java version used in maven using command `mvn -v` or `mvn --version`. If your maven is using some other java version then please download java 8 for your platform and set JAVA_HOME parameter before starting maven.
+2. Download and install [Apache Maven](https://maven.apache.org/) which is configured with `Java 8` to build the extension artifact from source. 
+   You can check the java version used in maven using command `mvn -v` or `mvn --version`. If your maven is using some 
+   other java version then please download java 8 for your platform and set JAVA_HOME parameter before starting maven.
 
 If this extension is configured for **CLIENT** transport type
 1. Please make sure the MQ's host and port is accessible. 

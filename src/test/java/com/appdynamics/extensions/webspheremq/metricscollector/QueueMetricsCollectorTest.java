@@ -21,8 +21,8 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.MQException;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
-import com.ibm.mq.pcf.PCFMessage;
-import com.ibm.mq.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
 import org.junit.Assert;
 import org.junit.Before;
@@ -77,7 +77,7 @@ public class QueueMetricsCollectorTest {
     }
 
     @Test
-    public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws MQException, IOException {
+    public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
         PCFMessage request = createPCFRequestForInquireQStatusCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQStatusCmd());
         classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, phaser);
@@ -103,7 +103,7 @@ public class QueueMetricsCollectorTest {
     }
 
     @Test
-    public void testProcessPCFRequestAndPublishQMetricsForInquireQCmd() throws MQException, IOException {
+    public void testProcessPCFRequestAndPublishQMetricsForInquireQCmd() throws Exception {
         PCFMessage request = createPCFRequestForInquireQCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQCmd());
         classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, phaser);
@@ -129,7 +129,7 @@ public class QueueMetricsCollectorTest {
     }
 
     @Test
-    public void testProcessPCFRequestAndPublishQMetricsForResetQStatsCmd() throws MQException, IOException {
+    public void testProcessPCFRequestAndPublishQMetricsForResetQStatsCmd() throws Exception {
         PCFMessage request = createPCFRequestForResetQStatsCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForResetQStatsCmd());
         classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, phaser);

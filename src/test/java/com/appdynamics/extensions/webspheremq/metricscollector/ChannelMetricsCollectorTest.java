@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ibm.mq.MQException;
 import com.ibm.mq.constants.CMQCFC;
-import com.ibm.mq.pcf.PCFMessage;
-import com.ibm.mq.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.junit.Assert;
@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Mockito.*;
 
 @RunWith(PowerMockRunner.class)
@@ -75,7 +77,7 @@ public class ChannelMetricsCollectorTest {
     }
 
     @Test
-    public void testpublishMetrics() throws MQException, IOException, TaskExecutionException {
+    public void testpublishMetrics() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireChannelStatusCmd());
         classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
         classUnderTest.publishMetrics();
@@ -89,14 +91,14 @@ public class ChannelMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.ADMIN.SVRCONN|Status")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("3"));
-                        Assert.assertFalse(metric.getMetricValue().equals("10"));
+                        assertEquals("3", metric.getMetricValue());
+                        assertNotEquals("10", metric.getMetricValue());
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.APP.SVRCONN|Status")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("3"));
+                        assertEquals("3", metric.getMetricValue());
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("2"));
+                        assertEquals("2", metric.getMetricValue());
                     }
                 }
             }
@@ -167,8 +169,7 @@ public class ChannelMetricsCollectorTest {
         response3.addParameter(CMQCFC.MQIACH_CHANNEL_STATUS, 3);
         response3.addParameter(CMQCFC.MQIACH_CHANNEL_SUBSTATE, 300);
 
-        PCFMessage [] messages = {response1, response2, response3};
-        return messages;
+        return new PCFMessage[]{response1, response2, response3};
     }
 
 }

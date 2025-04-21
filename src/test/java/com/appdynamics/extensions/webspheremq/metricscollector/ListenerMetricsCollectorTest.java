@@ -18,13 +18,10 @@ import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.ibm.mq.MQException;
 import com.ibm.mq.constants.CMQCFC;
-import com.ibm.mq.pcf.PCFMessage;
-import com.ibm.mq.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,11 +32,12 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -75,7 +73,7 @@ public class ListenerMetricsCollectorTest {
     }
 
     @Test
-    public void testpublishMetrics() throws MQException, IOException, TaskExecutionException {
+    public void testpublishMetrics() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireListenerStatusCmd());
         classUnderTest = new ListenerMetricsCollector(listenerMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
         classUnderTest.publishMetrics();
@@ -89,11 +87,11 @@ public class ListenerMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Listeners|DEV.DEFAULT.LISTENER.TCP|Status")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("2"));
-                        Assert.assertFalse(metric.getMetricValue().equals("10"));
+                        assertEquals("2", metric.getMetricValue());
+                        assertNotEquals("10", metric.getMetricValue());
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Listeners|DEV.LISTENER.TCP|Status")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("3"));
+                        assertEquals("3", metric.getMetricValue());
                     }
                 }
             }
@@ -127,8 +125,7 @@ public class ListenerMetricsCollectorTest {
         response3.addParameter(CMQCFC.MQCACH_LISTENER_NAME, "SYSTEM.LISTENER.TCP");
         response3.addParameter(CMQCFC.MQIACH_LISTENER_STATUS, 1);
 
-        PCFMessage [] messages = {response1, response2, response3};
-        return messages;
+        return new PCFMessage[]{response1, response2, response3};
     }
 
 }

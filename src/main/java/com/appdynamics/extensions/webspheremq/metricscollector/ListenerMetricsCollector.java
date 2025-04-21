@@ -16,8 +16,8 @@ import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
-import com.ibm.mq.pcf.PCFMessage;
-import com.ibm.mq.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 
@@ -75,24 +75,23 @@ public class ListenerMetricsCollector extends MetricsCollector implements Runnab
                     logger.debug("Unexpected Error while PCFMessage.send(), response is either null or empty");
                     return;
                 }
-                for (int i = 0; i < response.length; i++) {
-                    String listenerName = response[i].getStringParameterValue(CMQCFC.MQCACH_LISTENER_NAME).trim();
+                for (PCFMessage pcfMessage : response) {
+                    String listenerName = pcfMessage.getStringParameterValue(CMQCFC.MQCACH_LISTENER_NAME).trim();
                     Set<ExcludeFilters> excludeFilters = this.queueManager.getListenerFilters().getExclude();
-                    if(!isExcluded(listenerName,excludeFilters)) { //check for exclude filters
-                        logger.debug("Pulling out metrics for listener name {}",listenerName);
+                    if (!isExcluded(listenerName, excludeFilters)) { //check for exclude filters
+                        logger.debug("Pulling out metrics for listener name {}", listenerName);
                         Iterator<String> itr = getMetricsToReport().keySet().iterator();
                         List<Metric> metrics = Lists.newArrayList();
                         while (itr.hasNext()) {
                             String metrickey = itr.next();
                             WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
-                            int metricVal = response[i].getIntParameterValue(wmqOverride.getConstantValue());
-                            Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getAtrifact(), listenerName, metrickey);
+                            int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
+                            Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), listenerName, metrickey);
                             metrics.add(metric);
                         }
                         publishMetrics(metrics);
-                    }
-                    else{
-                        logger.debug("Listener name {} is excluded.",listenerName);
+                    } else {
+                        logger.debug("Listener name {} is excluded.", listenerName);
                     }
                 }
             }
@@ -105,7 +104,7 @@ public class ListenerMetricsCollector extends MetricsCollector implements Runnab
 
     }
 
-    public String getAtrifact() {
+    public String getArtifact() {
         return artifact;
     }
 

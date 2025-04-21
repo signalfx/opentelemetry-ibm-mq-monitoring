@@ -15,8 +15,8 @@ import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
-import com.ibm.mq.pcf.PCFMessage;
-import com.ibm.mq.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 
@@ -27,10 +27,6 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * This class is responsible for queue metric collection.
- * 
- * @author rajeevsingh ,James Schneider
- * @version 2.0
- *
  */
 public class QueueManagerMetricsCollector extends MetricsCollector implements Runnable {
 
@@ -46,7 +42,7 @@ public class QueueManagerMetricsCollector extends MetricsCollector implements Ru
 		this.countDownLatch = countDownLatch;
 	}
 
-	public String getAtrifact() {
+	public String getArtifact() {
 		return artifact;
 	}
 
