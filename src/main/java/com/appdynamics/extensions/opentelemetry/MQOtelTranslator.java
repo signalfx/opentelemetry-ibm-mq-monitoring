@@ -42,9 +42,13 @@ class MQOtelTranslator {
   }
 
   private static final Mapping queueMgrMetricNameMappings = new Mapping(new HashMap<String, String>() {{
-    put("Status", "mq.status");
+    put("Status", "mq.mgr.status");
     put("ConnectionCount", "mq.connection.count");
-  }}, (metricData) -> Attributes.empty());
+  }}, segments -> {
+    AttributesBuilder builder = Attributes.builder();
+    builder.put("queue.manager", segments.get(segments.size() - 2));
+    return builder.build();
+  });
 
   //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|UncommittedMsgs
   //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|UncommittedMsgs
@@ -66,6 +70,10 @@ class MQOtelTranslator {
   //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|Current Queue Depth
   //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|Open Input Count
   //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|Open Output Count
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|OnQTime_1
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|OnQTime_2
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|Current maximum queue file size
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|Current queue file size
   private static final Mapping queueMetricNameMappings = new Mapping(new HashMap<String, String>() {{
     put("Max Queue Depth", "mq.max.queue.depth");
     put("Current Queue Depth", "mq.queue.depth");
@@ -73,10 +81,14 @@ class MQOtelTranslator {
     put("Open Output Count", "mq.open.output.count");
     put("OldestMsgAge", "mq.oldest.msg.age");
     put("OnQTime", "mq.onqtime");
+    put("OnQTime_1", "mq.onqtime.1");
+    put("OnQTime_2", "mq.onqtime.2");
     put("UncommittedMsgs", "mq.uncommitted.msgs");
     put("HighQDepth", "mq.high.queue.depth");
     put("MsgDeqCount", "mq.message.deq.count");
     put("MsgEnqCount", "mq.message.enq.count");
+    put("Current maximum queue file size", "mq.current.max.queue.filesize");
+    put("Current queue file size", "mq.current.queue.filesize");
   }},
       segments -> {
         AttributesBuilder builder = Attributes.builder();
@@ -99,7 +111,12 @@ class MQOtelTranslator {
     put("Byte Received", "mq.byte.received");
     put("Buffers Sent", "mq.buffers.sent");
     put("Buffers Received", "mq.buffers.received");
-  }}, (metricData) -> Attributes.empty());
+  }}, segments -> {
+    AttributesBuilder builder = Attributes.builder();
+    builder.put("queue.manager", segments.get(segments.size() - 4));
+    builder.put("channel.name", segments.get(segments.size() - 2));
+    return builder.build();
+  });
 
   private static final Mapping listenerMetricNameMappings = new Mapping(new HashMap<String, String>() {{
     put("Status", "mq.status");
