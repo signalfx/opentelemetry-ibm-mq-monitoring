@@ -1,15 +1,35 @@
-# AppDynamics Monitoring Extension for use with IBM WebSphere MQ
+# Monitoring Extension for use with IBM MQ
 
 ## Use case
-Websphere MQ, formerly known as MQ (message queue) series, is an IBM standard for program-to-program messaging across multiple platforms. 
+IBM MQ, formerly known as WebSphere MQ (message queue) series, is an IBM standard for program-to-program messaging across multiple platforms. 
 
-The WebSphere MQ monitoring extension can monitor multiple queues managers and their resources, namely queues, topics, channels and listeners The metrics are extracted out using the [PCF command messages](https://www.ibm.com/support/knowledgecenter/en/SSFKSJ_8.0.0/com.ibm.mq.adm.doc/q020010_.htm).
+The IBM MQ monitoring extension can monitor multiple queues managers and their resources, namely queues, topics, channels and listeners The metrics are extracted out using the [PCF command messages](https://www.ibm.com/support/knowledgecenter/en/SSFKSJ_8.0.0/com.ibm.mq.adm.doc/q020010_.htm).
 
 The metrics for queue manager, queue, topic, channel and listener can be configured.
 
-The MQ Monitor currently supports IBM Websphere MQ version 7.x, 8.x and 9.x.
- 
+The MQ Monitor is compatible with IBM MQ version 7.x, 8.x and 9.x.
+
+# ADDENDUM: OpenTelemetry
+
+We have added OpenTelemetry support to this library, as an experiment. This is an ongoing work in progress.
+
+To run the OpenTelemetry version, run `mvn package`.
+
+Then run the standalone jar alongside the IBM jar you must download separately:
+
+```shell
+java \
+   -Djavax.net.ssl.keyStore=key.jks \
+   -Djavax.net.ssl.keyStorePassword=<password> \
+   -Djavax.net.ssl.trustStore=key.jks \
+   -Djavax.net.ssl.trustStorePassword=<password> \
+   -cp target/websphere-mq-monitoring-extension-opentelemetry.jar:lib/com.ibm.mq.allclient.jar \
+   com.appdynamics.extensions.opentelemetry.Main \
+   ./my-config.yml
+```
+
 ## Prerequisites
+
 1. Before the extension is installed, the prerequisites mentioned [here](https://community.appdynamics.com/t5/Knowledge-Base/Monitoring-Extensions-Prerequisites-Guide/ta-p/35213) need to be met. Please do not proceed 
    with the extension installation if the specified prerequisites are not met.
 
@@ -19,10 +39,11 @@ The MQ Monitor currently supports IBM Websphere MQ version 7.x, 8.x and 9.x.
 
 If this extension is configured for **CLIENT** transport type
 1. Please make sure the MQ's host and port is accessible. 
-2. Credentials of user with correct access rights would be needed in config.yml [(Access Permissions section)](https://github.com/Appdynamics/websphere-mq-monitoring-extension#access-permissions).
+2. Credentials of user with correct access rights would be needed in config.yml [(Access Permissions section)](https://github.com/signalfx/opentelemetry-ibm-mq-monitoring-extension#access-permissions).
 3. If the hosting OS for IBM MQ is Windows, Windows user credentials will be needed.  
 
 ### Dependencies  
+
 The extension has a dependency on the following jar's depending on IBM MQ version:
 
 * v8.0.0 and above
@@ -45,13 +66,14 @@ These jar files are typically found in ```/opt/mqm/java/lib``` on a UNIX server 
 In case of **CLIENT** transport type, IBM MQ Client must be installed to get the MQ jars. To download IBM MQ Client jars, see [here](https://developer.ibm.com/messaging/mq-downloads/)
 
 ## Installation
+
 1. To build from source, clone this repository using `git clone <repoUrl>` command.
-2. Create a `lib` folder in "websphere-mq-monitoring-extension" and copy the following jars in the `websphere-mq-monitoring-extension/lib` folder. (These jars are shipped with your Websphere MQ product itself)
+2. Create a `lib` folder in "opentelemetry-ibm-mq-monitoring" and copy the following jars in the `opentelemetry-ibm-mq-monitoring/lib` folder. (These jars are shipped with your Websphere MQ product itself)
 * For MQ v8.0.0 and above
 ```
 com.ibm.mq.allclient.jar
 ```
-* For other versions, please comment the "com.ibm.mq.allclient" dependency in pom.xml and uncomment the following dependencies. Then add these dependencies in `websphere-mq-monitoring-extension/lib` folder
+* For other versions, please comment the "com.ibm.mq.allclient" dependency in pom.xml and uncomment the following dependencies. Then add these dependencies in `opentelemetry-ibm-mq-monitoring/lib` folder
 ``` 
 com.ibm.mq.commonservices.jar
 com.ibm.mq.jar
@@ -61,24 +83,25 @@ com.ibm.mq.pcf.jar
 dhbcore.jar
 connector.jar
 ```
-3. Run `mvn clean install` from websphere-mq-monitoring-extension directory. This will produce a WMQMonitor-\<version\>.zip in target directory.
+3. Run `mvn clean install` from opentelemetry-ibm-mq-monitoring directory. This will produce a WMQMonitor-\<version\>.zip in target directory.
 4. Unzip contents of WMQMonitor-\<version\>.zip file and copy to "<MachineAgentHome_Dir>/monitors" directory. <br/>Please place the extension in the Please place the extension in the <b>"monitors"</b> directory of your Machine Agent installation directory. Do not place the extension in the <b>"extensions"</b> directory of your Machine Agent installation directory.
 5. There are two transport modes in which this extension can be run
    * **Binding** : Requires WMQ Extension to be deployed in machine agent on the same machine where WMQ server is installed.  
    * **Client** : In this mode, the WMQ extension is installed on a different host than the IBM MQ server. Please install the [IBM MQ Client](https://developer.ibm.com/messaging/mq-downloads/) for this mode to get the necessary jars as mentioned previously. 
 6. Edit the classpath element in WMQMonitor/monitor.xml with the path to the required jar files.
    ```
-    <classpath>websphere-mq-monitoring-extension.jar;/opt/mqm/java/lib/com.ibm.mq.allclient.jar</classpath>
+    <classpath>ibm-mq-monitoring-extension.jar;/opt/mqm/java/lib/com.ibm.mq.allclient.jar</classpath>
    ```
    OR
    ```
-    <classpath>websphere-mq-monitoring-extension.jar;/opt/mqm/java/lib/com.ibm.mq.jar;/opt/mqm/java/lib/com.ibm.mq.jmqi.jar;/opt/mqm/java/lib/com.ibm.mq.commonservices.jar;/opt/mqm/java/lib/com.ibm.mq.headers.jar;/opt/mqm/java/lib/com.ibm.mq.pcf.jar;/opt/mqm/java/lib/connector.jar;/opt/mqm/java/lib/dhbcore.jar</classpath>
+    <classpath>ibm-mq-monitoring-extension.jar;/opt/mqm/java/lib/com.ibm.mq.jar;/opt/mqm/java/lib/com.ibm.mq.jmqi.jar;/opt/mqm/java/lib/com.ibm.mq.commonservices.jar;/opt/mqm/java/lib/com.ibm.mq.headers.jar;/opt/mqm/java/lib/com.ibm.mq.pcf.jar;/opt/mqm/java/lib/connector.jar;/opt/mqm/java/lib/dhbcore.jar</classpath>
    ```
 7. If you plan to use **Client** transport type, create a channel of type server connection in each of the queue manager you wish to query. 
 8. Edit the config.yml file.  An example config.yml file follows these installation instructions.
 9. Restart the Machine Agent.
 
 ## Configuration
+
 **Note** : Please make sure to not use tab (\t) while editing yaml files. You may want to validate the yaml file using a [yaml validator](https://jsonformatter.org/yaml-validator)
 Configure the monitor by editing the config.yml file in <code><machine-agent-dir>/monitors/WMQMonitor/</code>.
 1. Configure the metricPrefix with the `<TIER_ID` under which this extension metrics need to be reported. For example
@@ -312,6 +335,7 @@ More details around metric prefix can be found [here](https://community.appdynam
 5. To run the extension at a frequency > 1 minute, please configure the taskSchedule section. Refer to the [Task Schedule](https://community.appdynamics.com/t5/Knowledge-Base/Task-Schedule-for-Extensions/ta-p/35414) doc for details.
 
 ### Extension Working - Internals
+
 This extension extracts metrics through [PCF framework](https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.adm.doc/q019990_.htm). A complete list of PCF commands are listed [here](https://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.adm.doc/q086870_.htm)
 Each queue manager has an administration queue with a standard queue name and the extension sends PCF command messages to that queue. On Windows and Unix platforms, the PCF commands are sent is always sent to the SYSTEM.ADMIN.COMMAND.QUEUE queue. 
 More details about that is mentioned [here](https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.adm.doc/q020010_.htm)
@@ -320,11 +344,13 @@ By default, the PCF responses are sent to the SYSTEM.DEFAULT.MODEL.QUEUE. Using 
 More details mentioned [here](https://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.adm.doc/q083240_.htm)
 
 ### Access Permissions
+
 If you are in **Bindings** mode, please make sure to start the MA process under a user which has the following permissions on the broker. Similarly, for **Client** mode, please provide the user credentials in config.yml which have permissions listed below.
 
 The user connecting to the queueManager should have the inquire, get, put (since PCF responses cause dynamic queues to be created) permissions. For metrics that execute MQCMD_RESET_Q_STATS command, chg permission is needed.
 
 ### SSL Support
+
 1. Configure the IBM SSL Cipher Suite in the config.yml.
     Note that, to use some CipherSuites the unrestricted policy needs to be configured in JRE. Please visit [this link](http://www.ibm.com/support/knowledgecenter/SSYKE2_8.0.0/com.ibm.java.security.component.80.doc/security-component/sdkpolicyfiles.html
     ) for more details. For Oracle JRE, please update with [JCE Unlimited Strength Jurisdiction Policy](http://www.oracle.com/technetwork/java/javase/downloads/jce8-download-2133166.html). The download includes a readme file with instructions on how to apply these files to JRE
@@ -356,6 +382,7 @@ The user connecting to the queueManager should have the inquire, get, put (since
     ```
 
 ## Metrics
+
 The metrics will be reported under the tree ```Application Infrastructure Performance|$TIER|Custom Metrics|WebsphereMQ```
 
 ### [QueueManagerMetrics](https://www.ibm.com/support/knowledgecenter/en/SSFKSJ_7.5.0/com.ibm.mq.ref.adm.doc/q087850_.htm)
@@ -547,41 +574,22 @@ Workbench is an inbuilt feature provided with each extension in order to assist 
 
 6. If you are seeing "NoClassDefFoundError" or "ClassNotFound" error for any of the MQ dependency even after providing correct path in monitor.xml, then you can also try copying all the required jars in WMQMonitor (MAHome/monitors/WMQMonitor) folder and provide classpath in monitor.xml like below
    ```
-    <classpath>websphere-mq-monitoring-extension.jar;com.ibm.mq.allclient.jar</classpath>
+    <classpath>ibm-mq-monitoring-extension.jar;com.ibm.mq.allclient.jar</classpath>
    ```
    OR
    ```
-    <classpath>websphere-mq-monitoring-extension.jar;com.ibm.mq.jar;com.ibm.mq.jmqi.jar;com.ibm.mq.commonservices.jar;com.ibm.mq.headers.jar;com.ibm.mq.pcf.jar;connector.jar;dhbcore.jar</classpath>
+    <classpath>ibm-mq-monitoring-extension.jar;com.ibm.mq.jar;com.ibm.mq.jmqi.jar;com.ibm.mq.commonservices.jar;com.ibm.mq.headers.jar;com.ibm.mq.pcf.jar;connector.jar;dhbcore.jar</classpath>
    ```
 	
 ## Contributing
-Always feel free to fork and contribute any changes directly via [GitHub](https://github.com/Appdynamics/websphere-mq-monitoring-extension).
+Always feel free to fork and contribute any changes directly via [GitHub](https://github.com/signalfx/opentelemetry-ibm-mq-monitoring).
 
 ## Version
-|          Name            | Version                                                                                                 |
-|--------------------------|---------------------------------------------------------------------------------------------------------|
-|Extension Version         | 7.0.6                                                                                                   |
-|IBM MQ Version tested On  | 7.x, 8.x, 9.x and Windows, Unix, AIX                                                                    |
-|Last Update               | 09/06/2024                                                                                              |
-|List of Changes| [Change Log](https://github.com/Appdynamics/websphere-mq-monitoring-extension/blob/master/CHANGELOG.md) |
+|          Name            | Version                                                                                            |
+|--------------------------|----------------------------------------------------------------------------------------------------|
+|Extension Version         | 7.0.6                                                                                              |
+|IBM MQ Version tested On  | 7.x, 8.x, 9.x and Windows, Unix, AIX                                                               |
+|Last Update               | 09/06/2024                                                                                         |
+|List of Changes| [Change Log](https://github.com/signalfx/opentelemetry-ibm-mq-monitoring/blob/master/CHANGELOG.md) |
 	
 **Note**: While extensions are maintained and supported by customers under the open-source licensing model, they interact with agents and Controllers that are subject to [AppDynamics’ maintenance and support policy](https://docs.appdynamics.com/latest/en/product-and-release-announcements/maintenance-support-for-software-versions). Some extensions have been tested with AppDynamics 4.5.13+ artifacts, but you are strongly recommended against using versions that are no longer supported.
-		
-# ADDENDUM: OpenTelemetry
-
-We have added OpenTelemetry support to this library, as an experiment.
-
-To run the OpenTelemetry version, run `mvn package`.
-
-Then run the standalone jar alongside the IBM jar you must download separately:
-
-```shell
-java \
-   -Djavax.net.ssl.keyStore=key.jks \
-   -Djavax.net.ssl.keyStorePassword=<password> \
-   -Djavax.net.ssl.trustStore=key.jks \
-   -Djavax.net.ssl.trustStorePassword=<password> \
-   -cp target/websphere-mq-monitoring-extension-opentelemetry.jar:lib/com.ibm.mq.allclient.jar \
-   com.appdynamics.extensions.opentelemetry.Main \
-   ./my-config.yml
-```

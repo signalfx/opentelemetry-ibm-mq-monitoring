@@ -32,10 +32,6 @@ import java.util.Hashtable;
 /**
  * Takes care of websphere mq connection, authentication, SSL, Cipher spec, certificate based authorization.<br>
  * It also validates the arguments passed for various scenarios.
- * 
- * @author rajeevsingh
- * @version 2.0
- *
  */
 public class WMQContext {
 

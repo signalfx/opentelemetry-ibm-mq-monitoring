@@ -18,11 +18,6 @@ package com.appdynamics.extensions.webspheremq.config;
 
 import java.util.List;
 
-/**
- * @author rajeevsingh
- * @version 2.0
- *
- */
 public class QueueManager {
 
 	private String displayName;
@@ -51,7 +46,7 @@ public class QueueManager {
 
 	private ResourceFilters topicFilters;
 
-	
+
 	List<String> writeStatsDirectory;
 
 	public String getDisplayName() {
