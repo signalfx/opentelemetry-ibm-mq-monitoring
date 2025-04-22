@@ -16,7 +16,7 @@ import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.base.Strings;
-import com.ibm.mq.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 
@@ -26,7 +26,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * MetricsCollector class is abstract and serves as superclass for all types of metric collection class.<br>
  * It contains common methods to extract or transform metric value and names.
- * 
+ *
  * @author rajeevsingh
  * @version 2.0
  *
@@ -44,14 +44,14 @@ public abstract class MetricsCollector implements Runnable {
 
 	protected abstract void publishMetrics() throws TaskExecutionException;
 
-	public abstract String getAtrifact();
+	public abstract String getArtifact();
 
 	public abstract Map<String, WMQMetricOverride> getMetricsToReport();
 
 	/**
 	 * Applies include and exclude filters to the artifacts (i.e queue manager, q, or channel),<br>
 	 * extracts and publishes the metrics to controller
-	 * 
+	 *
 	 * @throws TaskExecutionException
 	 */
 	public final void process() throws TaskExecutionException {
@@ -84,7 +84,7 @@ public abstract class MetricsCollector implements Runnable {
 		metricWriteHelper.transformAndPrintMetrics(metrics);
 	}
 
-	public static enum FilterType {
+	public enum FilterType {
 		STARTSWITH, EQUALS, ENDSWITH, CONTAINS, NONE;
 	}
 
@@ -139,102 +139,6 @@ public abstract class MetricsCollector implements Runnable {
 		return false;
 	}
 
-	public List<String> evalExcludeFilter(String type, List<String> artifactList, Set<String> filterValueList) {
-		List<String> filteredList = new ArrayList<String>();
-
-		for (String artifact : artifactList) {
-			boolean exclude = false;
-			switch (FilterType.valueOf(type)) {
-			case CONTAINS:
-				for (String filterValue : filterValueList) {
-					if (artifact.contains(filterValue)) {
-						exclude = true;
-						break;
-					}
-				}
-				break;
-			case STARTSWITH:
-				for (String filterValue : filterValueList) {
-					if (artifact.startsWith(filterValue)) {
-						exclude = true;
-						break;
-					}
-				}
-				break;
-			case NONE:
-				return artifactList;
-			case EQUALS:
-				for (String filterValue : filterValueList) {
-					if (artifact.equals(filterValue)) {
-						exclude = true;
-						break;
-					}
-				}
-				break;
-			case ENDSWITH:
-				for (String filterValue : filterValueList) {
-					if (artifact.endsWith(filterValue)) {
-						exclude = true;
-						break;
-					}
-				}
-			}
-			if (!exclude) {
-				filteredList.add(artifact);
-			}
-		}
-
-		return filteredList;
-	}
-
-	public List<String> evalIncludeFilter(String type, List<String> artifactList, Set<String> filterValueList) {
-		List<String> filteredList = new ArrayList<String>();
-
-		for (String artifact : artifactList) {
-			boolean include = false;
-			switch (FilterType.valueOf(type)) {
-			case CONTAINS:
-				for (String filterValue : filterValueList) {
-					if (artifact.contains(filterValue)) {
-						include = true;
-						break;
-					}
-				}
-				break;
-			case STARTSWITH:
-				for (String filterValue : filterValueList) {
-					if (artifact.startsWith(filterValue)) {
-						include = true;
-						break;
-					}
-				}
-				break;
-			case NONE:
-				return artifactList;
-			case EQUALS:
-				for (String filterValue : filterValueList) {
-					if (artifact.equals(filterValue)) {
-						include = true;
-						break;
-					}
-				}
-				break;
-			case ENDSWITH:
-				for (String filterValue : filterValueList) {
-					if (artifact.endsWith(filterValue)) {
-						include = true;
-						break;
-					}
-				}
-			}
-			if (include) {
-				filteredList.add(artifact);
-			}
-		}
-
-		return filteredList;
-	}
-
 	protected int[] getIntAttributesArray(int... inputAttrs) {
 		int[] attrs = new int[inputAttrs.length+getMetricsToReport().size()];
 		// fill input attrs
@@ -245,10 +149,10 @@ public abstract class MetricsCollector implements Runnable {
 		Iterator<String> overrideItr = getMetricsToReport().keySet().iterator();
 		for (int count = inputAttrs.length; overrideItr.hasNext() && count < attrs.length; count++) {
 			String metrickey = overrideItr.next();
-			WMQMetricOverride wmqOverride = (WMQMetricOverride) getMetricsToReport().get(metrickey);
+			WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
 			attrs[count] = wmqOverride.getConstantValue();
 		}
 		return attrs;
-		
+
 	}
 }

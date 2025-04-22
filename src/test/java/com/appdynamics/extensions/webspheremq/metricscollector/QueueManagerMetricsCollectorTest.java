@@ -18,13 +18,11 @@ import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.ibm.mq.MQException;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
-import com.ibm.mq.pcf.PCFMessage;
-import com.ibm.mq.pcf.PCFMessageAgent;
+import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,13 +34,14 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.not;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
@@ -80,7 +79,7 @@ public class QueueManagerMetricsCollectorTest {
     }
 
     @Test
-    public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws MQException, IOException, TaskExecutionException {
+    public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireQMgrStatusCmd());
         classUnderTest = new QueueManagerMetricsCollector(queueMgrMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
         classUnderTest.publishMetrics();
@@ -146,12 +145,11 @@ public class QueueManagerMetricsCollectorTest {
         response1.addParameter(CMQCFC.MQCACF_MEDIA_LOG_EXTENT_NAME, "");
         response1.addParameter(CMQCFC.MQCACF_RESTART_LOG_EXTENT_NAME, "");
 
-        PCFMessage [] messages = {response1};
-        return messages;
+        return new PCFMessage[]{response1};
     }
 
     @Test
-    public void testDisplayName() throws MQException, IOException, TaskExecutionException {
+    public void testDisplayName() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireQMgrStatusCmd());
         classUnderTest = new QueueManagerMetricsCollector(queueMgrMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
         classUnderTest.publishMetrics();
@@ -162,9 +160,9 @@ public class QueueManagerMetricsCollectorTest {
                 metricPathsList.add(metric.getMetricPath());
             }
         }
-        Assert.assertEquals(queueManager.getDisplayName(), "QueueManager1");
-        Assert.assertThat(metricPathsList, hasItem("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Status"));
-        Assert.assertThat(metricPathsList, not(hasItem("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QManager|Status")));
+        assertEquals("QueueManager1", queueManager.getDisplayName());
+        assertThat(metricPathsList, hasItem("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Status"));
+        assertThat(metricPathsList, not(hasItem("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QManager|Status")));
     }
 
 }

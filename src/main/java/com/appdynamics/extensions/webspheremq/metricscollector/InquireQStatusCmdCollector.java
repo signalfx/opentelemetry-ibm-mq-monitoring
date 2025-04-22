@@ -11,8 +11,8 @@ import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
-import com.ibm.mq.pcf.PCFException;
-import com.ibm.mq.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFException;
+import com.ibm.mq.headers.pcf.PCFMessage;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 
@@ -64,8 +64,8 @@ class InquireQStatusCmdCollector extends QueueMetricsCollector implements Runnab
             } catch (PCFException pcfe) {
                 logger.error("PCFException caught while collecting metric for Queue: {} for command {}",queueGenericName,COMMAND, pcfe);
                 PCFMessage[] msgs = (PCFMessage[]) pcfe.exceptionSource;
-                for (int i = 0; i < msgs.length; i++) {
-                    logger.error(msgs[i].toString());
+                for (PCFMessage msg : msgs) {
+                    logger.error(msg.toString());
                 }
                 // Dont throw exception as it will stop queuemetric colloection
             } catch (Exception mqe) {

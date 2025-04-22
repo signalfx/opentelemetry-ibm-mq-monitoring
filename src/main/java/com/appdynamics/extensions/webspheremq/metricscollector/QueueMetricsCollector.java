@@ -16,9 +16,9 @@ import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ibm.mq.MQException;
 import com.ibm.mq.constants.CMQC;
-import com.ibm.mq.pcf.*;
+import com.ibm.mq.headers.MQDataException;
+import com.ibm.mq.headers.pcf.*;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 
@@ -104,7 +104,7 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 	}
 
 	@Override
-	public String getAtrifact() {
+	public String getArtifact() {
 		return artifact;
 	}
 
@@ -113,11 +113,10 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 		return this.metricsToReport;
 	}
 
-	protected void processPCFRequestAndPublishQMetrics(String queueGenericName, PCFMessage request, String command) throws MQException, IOException {
-		PCFMessage[] response;
+	protected void processPCFRequestAndPublishQMetrics(String queueGenericName, PCFMessage request, String command) throws IOException, MQDataException {
 		logger.debug("sending PCF agent request to query metrics for generic queue {} for command {}",queueGenericName,command);
 		long startTime = System.currentTimeMillis();
-		response = agent.send(request);
+		PCFMessage[] response = agent.send(request);
 		long endTime = System.currentTimeMillis() - startTime;
 		logger.debug("PCF agent queue metrics query response for generic queue {} for command {} received in {} milliseconds", queueGenericName, command,endTime);
 		if (response == null || response.length <= 0) {
@@ -139,7 +138,7 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 						if (pcfParam != null) {
 							if(pcfParam instanceof MQCFIN){
 								int metricVal = response[i].getIntParameterValue(wmqOverride.getConstantValue());
-								Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getAtrifact(), queueName, metrickey);
+								Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), queueName, metrickey);
 								metrics.add(metric);
 							}
 							else if(pcfParam instanceof MQCFIL){
@@ -148,7 +147,9 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 									int count=0;
 									for(int val : metricVals){
 										count++;
-										Metric metric = createMetric(queueManager, metrickey+ "_" + Integer.toString(count), val, wmqOverride, getAtrifact(), queueName, metrickey+ "_" + Integer.toString(count));
+										Metric metric = createMetric(queueManager, metrickey + "_" + count,
+												val, wmqOverride, getArtifact(), queueName,
+												metrickey + "_" + count);
 										metrics.add(metric);
 									}
 								}
