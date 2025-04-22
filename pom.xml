@@ -11,10 +11,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.appdynamics.extensions</groupId>
-    <artifactId>websphere-mq-monitoring-extension</artifactId>
-    <version>7.0.6</version>
+    <artifactId>ibm-mq-monitoring-extension</artifactId>
+    <version>0.1.0</version>
     <packaging>jar</packaging>
-    <name>websphere-mq-monitoring-extension</name>
+    <name>ibm-mq-monitoring-extension</name>
     <url>http://maven.apache.org</url>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -267,6 +267,6 @@
         </repository>
     </repositories>
     <scm>
-        <connection>scm:git:https://github.com/Appdynamics/websphere-mq-monitoring-extension.git</connection>
+        <connection>scm:git:https://github.com/signalfx/ibm-mq-monitoring-extension.git</connection>
     </scm>
 </project>

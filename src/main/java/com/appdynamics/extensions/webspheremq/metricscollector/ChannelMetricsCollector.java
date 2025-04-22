@@ -30,10 +30,6 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * This class is responsible for channel metric collection.
- *
- * @author rajeevsingh ,James Schneider
- * @version 2.0
- *
  */
 public class ChannelMetricsCollector extends MetricsCollector implements Runnable {
 

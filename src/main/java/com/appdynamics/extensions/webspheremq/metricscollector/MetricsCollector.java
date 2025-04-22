@@ -26,10 +26,6 @@ import java.util.concurrent.CountDownLatch;
 /**
  * MetricsCollector class is abstract and serves as superclass for all types of metric collection class.<br>
  * It contains common methods to extract or transform metric value and names.
- *
- * @author rajeevsingh
- * @version 2.0
- *
  */
 public abstract class MetricsCollector implements Runnable {
 

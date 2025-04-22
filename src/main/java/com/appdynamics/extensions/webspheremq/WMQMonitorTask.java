@@ -34,10 +34,6 @@ import java.util.concurrent.CountDownLatch;
 
 /**
  * Encapsulates all metrics collection for all artifacts related to a queue manager.
- *
- * @author rajeevsingh,kunalgup
- * @version 2.0
- *
  */
 public class WMQMonitorTask implements AMonitorTaskRunnable {
 
