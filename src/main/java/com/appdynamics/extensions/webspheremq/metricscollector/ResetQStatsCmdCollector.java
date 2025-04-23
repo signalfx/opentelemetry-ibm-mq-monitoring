@@ -37,7 +37,7 @@ import java.util.Set;
 
 final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Runnable {
 
-    public static final Logger logger = ExtensionsLoggerFactory.getLogger(ResetQStatsCmdCollector.class);
+    private static final Logger logger = ExtensionsLoggerFactory.getLogger(ResetQStatsCmdCollector.class);
 
     protected static final String COMMAND = "MQCMD_RESET_Q_STATS";
 

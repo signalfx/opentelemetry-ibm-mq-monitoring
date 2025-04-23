@@ -46,7 +46,7 @@ import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
 
 public class QueueMetricsCollector extends MetricsCollector implements Runnable {
 
-	public static final Logger logger = ExtensionsLoggerFactory.getLogger(QueueMetricsCollector.class);
+	private static final Logger logger = ExtensionsLoggerFactory.getLogger(QueueMetricsCollector.class);
 	private final String artifact = "Queues";
 
 	// hack to share state of queue type between collectors.

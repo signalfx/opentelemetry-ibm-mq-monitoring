@@ -45,7 +45,7 @@ public abstract class MetricsCollector implements Runnable {
 	protected QueueManager queueManager;
 	protected CountDownLatch countDownLatch;
 
-	public static final Logger logger = ExtensionsLoggerFactory.getLogger(MetricsCollector.class);
+	private static final Logger logger = ExtensionsLoggerFactory.getLogger(MetricsCollector.class);
 
 	protected abstract void publishMetrics() throws TaskExecutionException;
 

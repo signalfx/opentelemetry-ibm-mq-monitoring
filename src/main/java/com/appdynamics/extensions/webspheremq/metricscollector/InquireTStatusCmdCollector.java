@@ -28,9 +28,9 @@ import org.slf4j.Logger;
 import java.util.Map;
 import java.util.Set;
 
-final class InquireTStatusCmdCollector extends TopicMetricsCollector implements Runnable{
+final class InquireTStatusCmdCollector extends TopicMetricsCollector implements Runnable {
 
-    public static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireTStatusCmdCollector.class);
+    private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireTStatusCmdCollector.class);
 
     protected static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";
 

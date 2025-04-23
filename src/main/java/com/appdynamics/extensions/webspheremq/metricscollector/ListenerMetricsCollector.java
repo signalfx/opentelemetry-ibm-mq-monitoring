@@ -36,7 +36,7 @@ import java.util.concurrent.CountDownLatch;
 
 final public class ListenerMetricsCollector extends MetricsCollector implements Runnable {
 
-    public static final Logger logger = ExtensionsLoggerFactory.getLogger(ListenerMetricsCollector.class);
+    private static final Logger logger = ExtensionsLoggerFactory.getLogger(ListenerMetricsCollector.class);
     private final String artifact = "Listeners";
 
     public ListenerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {

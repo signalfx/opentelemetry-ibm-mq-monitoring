@@ -31,7 +31,7 @@ import java.util.Set;
 
 final class InquireQStatusCmdCollector extends QueueMetricsCollector implements Runnable {
 
-    public static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQStatusCmdCollector.class);
+    private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQStatusCmdCollector.class);
 
     protected static final String COMMAND = "MQCMD_INQUIRE_Q_STATUS";
 
