@@ -119,6 +119,7 @@ class MQOtelTranslator {
   //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Buffers Received
   //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Byte Received
   //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Listeners|CLOUD.LISTENER.TCP|Status
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Current Sharing Conversations
   private static final Mapping channelMetricNameMappings = new Mapping(new HashMap<String, String>() {{
     put("Messages", "mq.messages");
     put("Status", "mq.status");
@@ -126,6 +127,7 @@ class MQOtelTranslator {
     put("Byte Received", "mq.byte.received");
     put("Buffers Sent", "mq.buffers.sent");
     put("Buffers Received", "mq.buffers.received");
+    put("Current Sharing Conversations", "mq.current.sharing.conversations");
   }}, segments -> {
     AttributesBuilder builder = Attributes.builder();
     builder.put("queue.manager", segments.get(segments.size() - 4));
