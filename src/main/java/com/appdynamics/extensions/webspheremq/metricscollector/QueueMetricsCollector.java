@@ -60,7 +60,7 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 	@Override
 	public void run() {
 		try {
-			this.process();
+			super.process();
 		} catch (TaskExecutionException e) {
 			logger.error("Error in QueueMetricsCollector ", e);
 		} finally {

@@ -46,7 +46,7 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
     @Override
     public void run() {
         try {
-            this.process();
+            super.process();
         } catch (TaskExecutionException e) {
             logger.error("Error in ListenerMetricsCollector ", e);
         } finally {

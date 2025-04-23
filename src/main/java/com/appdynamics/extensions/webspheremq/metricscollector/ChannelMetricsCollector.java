@@ -55,7 +55,7 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
 	@Override
 	public void run() {
 		try {
-			this.process();
+			super.process();
 		} catch (TaskExecutionException e) {
 			logger.error("Error in ChannelMetricsCollector ", e);
 		} finally {

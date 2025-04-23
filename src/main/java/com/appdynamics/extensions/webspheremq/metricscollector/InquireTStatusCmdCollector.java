@@ -37,14 +37,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-final class InquireTStatusCmdCollector extends TopicMetricsCollector implements Runnable {
+final class InquireTStatusCmdCollector extends MetricsCollector implements Runnable {
 
     private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireTStatusCmdCollector.class);
+    private static final String ARTIFACT = "Topics";
 
     static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";
 
     public InquireTStatusCmdCollector(TopicMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport){
-        super(metricsToReport,collector.monitorContextConfig,collector.agent,collector.queueManager,collector.metricWriteHelper, collector.countDownLatch);
+        super(metricsToReport, collector.monitorContextConfig, collector.agent,
+                collector.metricWriteHelper, collector.queueManager,
+                collector.countDownLatch, ARTIFACT);
     }
 
     @Override
