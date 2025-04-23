@@ -213,6 +213,16 @@ mqMetrics:
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_UNCOMMITTED_MSGS"
             ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
 
+        - ServiceInterval:
+            alias: "Service Interval"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_Q_SERVICE_INTERVAL"
+            ibmCommand: "MQCMD_INQUIRE_Q"
+
+        - ServiceIntervalEvent:
+            alias: "Service Interval Event"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT"
+            ibmCommand: "MQCMD_INQUIRE_Q"
+
   # This Object will extract channel metrics
   - metricsType: "channelMetrics"
     metrics:

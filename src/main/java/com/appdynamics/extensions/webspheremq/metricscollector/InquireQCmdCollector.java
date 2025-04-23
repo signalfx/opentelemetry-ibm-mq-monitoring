@@ -57,11 +57,6 @@ class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
 		 */
         long entryTime = System.currentTimeMillis();
 
-        if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
-            logger.debug("Queue metrics to report from the config is null or empty, nothing to publish");
-            return;
-        }
-
         int[] attrs = getIntAttributesArray(CMQC.MQCA_Q_NAME);
         logger.debug("Attributes being sent along PCF agent request to query queue metrics: {} for command {}",Arrays.toString(attrs),COMMAND);
 
