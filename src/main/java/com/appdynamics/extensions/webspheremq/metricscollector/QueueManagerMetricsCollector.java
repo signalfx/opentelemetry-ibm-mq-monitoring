@@ -40,15 +40,10 @@ import java.util.concurrent.CountDownLatch;
 final public class QueueManagerMetricsCollector extends MetricsCollector implements Runnable {
 
 	private static final Logger logger = ExtensionsLoggerFactory.getLogger(QueueManagerMetricsCollector.class);
-	private final String artifact = "Queue Manager";
+	private final static String ARTIFACT = "Queue Manager";
 
 	public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
-	}
-
-	@Override
-	public String getArtifact() {
-		return artifact;
+		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
 	}
 
 	@Override

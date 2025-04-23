@@ -47,14 +47,14 @@ import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
 public class QueueMetricsCollector extends MetricsCollector implements Runnable {
 
 	private static final Logger logger = ExtensionsLoggerFactory.getLogger(QueueMetricsCollector.class);
-	private final String artifact = "Queues";
+	private final static String ARTIFACT = "Queues";
 
 	// hack to share state of queue type between collectors.
 	// The queue information is only available as response of some commands.
 	protected static ConcurrentHashMap<String, String> queueTypes = new ConcurrentHashMap<>();
 
 	public QueueMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
+		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
 	}
 
 	@Override
@@ -116,11 +116,6 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 			}
 		}
 		return commandMetrics;
-	}
-
-	@Override
-	public String getArtifact() {
-		return artifact;
 	}
 
 	protected void processPCFRequestAndPublishQMetrics(String queueGenericName, PCFMessage request, String command) throws IOException, MQDataException {

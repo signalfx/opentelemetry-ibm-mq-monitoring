@@ -37,10 +37,10 @@ import java.util.concurrent.CountDownLatch;
 final public class ListenerMetricsCollector extends MetricsCollector implements Runnable {
 
     private static final Logger logger = ExtensionsLoggerFactory.getLogger(ListenerMetricsCollector.class);
-    private final String artifact = "Listeners";
+    private final static String ARTIFACT = "Listeners";
 
     public ListenerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-        super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
+        super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
     }
 
     @Override
@@ -108,10 +108,5 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
         long exitTime = System.currentTimeMillis() - entryTime;
         logger.debug("Time taken to publish metrics for all listener is {} milliseconds", exitTime);
 
-    }
-
-    @Override
-    public String getArtifact() {
-        return artifact;
     }
 }
