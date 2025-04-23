@@ -40,7 +40,7 @@ import java.util.concurrent.*;
 
 public class TopicMetricsCollector extends MetricsCollector implements Runnable {
     private static final Logger logger = ExtensionsLoggerFactory.getLogger(TopicMetricsCollector.class);
-    private final String artifact = "Topics";
+    private static final String artifact = "Topics";
 
     public TopicMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
         this.metricsToReport = metricsToReport;
