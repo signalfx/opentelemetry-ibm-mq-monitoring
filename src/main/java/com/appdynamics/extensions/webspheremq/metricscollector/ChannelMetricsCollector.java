@@ -43,12 +43,11 @@ import java.util.concurrent.CountDownLatch;
 public class ChannelMetricsCollector extends MetricsCollector implements Runnable {
 
 	public static final Logger logger = ExtensionsLoggerFactory.getLogger(ChannelMetricsCollector.class);
-	private final String artifact = "Channels";
+	private static final String ARTIFACT = "Channels";
 
 	/*
 	 * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
 	 */
-
 	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
 		this.metricsToReport = metricsToReport;
 		this.monitorContextConfig = monitorContextConfig;
@@ -78,7 +77,9 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
 		}
 
 		int[] attrs = getIntAttributesArray(CMQCFC.MQCACH_CHANNEL_NAME, CMQCFC.MQCACH_CONNECTION_NAME);
-		logger.debug("Attributes being sent along PCF agent request to query channel metrics: " + Arrays.toString(attrs));
+		if (logger.isDebugEnabled()) {
+            logger.debug("Attributes being sent along PCF agent request to query channel metrics: {}", Arrays.toString(attrs));
+		}
 
 		Set<String> channelGenericNames = this.queueManager.getChannelFilters().getInclude();
 
@@ -111,10 +112,8 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
                             int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
                             Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), channelName, metrickey);
                             metrics.add(metric);
-                            if ("Status".equals(metrickey)) {
-                                if (metricVal == 3) {
-                                    activeChannels.add(channelName);
-                                }
+                            if ("Status".equals(metrickey) && metricVal == 3) {
+                                activeChannels.add(channelName);
                             }
                         }
                         publishMetrics(metrics);
@@ -139,7 +138,7 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
 
 		logger.info("Active Channels in queueManager {} are {}", WMQUtil.getQueueManagerNameFromConfig(queueManager), activeChannels);
 		Metric activeChannelsCountMetric = createMetric(queueManager,"ActiveChannelsCount", activeChannels.size(), null, getArtifact(), "ActiveChannelsCount");
-		publishMetrics(Arrays.asList(activeChannelsCountMetric));
+		publishMetrics(Collections.singletonList(activeChannelsCountMetric));
 
 		long exitTime = System.currentTimeMillis() - entryTime;
 		logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
@@ -147,7 +146,7 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
 	}
 
 	public String getArtifact() {
-		return artifact;
+		return ARTIFACT;
 	}
 
 	public Map<String, WMQMetricOverride> getMetricsToReport() {

@@ -40,6 +40,7 @@ class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
                 collector.metricWriteHelper, collector.countDownLatch);
     }
 
+    @Override
     public void run() {
         try {
             logger.info("Collecting metrics for command {}",COMMAND);
@@ -49,6 +50,7 @@ class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
         }
     }
 
+    @Override
     protected void publishMetrics() throws TaskExecutionException {
 		/*
 		 * attrs = { CMQC.MQCA_Q_NAME, CMQC.MQIA_CURRENT_Q_DEPTH, CMQC.MQIA_MAX_Q_DEPTH, CMQC.MQIA_OPEN_INPUT_COUNT, CMQC.MQIA_OPEN_OUTPUT_COUNT };
@@ -79,10 +81,10 @@ class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
                 for (int i = 0; i < msgs.length; i++) {
                     logger.error(msgs[i].toString());
                 }
-                // Dont throw exception as it will stop queuemetric colloection
+                // Don't throw exception as it will stop queue metric colloection
             } catch (Exception mqe) {
                 logger.error("MQException caught", mqe);
-                // Dont throw exception as it will stop queuemetric colloection
+                // Don't throw exception as it will stop queue metric colloection
             }
         }
         long exitTime = System.currentTimeMillis() - entryTime;

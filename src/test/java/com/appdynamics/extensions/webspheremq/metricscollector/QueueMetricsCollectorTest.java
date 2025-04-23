@@ -27,7 +27,6 @@ import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.ibm.mq.MQException;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
@@ -43,7 +42,6 @@ import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -101,10 +99,10 @@ public class QueueMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.QUEUE.1|UncommittedMsgs")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("10"));
+                        Assert.assertEquals("10", metric.getMetricValue());
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|OldestMsgAge")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("-1"));
+                        Assert.assertEquals("-1", metric.getMetricValue());
                     }
                 }
             }
@@ -127,10 +125,10 @@ public class QueueMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.QUEUE.1|CurrentQueueDepth")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("3"));
+                        Assert.assertEquals("3", metric.getMetricValue());
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|CurrentQueueDepth")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("2"));
+                        Assert.assertEquals("2", metric.getMetricValue());
                     }
                 }
             }
@@ -153,10 +151,10 @@ public class QueueMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|HighQDepth")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("10"));
+                        Assert.assertEquals("10", metric.getMetricValue());
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|MsgEnqCount")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("3"));
+                        Assert.assertEquals("3", metric.getMetricValue());
                     }
                 }
             }
@@ -230,7 +228,7 @@ public class QueueMetricsCollectorTest {
         response3.addParameter(CMQCFC.MQIACF_Q_TIME_INDICATOR, new int[]{-1, -1});
         response3.addParameter(CMQCFC.MQIACF_UNCOMMITTED_MSGS, 10);
 
-        PCFMessage [] messages = {response1, response2, response3};
+        PCFMessage [] messages = { response1, response2, response3 };
         return messages;
     }
 
@@ -303,7 +301,7 @@ public class QueueMetricsCollectorTest {
         response3.addParameter(CMQC.MQIA_MAX_Q_DEPTH, 5000);
         response3.addParameter(CMQC.MQIA_OPEN_OUTPUT_COUNT, 3);
 
-        PCFMessage [] messages = {response1, response2, response3};
+        PCFMessage [] messages = { response1, response2, response3 };
         return messages;
     }
 
@@ -335,7 +333,7 @@ public class QueueMetricsCollectorTest {
         response1.addParameter(CMQC.MQIA_HIGH_Q_DEPTH, 10);
         response1.addParameter(CMQC.MQIA_TIME_SINCE_RESET, 65);
 
-        PCFMessage [] messages = {response1};
+        PCFMessage [] messages = { response1 };
         return messages;
     }
 

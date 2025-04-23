@@ -27,6 +27,7 @@ public class WMQMetricOverride {
 	String ibmCommand;
 	int constantValue = -1;
 	Map<String, ?> metricProperties;
+
 	public static final Logger logger = ExtensionsLoggerFactory.getLogger(WMQMetricOverride.class);
 
 	public String getIbmConstant() {
@@ -76,16 +77,13 @@ public class WMQMetricOverride {
 		this.constantValue = constantValue;
 	}
 
-	@Override
-	public String toString() {
-		StringBuilder stringRep = new StringBuilder();
-		stringRep.append("[");
-		stringRep.append("IbmConstant=" + getIbmConstant() + ",");
-		stringRep.append("IbmCommand=" + getIbmCommand() + ",");
-		stringRep.append("ConstantVal=" + getConstantValue() + ",");
-		stringRep.append("]");
-
-		return stringRep.toString();
-	}
+    @Override
+    public String toString() {
+        return "[" +
+                "IbmConstant=" + getIbmConstant() + "," +
+                "IbmCommand=" + getIbmCommand() + "," +
+                "ConstantVal=" + getConstantValue() + "," +
+                "]";
+    }
 
 }

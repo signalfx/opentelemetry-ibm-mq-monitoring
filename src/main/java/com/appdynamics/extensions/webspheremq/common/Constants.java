@@ -25,5 +25,4 @@ public class Constants {
 	
 	public static final String TRANSPORT_TYPE_CLIENT = "Client";
 	public static final String TRANSPORT_TYPE_BINGINGS = "Bindings";
-
 }

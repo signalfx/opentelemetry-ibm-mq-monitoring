@@ -39,11 +39,8 @@ public class QueueManager {
 	private String modelQueueName;
 
 	private ResourceFilters queueFilters;
-
 	private ResourceFilters channelFilters;
-
 	private ResourceFilters listenerFilters;
-
 	private ResourceFilters topicFilters;
 
 
