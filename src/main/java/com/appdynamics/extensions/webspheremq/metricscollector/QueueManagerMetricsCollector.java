@@ -43,12 +43,7 @@ final public class QueueManagerMetricsCollector extends MetricsCollector impleme
 	private final String artifact = "Queue Manager";
 
 	public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-		this.metricsToReport = metricsToReport;
-		this.monitorContextConfig = monitorContextConfig;
-		this.agent = agent;
-		this.metricWriteHelper = metricWriteHelper;
-		this.queueManager = queueManager;
-		this.countDownLatch = countDownLatch;
+		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
 	}
 
 	@Override

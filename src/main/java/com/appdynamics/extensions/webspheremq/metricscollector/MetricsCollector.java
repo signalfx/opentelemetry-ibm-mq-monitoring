@@ -18,7 +18,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
@@ -27,9 +26,11 @@ import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.base.Strings;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
-import org.slf4j.Logger;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -38,14 +39,24 @@ import java.util.concurrent.CountDownLatch;
  */
 public abstract class MetricsCollector implements Runnable {
 
-	protected Map<String, WMQMetricOverride> metricsToReport;
-	protected MonitorContextConfiguration monitorContextConfig;
-	protected PCFMessageAgent agent;
-	protected MetricWriteHelper metricWriteHelper;
-	protected QueueManager queueManager;
-	protected CountDownLatch countDownLatch;
+	protected final Map<String, WMQMetricOverride> metricsToReport;
+	protected final MonitorContextConfiguration monitorContextConfig;
+	protected final PCFMessageAgent agent;
+	protected final MetricWriteHelper metricWriteHelper;
+	protected final QueueManager queueManager;
+	protected final CountDownLatch countDownLatch;
 
-	private static final Logger logger = ExtensionsLoggerFactory.getLogger(MetricsCollector.class);
+	public MetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
+							MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent,
+							MetricWriteHelper metricWriteHelper, QueueManager queueManager,
+							CountDownLatch countDownLatch) {
+		this.metricsToReport = metricsToReport;
+		this.monitorContextConfig = monitorContextConfig;
+		this.agent = agent;
+		this.metricWriteHelper = metricWriteHelper;
+		this.queueManager = queueManager;
+		this.countDownLatch = countDownLatch;
+	}
 
 	protected abstract void publishMetrics() throws TaskExecutionException;
 
