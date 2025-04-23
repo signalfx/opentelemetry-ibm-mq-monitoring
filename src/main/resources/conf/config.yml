@@ -208,6 +208,11 @@ mqMetrics:
             ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MSG_ENQ_COUNT"
             ibmCommand: "MQCMD_RESET_Q_STATS"
 
+        - UncommittedMsgs:
+            alias: "Uncommitted Messages"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_UNCOMMITTED_MSGS"
+            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
+
   # This Object will extract channel metrics
   - metricsType: "channelMetrics"
     metrics:

@@ -104,6 +104,7 @@ class MQOtelTranslator {
     put("MsgEnqCount", "mq.message.enq.count");
     put("Current maximum queue file size", "mq.current.max.queue.filesize");
     put("Current queue file size", "mq.current.queue.filesize");
+    put("Uncommitted Messages", "mq.uncommitted.messages");
   }},
       segments -> {
         AttributesBuilder builder = Attributes.builder();
