@@ -57,8 +57,8 @@ class MQOtelTranslator {
     }
 
   private static final Mapping queueMgrMetricNameMappings = new Mapping(new HashMap<String, String>() {{
-    put("Status", "mq.mgr.status");
-    put("ConnectionCount", "mq.connection.count");
+    put("Status", "mq.manager.status");
+    put("ConnectionCount", "mq.manager.connection.count");
   }}, segments -> {
     AttributesBuilder builder = Attributes.builder();
     builder.put("queue.manager", segments.get(segments.size() - 2));
