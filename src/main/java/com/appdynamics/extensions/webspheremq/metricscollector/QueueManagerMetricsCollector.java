@@ -37,7 +37,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * This class is responsible for queue metric collection.
  */
-public class QueueManagerMetricsCollector extends MetricsCollector implements Runnable {
+final public class QueueManagerMetricsCollector extends MetricsCollector implements Runnable {
 
 	public static final Logger logger = ExtensionsLoggerFactory.getLogger(QueueManagerMetricsCollector.class);
 	private final String artifact = "Queue Manager";

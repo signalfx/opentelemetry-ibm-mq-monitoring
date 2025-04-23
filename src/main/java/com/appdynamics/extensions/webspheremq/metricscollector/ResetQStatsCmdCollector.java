@@ -35,7 +35,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-class ResetQStatsCmdCollector extends QueueMetricsCollector implements Runnable{
+final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Runnable{
 
     public static final Logger logger = ExtensionsLoggerFactory.getLogger(ResetQStatsCmdCollector.class);
 

@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
+final class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
 
     public static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQCmdCollector.class);
 

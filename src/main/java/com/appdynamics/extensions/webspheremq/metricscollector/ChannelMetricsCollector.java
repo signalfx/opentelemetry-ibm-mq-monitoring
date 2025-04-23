@@ -40,7 +40,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * This class is responsible for channel metric collection.
  */
-public class ChannelMetricsCollector extends MetricsCollector implements Runnable {
+public final class ChannelMetricsCollector extends MetricsCollector implements Runnable {
 
 	public static final Logger logger = ExtensionsLoggerFactory.getLogger(ChannelMetricsCollector.class);
 	private static final String ARTIFACT = "Channels";

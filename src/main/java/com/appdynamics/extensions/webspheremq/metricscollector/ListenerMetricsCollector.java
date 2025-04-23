@@ -34,7 +34,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 
-public class ListenerMetricsCollector extends MetricsCollector implements Runnable {
+final public class ListenerMetricsCollector extends MetricsCollector implements Runnable {
 
     public static final Logger logger = ExtensionsLoggerFactory.getLogger(ListenerMetricsCollector.class);
     private final String artifact = "Listeners";
