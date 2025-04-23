@@ -117,44 +117,8 @@ public abstract class MetricsCollector implements Runnable {
 		return false;
 	}
 
-	private boolean isExcluded(String resourceName, ExcludeFilters excludeFilter){
-		if (Strings.isNullOrEmpty(resourceName)) {
-			return true;
-		}
-		String type = excludeFilter.getType();
-		Set<String> filterValues = excludeFilter.getValues();
-		switch (FilterType.valueOf(type)){
-			case CONTAINS:
-				for (String filterValue : filterValues) {
-					if (resourceName.contains(filterValue)) {
-						return true;
-					}
-				}
-				break;
-			case STARTSWITH:
-				for (String filterValue : filterValues) {
-					if (resourceName.startsWith(filterValue)) {
-						return true;
-					}
-				}
-				break;
-			case NONE:
-				return false;
-			case EQUALS:
-				for (String filterValue : filterValues) {
-					if (resourceName.equals(filterValue)) {
-						return true;
-					}
-				}
-				break;
-			case ENDSWITH:
-				for (String filterValue : filterValues) {
-					if (resourceName.endsWith(filterValue)) {
-						return true;
-					}
-				}
-		}
-		return false;
+	private static boolean isExcluded(String resourceName, ExcludeFilters excludeFilter){
+		return excludeFilter.isExcluded(resourceName);
 	}
 
 	protected int[] getIntAttributesArray(int... inputAttrs) {
