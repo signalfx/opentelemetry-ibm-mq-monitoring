@@ -77,9 +77,15 @@ class ResetQStatsCmdCollector extends QueueMetricsCollector implements Runnable{
                 processPCFRequestAndPublishQMetrics(queueGenericName, request,COMMAND);
             } catch (PCFException pcfe) {
                 logger.error("PCFException caught while collecting metric for Queue: {} for command {}",queueGenericName,COMMAND, pcfe);
-                PCFMessage[] msgs = (PCFMessage[]) pcfe.exceptionSource;
-                for (int i = 0; i < msgs.length; i++) {
-                    logger.error(msgs[i].toString());
+                if (pcfe.exceptionSource instanceof PCFMessage[]) {
+                    PCFMessage[] msgs = (PCFMessage[]) pcfe.exceptionSource;
+                    for (int i = 0; i < msgs.length; i++) {
+                        logger.error(msgs[i].toString());
+                    }
+                }
+                if (pcfe.exceptionSource instanceof PCFMessage) {
+                    PCFMessage msg = (PCFMessage) pcfe.exceptionSource;
+                    logger.error(msg.toString());
                 }
                 // Dont throw exception as it will stop queuemetric colloection
             } catch (Exception mqe) {
