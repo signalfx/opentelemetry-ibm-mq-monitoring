@@ -81,16 +81,19 @@ public class QueueMetricsCollectorTest {
         queueManager = mapper.convertValue(((List)configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         queueMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE);
+        QueueCollectorSharedState.getInstance().resetForTest();
     }
 
     @Test
     public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
-        QueueMetricsCollector.queueTypes.put("AMQ.5AF1608820C7D76E","local-transmission");
-        QueueMetricsCollector.queueTypes.put("DEV.DEAD.LETTER.QUEUE","local-transmission");
-        QueueMetricsCollector.queueTypes.put("DEV.QUEUE.1","local-transmission");
+        QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
+        sharedState.putQueueType("AMQ.5AF1608820C7D76E","local-transmission");
+        sharedState.putQueueType("DEV.DEAD.LETTER.QUEUE","local-transmission");
+        sharedState.putQueueType("DEV.QUEUE.1","local-transmission");
         PCFMessage request = createPCFRequestForInquireQStatusCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQStatusCmd());
-        classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent, metricWriteHelper, queueManager, phaser);
+        classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
+                metricWriteHelper, queueManager, phaser, sharedState);
         classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_INQUIRE_Q_STATUS");
 
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
@@ -116,7 +119,8 @@ public class QueueMetricsCollectorTest {
     public void testProcessPCFRequestAndPublishQMetricsForInquireQCmd() throws Exception {
         PCFMessage request = createPCFRequestForInquireQCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQCmd());
-        classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent, metricWriteHelper, queueManager, phaser);
+        classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
+                metricWriteHelper, queueManager, phaser, QueueCollectorSharedState.getInstance());
         classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_INQUIRE_Q");
 
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
@@ -142,7 +146,8 @@ public class QueueMetricsCollectorTest {
     public void testProcessPCFRequestAndPublishQMetricsForResetQStatsCmd() throws Exception {
         PCFMessage request = createPCFRequestForResetQStatsCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForResetQStatsCmd());
-        classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent, metricWriteHelper, queueManager, phaser);
+        classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
+                metricWriteHelper, queueManager, phaser, QueueCollectorSharedState.getInstance());
         classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_RESET_Q_STATS");
 
         verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());

@@ -117,9 +117,10 @@ public abstract class MetricsCollector implements Runnable {
 		return false;
 	}
 
-	public boolean isExcluded(String resourceName, ExcludeFilters excludeFilter){
-		if (Strings.isNullOrEmpty(resourceName))
+	private boolean isExcluded(String resourceName, ExcludeFilters excludeFilter){
+		if (Strings.isNullOrEmpty(resourceName)) {
 			return true;
+		}
 		String type = excludeFilter.getType();
 		Set<String> filterValues = excludeFilter.getValues();
 		switch (FilterType.valueOf(type)){

@@ -35,9 +35,9 @@ final class InquireQCmdCollector extends QueueMetricsCollector implements Runnab
 
     static final String COMMAND = "MQCMD_INQUIRE_Q";
 
-    public InquireQCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport){
+    public InquireQCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport, QueueCollectorSharedState sharedState){
         super(metricsToReport, collector.monitorContextConfig, collector.agent,
-                collector.metricWriteHelper, collector.queueManager, collector.countDownLatch);
+                collector.metricWriteHelper, collector.queueManager, collector.countDownLatch, sharedState);
     }
 
     @Override
