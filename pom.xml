@@ -137,6 +137,7 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
+            <!-- shade plugin to create fat .jar file -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -251,8 +252,34 @@
                     <tag>${project.artifactId}-${project.version}</tag>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.6.1</version>
+                <executions>
+                    <!-- pull com.ibm.mq.allclient.jar under /target for easier local run and test.
+                         DO NOT redistribute jar to customers though -->
+                    <execution>
+                        <id>copy-mq-allclient</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.ibm.mq</groupId>
+                                    <artifactId>com.ibm.mq.allclient</artifactId>
+                                    <version>${ibm.mq.lib.version}</version>
+                                    <destFileName>com.ibm.mq.allclient.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.build.directory}/libs</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
-
     </build>
     <repositories>
         <repository>
