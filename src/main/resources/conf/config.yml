@@ -238,6 +238,10 @@ mqMetrics:
             alias: "Current Sharing Conversations"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_CURRENT_SHARING_CONVS"
 
+        - MaxSharingConversations:
+            alias: "Max Sharing Conversations"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_SHARING_CONVS"
+
 
   - metricsType: "listenerMetrics"
     metrics:

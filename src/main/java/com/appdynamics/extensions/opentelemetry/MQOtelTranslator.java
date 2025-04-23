@@ -128,6 +128,7 @@ class MQOtelTranslator {
     put("Buffers Sent", "mq.buffers.sent");
     put("Buffers Received", "mq.buffers.received");
     put("Current Sharing Conversations", "mq.current.sharing.conversations");
+    put("Max Sharing Conversations", "mq.max.sharing.conversations");
   }}, segments -> {
     AttributesBuilder builder = Attributes.builder();
     builder.put("queue.manager", segments.get(segments.size() - 4));
