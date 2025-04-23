@@ -48,6 +48,7 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
         this.countDownLatch = countDownLatch;
     }
 
+    @Override
     public void run() {
         try {
             this.process();
@@ -58,6 +59,7 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
         }
     }
 
+    @Override
     protected void publishMetrics() throws TaskExecutionException {
         long entryTime = System.currentTimeMillis();
 
@@ -113,10 +115,12 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
 
     }
 
+    @Override
     public String getArtifact() {
         return artifact;
     }
 
+    @Override
     public Map<String, WMQMetricOverride> getMetricsToReport() {
         return this.metricsToReport;
     }

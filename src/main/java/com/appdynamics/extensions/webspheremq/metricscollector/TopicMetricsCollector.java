@@ -51,6 +51,7 @@ public class TopicMetricsCollector extends MetricsCollector implements Runnable 
         this.countDownLatch = countDownLatch;
     }
 
+    @Override
     public void run() {
         try {
             this.process();
@@ -61,6 +62,7 @@ public class TopicMetricsCollector extends MetricsCollector implements Runnable 
         }
     }
 
+    @Override
     protected void publishMetrics() throws TaskExecutionException {
         logger.info("Collecting Topic metrics...");
         List<Future> futures = Lists.newArrayList();
@@ -144,10 +146,12 @@ public class TopicMetricsCollector extends MetricsCollector implements Runnable 
         return commandMetrics;
     }
 
+    @Override
     public String getArtifact() {
         return artifact;
     }
 
+    @Override
     public Map<String, WMQMetricOverride> getMetricsToReport() {
         return this.metricsToReport;
     }

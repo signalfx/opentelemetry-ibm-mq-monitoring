@@ -62,6 +62,7 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 		this.countDownLatch = countDownLatch;
 	}
 
+	@Override
 	public void run() {
 		try {
 			this.process();

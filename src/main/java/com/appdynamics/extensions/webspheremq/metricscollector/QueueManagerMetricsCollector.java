@@ -51,10 +51,12 @@ final public class QueueManagerMetricsCollector extends MetricsCollector impleme
 		this.countDownLatch = countDownLatch;
 	}
 
+	@Override
 	public String getArtifact() {
 		return artifact;
 	}
 
+	@Override
 	public void run() {
 		try {
 			this.process();
@@ -65,6 +67,7 @@ final public class QueueManagerMetricsCollector extends MetricsCollector impleme
 		}
 	}
 
+	@Override
 	public void publishMetrics() throws TaskExecutionException {
 		long entryTime = System.currentTimeMillis();
 		logger.debug("publishMetrics entry time for queuemanager {} is {} milliseconds", agent.getQManagerName(), entryTime);
@@ -107,6 +110,7 @@ final public class QueueManagerMetricsCollector extends MetricsCollector impleme
 		}
 	}
 
+	@Override
 	public Map<String, WMQMetricOverride> getMetricsToReport() {
 		return metricsToReport;
 	}

@@ -57,6 +57,7 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
 		this.countDownLatch = countDownLatch;
 	}
 
+	@Override
 	public void run() {
 		try {
 			this.process();
@@ -145,10 +146,12 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
 
 	}
 
+	@Override
 	public String getArtifact() {
 		return ARTIFACT;
 	}
 
+	@Override
 	public Map<String, WMQMetricOverride> getMetricsToReport() {
 		return this.metricsToReport;
 	}
