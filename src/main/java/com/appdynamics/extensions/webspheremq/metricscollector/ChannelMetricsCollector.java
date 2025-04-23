@@ -98,7 +98,7 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
                 for (PCFMessage pcfMessage : response) {
                     String channelName = pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
                     Set<ExcludeFilters> excludeFilters = this.queueManager.getChannelFilters().getExclude();
-                    if (!isExcluded(channelName, excludeFilters)) { //check for exclude filters
+                    if (!ExcludeFilters.isExcluded(channelName, excludeFilters)) { //check for exclude filters
                         logger.debug("Pulling out metrics for channel name {}", channelName);
                         Iterator<String> itr = getMetricsToReport().keySet().iterator();
                         List<Metric> metrics = Lists.newArrayList();

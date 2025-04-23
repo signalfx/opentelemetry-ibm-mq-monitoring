@@ -84,7 +84,7 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
                 for (PCFMessage pcfMessage : response) {
                     String listenerName = pcfMessage.getStringParameterValue(CMQCFC.MQCACH_LISTENER_NAME).trim();
                     Set<ExcludeFilters> excludeFilters = this.queueManager.getListenerFilters().getExclude();
-                    if (!isExcluded(listenerName, excludeFilters)) { //check for exclude filters
+                    if (!ExcludeFilters.isExcluded(listenerName, excludeFilters)) { //check for exclude filters
                         logger.debug("Pulling out metrics for listener name {}", listenerName);
                         Iterator<String> itr = getMetricsToReport().keySet().iterator();
                         List<Metric> metrics = Lists.newArrayList();

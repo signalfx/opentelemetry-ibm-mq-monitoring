@@ -40,6 +40,18 @@ public class ExcludeFilters {
 		this.values = values;
 	}
 
+	public static boolean isExcluded(String resourceName, Set<ExcludeFilters> excludeFilters) {
+		if(excludeFilters == null){
+			return false;
+		}
+		for(ExcludeFilters filter : excludeFilters){
+			if(filter.isExcluded(resourceName)){
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public boolean isExcluded(String resourceName) {
 		if (Strings.isNullOrEmpty(resourceName)) {
 			return true;

@@ -174,7 +174,7 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 
 
 			Set<ExcludeFilters> excludeFilters = queueManager.getQueueFilters().getExclude();
-			if(!isExcluded(queueName,excludeFilters)) { //check for exclude filters
+			if(!ExcludeFilters.isExcluded(queueName,excludeFilters)) { //check for exclude filters
 				logger.debug("Pulling out metrics for queue name {} for command {}",queueName,command);
 				Iterator<String> itr = getMetricsToReport().keySet().iterator();
 				List<Metric> metrics = Lists.newArrayList();

@@ -107,7 +107,7 @@ final class InquireTStatusCmdCollector extends MetricsCollector implements Runna
         for (PCFMessage pcfMessage : response) {
             String topicString = pcfMessage.getStringParameterValue(CMQC.MQCA_TOPIC_STRING).trim();
             Set<ExcludeFilters> excludeFilters = this.queueManager.getTopicFilters().getExclude();
-            if (!isExcluded(topicString, excludeFilters)) { //check for exclude filters
+            if (!ExcludeFilters.isExcluded(topicString, excludeFilters)) { //check for exclude filters
                 logger.debug("Pulling out metrics for topic name {} for command {}", topicString, command);
                 Iterator<String> itr = getMetricsToReport().keySet().iterator();
                 List<Metric> metrics = Lists.newArrayList();
