@@ -94,10 +94,9 @@ final class InquireTStatusCmdCollector extends MetricsCollector implements Runna
     }
 
     private void processPCFRequestAndPublishQMetrics(String topicGenericName, PCFMessage request, String command) throws IOException, MQDataException {
-        PCFMessage[] response;
         logger.debug("sending PCF agent request to topic metrics for generic topic {} for command {}",topicGenericName,command);
         long startTime = System.currentTimeMillis();
-        response = agent.send(request);
+        PCFMessage[] response = agent.send(request);
         long endTime = System.currentTimeMillis() - startTime;
         logger.debug("PCF agent topic metrics query response for generic topic {} for command {} received in {} milliseconds", topicGenericName, command,endTime);
         if (response == null || response.length <= 0) {

@@ -172,7 +172,6 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 				sharedState.putQueueType(queueName, queueType);
 			}
 
-
 			Set<ExcludeFilters> excludeFilters = queueManager.getQueueFilters().getExclude();
 			if(!ExcludeFilters.isExcluded(queueName,excludeFilters)) { //check for exclude filters
 				logger.debug("Pulling out metrics for queue name {} for command {}",queueName,command);
