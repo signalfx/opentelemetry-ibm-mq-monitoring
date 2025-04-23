@@ -112,8 +112,8 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
                                 activeChannels.add(channelName);
                             }
                         }
-                        publishMetrics(metrics);
-                    } else {
+						metricWriteHelper.transformAndPrintMetrics(metrics);
+					} else {
                         logger.debug("Channel name {} is excluded.", channelName);
                     }
                 }
@@ -134,7 +134,7 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
 
 		logger.info("Active Channels in queueManager {} are {}", WMQUtil.getQueueManagerNameFromConfig(queueManager), activeChannels);
 		Metric activeChannelsCountMetric = createMetric(queueManager,"ActiveChannelsCount", activeChannels.size(), null, getArtifact(), "ActiveChannelsCount");
-		publishMetrics(Collections.singletonList(activeChannelsCountMetric));
+		metricWriteHelper.transformAndPrintMetrics(Collections.singletonList(activeChannelsCountMetric));
 
 		long exitTime = System.currentTimeMillis() - entryTime;
 		logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);

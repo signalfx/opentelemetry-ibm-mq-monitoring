@@ -213,7 +213,7 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 					}
 
 				}
-				publishMetrics(metrics);
+				metricWriteHelper.transformAndPrintMetrics(metrics);
 			}
 			else{
 				logger.debug("Queue name {} is excluded.",queueName);

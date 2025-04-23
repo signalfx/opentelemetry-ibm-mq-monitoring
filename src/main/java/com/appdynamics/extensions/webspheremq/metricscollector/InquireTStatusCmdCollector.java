@@ -126,7 +126,7 @@ final class InquireTStatusCmdCollector extends MetricsCollector implements Runna
                     }
 
                 }
-                publishMetrics(metrics);
+                metricWriteHelper.transformAndPrintMetrics(metrics);
             } else {
                 logger.debug("Topic name {} is excluded.", topicString);
             }

@@ -28,7 +28,6 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -100,10 +99,6 @@ public abstract class MetricsCollector implements Runnable {
 			metric = new Metric(metricName, String.valueOf(metricValue), metricPath);
 		}
 		return metric;
-	}
-
-	protected void publishMetrics(List<Metric> metrics) {
-		metricWriteHelper.transformAndPrintMetrics(metrics);
 	}
 
 	public enum FilterType {

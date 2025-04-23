@@ -90,7 +90,7 @@ final public class QueueManagerMetricsCollector extends MetricsCollector impleme
 				Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, metrickey);
 				metrics.add(metric);
 			}
-			publishMetrics(metrics);
+			metricWriteHelper.transformAndPrintMetrics(metrics);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new TaskExecutionException(e);

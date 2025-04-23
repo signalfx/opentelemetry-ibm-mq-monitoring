@@ -95,7 +95,7 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
                             Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), listenerName, metrickey);
                             metrics.add(metric);
                         }
-                        publishMetrics(metrics);
+                        metricWriteHelper.transformAndPrintMetrics(metrics);
                     } else {
                         logger.debug("Listener name {} is excluded.", listenerName);
                     }
