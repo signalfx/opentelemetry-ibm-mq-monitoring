@@ -17,14 +17,23 @@
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
+import com.appdynamics.extensions.metrics.Metric;
+import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
+import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.headers.MQDataException;
+import com.ibm.mq.headers.pcf.MQCFIN;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFParameter;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -32,7 +41,7 @@ final class InquireTStatusCmdCollector extends TopicMetricsCollector implements 
 
     private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireTStatusCmdCollector.class);
 
-    protected static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";
+    static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";
 
     public InquireTStatusCmdCollector(TopicMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport){
         super(metricsToReport,collector.monitorContextConfig,collector.agent,collector.queueManager,collector.metricWriteHelper, collector.countDownLatch);
@@ -79,5 +88,45 @@ final class InquireTStatusCmdCollector extends TopicMetricsCollector implements 
         }
         long exitTime = System.currentTimeMillis() - entryTime;
         logger.debug("Time taken to publish metrics for all queues is {} milliseconds for command {}", exitTime,COMMAND);
+    }
+
+    private void processPCFRequestAndPublishQMetrics(String topicGenericName, PCFMessage request, String command) throws IOException, MQDataException {
+        PCFMessage[] response;
+        logger.debug("sending PCF agent request to topic metrics for generic topic {} for command {}",topicGenericName,command);
+        long startTime = System.currentTimeMillis();
+        response = agent.send(request);
+        long endTime = System.currentTimeMillis() - startTime;
+        logger.debug("PCF agent topic metrics query response for generic topic {} for command {} received in {} milliseconds", topicGenericName, command,endTime);
+        if (response == null || response.length <= 0) {
+            logger.debug("Unexpected Error while PCFMessage.send() for command {}, response is either null or empty",command);
+            return;
+        }
+        for (PCFMessage pcfMessage : response) {
+            String topicString = pcfMessage.getStringParameterValue(CMQC.MQCA_TOPIC_STRING).trim();
+            Set<ExcludeFilters> excludeFilters = this.queueManager.getTopicFilters().getExclude();
+            if (!isExcluded(topicString, excludeFilters)) { //check for exclude filters
+                logger.debug("Pulling out metrics for topic name {} for command {}", topicString, command);
+                Iterator<String> itr = getMetricsToReport().keySet().iterator();
+                List<Metric> metrics = Lists.newArrayList();
+                while (itr.hasNext()) {
+                    String metrickey = itr.next();
+                    WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+                    try {
+                        PCFParameter pcfParam = pcfMessage.getParameter(wmqOverride.getConstantValue());
+                        if (pcfParam instanceof MQCFIN) {
+                            int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
+                            Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), topicString, metrickey);
+                            metrics.add(metric);
+                        }
+                    } catch (PCFException pcfe) {
+                        logger.error("PCFException caught while collecting metric for Topic: {} for metric: {} in command {}", topicString, wmqOverride.getIbmCommand(), command, pcfe);
+                    }
+
+                }
+                publishMetrics(metrics);
+            } else {
+                logger.debug("Topic name {} is excluded.", topicString);
+            }
+        }
     }
 }
