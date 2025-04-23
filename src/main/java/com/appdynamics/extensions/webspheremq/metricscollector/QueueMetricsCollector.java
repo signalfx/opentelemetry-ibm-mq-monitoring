@@ -154,6 +154,12 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 				switch(response[i].getIntParameterValue(CMQC.MQIA_Q_TYPE)) {
 					case MQQT_LOCAL:
 						queueType = "local";
+						switch(response[i].getIntParameterValue(CMQC.MQIA_USAGE)) {
+							case CMQC.MQUS_NORMAL:
+								queueType += "-normal";
+							case CMQC.MQUS_TRANSMISSION:
+								queueType += "-transmission";
+						}
 						break;
 					case MQQT_ALIAS:
 						queueType = "alias";
@@ -166,6 +172,12 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 						break;
 					case MQQT_MODEL:
 						queueType = "model";
+						switch(response[i].getIntParameterValue(CMQC.MQIA_USAGE)) {
+							case CMQC.MQUS_NORMAL:
+								queueType += "-normal";
+							case CMQC.MQUS_TRANSMISSION:
+								queueType += "-transmission";
+						}
 						break;
 					default:
 						logger.warn("Unknown type of queue {}", response[i].getIntParameterValue(CMQC.MQIA_Q_TYPE));

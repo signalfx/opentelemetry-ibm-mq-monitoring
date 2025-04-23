@@ -229,8 +229,8 @@ class MQOtelTranslator {
 
             metrics.add(mData);
         }
-
         return metrics;
+    }
 
     ConversionResult convertMetricInfo(Metric metric) {
         String metricPath = metric.getMetricPath();
@@ -240,9 +240,9 @@ class MQOtelTranslator {
             mappings = nameMappings.get("ChannelsGlobal");
         } else {
             mappings = nameMappings.get(splitList.get(splitList.size() - 3));
-          if (mappings == null) {
-            mappings = nameMappings.get(splitList.get(splitList.size() - 4));
-          }
+            if (mappings == null) {
+                mappings = nameMappings.get(splitList.get(splitList.size() - 4));
+            }
         }
 
         if (mappings == null) {
