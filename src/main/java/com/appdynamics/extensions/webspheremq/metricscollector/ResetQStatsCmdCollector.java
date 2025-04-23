@@ -42,7 +42,8 @@ final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Run
     protected static final String COMMAND = "MQCMD_RESET_Q_STATS";
 
     public ResetQStatsCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport){
-        super(metricsToReport,collector.monitorContextConfig,collector.agent,collector.queueManager,collector.metricWriteHelper, collector.countDownLatch);
+        super(metricsToReport, collector.monitorContextConfig, collector.agent,
+                collector.metricWriteHelper, collector.queueManager, collector.countDownLatch);
     }
 
     @Override

@@ -53,7 +53,10 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 	// The queue information is only available as response of some commands.
 	protected static ConcurrentHashMap<String, String> queueTypes = new ConcurrentHashMap<>();
 
-	public QueueMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
+	public QueueMetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
+								 MonitorContextConfiguration monitorContextConfig,
+								 PCFMessageAgent agent, MetricWriteHelper metricWriteHelper,
+								 QueueManager queueManager, CountDownLatch countDownLatch) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
 	}
 
