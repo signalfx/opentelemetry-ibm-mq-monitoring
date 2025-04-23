@@ -104,9 +104,4 @@ final public class QueueManagerMetricsCollector extends MetricsCollector impleme
 			logger.debug("Time taken to publish metrics for queuemanager is {} milliseconds", exitTime);
 		}
 	}
-
-	@Override
-	public Map<String, WMQMetricOverride> getMetricsToReport() {
-		return metricsToReport;
-	}
 }

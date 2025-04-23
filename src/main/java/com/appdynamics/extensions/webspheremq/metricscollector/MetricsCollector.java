@@ -62,7 +62,9 @@ public abstract class MetricsCollector implements Runnable {
 
 	public abstract String getArtifact();
 
-	public abstract Map<String, WMQMetricOverride> getMetricsToReport();
+	final public Map<String, WMQMetricOverride> getMetricsToReport() {
+		return metricsToReport;
+	}
 
 	/**
 	 * Applies include and exclude filters to the artifacts (i.e queue manager, q, or channel),<br>

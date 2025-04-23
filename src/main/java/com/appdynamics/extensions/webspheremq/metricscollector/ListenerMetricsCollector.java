@@ -114,9 +114,4 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
     public String getArtifact() {
         return artifact;
     }
-
-    @Override
-    public Map<String, WMQMetricOverride> getMetricsToReport() {
-        return this.metricsToReport;
-    }
 }

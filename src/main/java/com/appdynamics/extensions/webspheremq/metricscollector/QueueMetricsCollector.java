@@ -123,11 +123,6 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 		return artifact;
 	}
 
-	@Override
-	public Map<String, WMQMetricOverride> getMetricsToReport() {
-		return this.metricsToReport;
-	}
-
 	protected void processPCFRequestAndPublishQMetrics(String queueGenericName, PCFMessage request, String command) throws IOException, MQDataException {
 		logger.debug("sending PCF agent request to query metrics for generic queue {} for command {}",queueGenericName,command);
 		long startTime = System.currentTimeMillis();

@@ -145,9 +145,4 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
 	public String getArtifact() {
 		return ARTIFACT;
 	}
-
-	@Override
-	public Map<String, WMQMetricOverride> getMetricsToReport() {
-		return this.metricsToReport;
-	}
 }

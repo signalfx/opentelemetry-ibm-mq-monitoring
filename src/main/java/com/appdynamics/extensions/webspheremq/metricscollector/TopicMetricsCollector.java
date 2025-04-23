@@ -106,9 +106,4 @@ public class TopicMetricsCollector extends MetricsCollector implements Runnable 
     public String getArtifact() {
         return artifact;
     }
-
-    @Override
-    public Map<String, WMQMetricOverride> getMetricsToReport() {
-        return this.metricsToReport;
-    }
 }
