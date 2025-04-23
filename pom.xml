@@ -257,6 +257,8 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>3.6.1</version>
                 <executions>
+                    <!-- pull com.ibm.mq.allclient.jar under /target for easier local run and test.
+                         DO NOT redistribute jar to customers though -->
                     <execution>
                         <id>copy-mq-allclient</id>
                         <phase>package</phase>
