@@ -124,6 +124,21 @@ mqMetrics:
             alias: "ConnectionCount"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_CONNECTION_COUNT"
 
+        - ReusableLogSize:
+            alias: "Reusable Log Size"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_REUSABLE_LOG_SIZE"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
+
+        - RestartLogSize:
+            alias: "Restart Log Size"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_RESTART_LOG_SIZE"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
+
+        - ArchiveLogSize:
+            alias: "Archive Log Size"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_ARCHIVE_LOG_SIZE"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
+
   # This Object will extract queue metrics
   - metricsType: "queueMetrics"
     metrics:
@@ -192,16 +207,6 @@ mqMetrics:
             alias: "MsgEnqCount"
             ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MSG_ENQ_COUNT"
             ibmCommand: "MQCMD_RESET_Q_STATS"
-
-        - ReusableLogSize:
-            alias: "Reusable Log Size"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_REUSABLE_LOG_SIZE"
-            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
-
-        - RestartLogSize:
-            alias: "Restart Log Size"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_RESTART_LOG_SIZE"
-            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
 
   # This Object will extract channel metrics
   - metricsType: "channelMetrics"
