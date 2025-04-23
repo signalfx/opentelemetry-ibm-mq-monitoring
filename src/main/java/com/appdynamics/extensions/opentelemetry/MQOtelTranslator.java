@@ -65,30 +65,30 @@ class MQOtelTranslator {
     return builder.build();
   });
 
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|UncommittedMsgs
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|UncommittedMsgs
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.2|UncommittedMsgs
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|UncommittedMsgs
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|Max Queue Depth
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|Current Queue Depth
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|Open Input Count
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|Open Output Count
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|Max Queue Depth
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|Current Queue Depth
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|Open Input Count
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|Open Output Count
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.2|Max Queue Depth
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.2|Current Queue Depth
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.2|Open Input Count
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.2|Open Output Count
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|Max Queue Depth
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|Current Queue Depth
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|Open Input Count
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|Open Output Count
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|OnQTime_1
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|OnQTime_2
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|Current maximum queue file size
-  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|Current queue file size
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|local|UncommittedMsgs
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|local|UncommittedMsgs
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.2|local|UncommittedMsgs
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|local|UncommittedMsgs
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|local|Max Queue Depth
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|local|Current Queue Depth
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|local|Open Input Count
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|local|Open Output Count
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|local|Max Queue Depth
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|local|Current Queue Depth
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|local|Open Input Count
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.1|local|Open Output Count
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.2|local|Max Queue Depth
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.2|local|Current Queue Depth
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.2|local|Open Input Count
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.2|local|Open Output Count
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|local|Max Queue Depth
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|local|Current Queue Depth
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|local|Open Input Count
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.QUEUE.3|local|Open Output Count
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|local|OnQTime_1
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|local|OnQTime_2
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|local|Current maximum queue file size
+  //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|local|Current queue file size
   private static final Mapping queueMetricNameMappings = new Mapping(new HashMap<String, String>() {{
     put("Max Queue Depth", "mq.max.queue.depth");
     put("Current Queue Depth", "mq.queue.depth");
@@ -105,11 +105,14 @@ class MQOtelTranslator {
     put("Current maximum queue file size", "mq.current.max.queue.filesize");
     put("Current queue file size", "mq.current.queue.filesize");
     put("Uncommitted Messages", "mq.uncommitted.messages");
+    put("Service Interval Event", "mq.service.interval.event");
+    put("Service Interval", "mq.service.interval");
   }},
       segments -> {
         AttributesBuilder builder = Attributes.builder();
-        builder.put("queue.manager", segments.get(segments.size() - 4));
-        builder.put("queue.name", segments.get(segments.size() - 2));
+        builder.put("queue.manager", segments.get(segments.size() - 5));
+        builder.put("queue.name", segments.get(segments.size() - 3));
+        builder.put("queue.type", segments.get(segments.size() - 2));
         return builder.build();
       });
 
@@ -226,7 +229,6 @@ class MQOtelTranslator {
 
             metrics.add(mData);
         }
-
         return metrics;
     }
 
@@ -238,6 +240,9 @@ class MQOtelTranslator {
             mappings = nameMappings.get("ChannelsGlobal");
         } else {
             mappings = nameMappings.get(splitList.get(splitList.size() - 3));
+            if (mappings == null) {
+                mappings = nameMappings.get(splitList.get(splitList.size() - 4));
+            }
         }
 
         if (mappings == null) {

@@ -85,6 +85,9 @@ public class QueueMetricsCollectorTest {
 
     @Test
     public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
+        QueueMetricsCollector.queueTypes.put("AMQ.5AF1608820C7D76E","local-transmission");
+        QueueMetricsCollector.queueTypes.put("DEV.DEAD.LETTER.QUEUE","local-transmission");
+        QueueMetricsCollector.queueTypes.put("DEV.QUEUE.1","local-transmission");
         PCFMessage request = createPCFRequestForInquireQStatusCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQStatusCmd());
         classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, phaser);
@@ -118,16 +121,16 @@ public class QueueMetricsCollectorTest {
 
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.QUEUE.1|CurrentQueueDepth");
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|CurrentQueueDepth");
+        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.QUEUE.1|local-transmission|CurrentQueueDepth");
+        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|CurrentQueueDepth");
 
         for (List<Metric> metricList : pathCaptor.getAllValues()) {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.QUEUE.1|CurrentQueueDepth")) {
+                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.QUEUE.1|local-transmission|CurrentQueueDepth")) {
                         Assert.assertEquals("3", metric.getMetricValue());
                     }
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|CurrentQueueDepth")) {
+                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|CurrentQueueDepth")) {
                         Assert.assertEquals("2", metric.getMetricValue());
                     }
                 }
@@ -284,6 +287,7 @@ public class QueueMetricsCollectorTest {
         response1.addParameter(CMQC.MQIA_OPEN_INPUT_COUNT, 1);
         response1.addParameter(CMQC.MQIA_MAX_Q_DEPTH, 5000);
         response1.addParameter(CMQC.MQIA_OPEN_OUTPUT_COUNT, 1);
+        response1.addParameter(CMQC.MQIA_USAGE, CMQC.MQUS_NORMAL);
 
         PCFMessage response2 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_Q, 2, false);
         response2.addParameter(CMQC.MQCA_Q_NAME, "DEV.DEAD.LETTER.QUEUE");
@@ -292,6 +296,7 @@ public class QueueMetricsCollectorTest {
         response2.addParameter(CMQC.MQIA_OPEN_INPUT_COUNT, 2);
         response2.addParameter(CMQC.MQIA_MAX_Q_DEPTH, 5000);
         response2.addParameter(CMQC.MQIA_OPEN_OUTPUT_COUNT, 2);
+        response2.addParameter(CMQC.MQIA_USAGE, CMQC.MQUS_TRANSMISSION);
 
         PCFMessage response3 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_Q, 3, false);
         response3.addParameter(CMQC.MQCA_Q_NAME, "DEV.QUEUE.1");
@@ -300,6 +305,7 @@ public class QueueMetricsCollectorTest {
         response3.addParameter(CMQC.MQIA_OPEN_INPUT_COUNT, 3);
         response3.addParameter(CMQC.MQIA_MAX_Q_DEPTH, 5000);
         response3.addParameter(CMQC.MQIA_OPEN_OUTPUT_COUNT, 3);
+        response3.addParameter(CMQC.MQIA_USAGE, CMQC.MQUS_TRANSMISSION);
 
         PCFMessage [] messages = { response1, response2, response3 };
         return messages;

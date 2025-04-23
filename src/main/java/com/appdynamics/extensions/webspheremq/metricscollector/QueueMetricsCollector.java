@@ -38,10 +38,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 
+import static com.ibm.mq.constants.CMQC.MQQT_ALIAS;
+import static com.ibm.mq.constants.CMQC.MQQT_CLUSTER;
+import static com.ibm.mq.constants.CMQC.MQQT_LOCAL;
+import static com.ibm.mq.constants.CMQC.MQQT_MODEL;
+import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
+
 public class QueueMetricsCollector extends MetricsCollector implements Runnable {
 
 	public static final Logger logger = ExtensionsLoggerFactory.getLogger(QueueMetricsCollector.class);
 	private final String artifact = "Queues";
+
+	// hack to share state of queue type between collectors.
+	// The queue information is only available as response of some commands.
+	protected static ConcurrentHashMap<String, String> queueTypes = new ConcurrentHashMap<>();
 
 	public QueueMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
 		this.metricsToReport = metricsToReport;
@@ -134,6 +144,50 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 		}
 		for (int i = 0; i < response.length; i++) {
 			String queueName = response[i].getStringParameterValue(CMQC.MQCA_Q_NAME).trim();
+			String queueType;
+			if (response[i].getParameterValue(CMQC.MQIA_Q_TYPE) == null) {
+				queueType = queueTypes.get(queueName);
+				if (queueType == null) {
+					continue;
+				}
+			} else {
+				switch(response[i].getIntParameterValue(CMQC.MQIA_Q_TYPE)) {
+					case MQQT_LOCAL:
+						queueType = "local";
+						switch(response[i].getIntParameterValue(CMQC.MQIA_USAGE)) {
+							case CMQC.MQUS_NORMAL:
+								queueType += "-normal";
+							case CMQC.MQUS_TRANSMISSION:
+								queueType += "-transmission";
+						}
+						break;
+					case MQQT_ALIAS:
+						queueType = "alias";
+						break;
+					case MQQT_REMOTE:
+						queueType = "remote";
+						break;
+					case MQQT_CLUSTER:
+						queueType = "cluster";
+						break;
+					case MQQT_MODEL:
+						queueType = "model";
+						switch(response[i].getIntParameterValue(CMQC.MQIA_USAGE)) {
+							case CMQC.MQUS_NORMAL:
+								queueType += "-normal";
+							case CMQC.MQUS_TRANSMISSION:
+								queueType += "-transmission";
+						}
+						break;
+					default:
+						logger.warn("Unknown type of queue {}", response[i].getIntParameterValue(CMQC.MQIA_Q_TYPE));
+						queueType = "unknown";
+						break;
+				}
+				queueTypes.put(queueName,queueType);
+			}
+
+
 			Set<ExcludeFilters> excludeFilters = this.queueManager.getQueueFilters().getExclude();
 			if(!isExcluded(queueName,excludeFilters)) { //check for exclude filters
 				logger.debug("Pulling out metrics for queue name {} for command {}",queueName,command);
@@ -147,7 +201,7 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 						if (pcfParam != null) {
 							if(pcfParam instanceof MQCFIN){
 								int metricVal = response[i].getIntParameterValue(wmqOverride.getConstantValue());
-								Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), queueName, metrickey);
+								Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), queueName, queueType, metrickey);
 								metrics.add(metric);
 							}
 							else if(pcfParam instanceof MQCFIL){
