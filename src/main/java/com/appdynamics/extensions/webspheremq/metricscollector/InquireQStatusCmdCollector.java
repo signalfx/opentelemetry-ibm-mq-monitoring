@@ -39,28 +39,32 @@ class InquireQStatusCmdCollector extends QueueMetricsCollector implements Runnab
         super(metricsToReport,collector.monitorContextConfig,collector.agent,collector.queueManager,collector.metricWriteHelper, collector.countDownLatch);
     }
 
+    @Override
     public void run() {
         try {
-            logger.info("Collecting metrics for command {}",COMMAND);
+            logger.info("Collecting metrics for command {}", COMMAND);
             publishMetrics();
         } catch (TaskExecutionException e) {
             logger.error("Something unforeseen has happened ",e);
         }
     }
 
+    @Override
     protected void publishMetrics() throws TaskExecutionException {
-		/*
-		 * attrs = { CMQC.MQCA_Q_NAME, MQIACF_OLDEST_MSG_AGE, MQIACF_Q_TIME_INDICATOR };
-		 */
         long entryTime = System.currentTimeMillis();
 
         if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
-            logger.debug("Queue metrics to report from the config is null or empty, nothing to publish for command {}",COMMAND);
+            logger.debug("Queue metrics to report from the config is null or empty, nothing to publish for command {}", COMMAND);
             return;
         }
 
+        /**
+         * attrs = { CMQC.MQCA_Q_NAME, MQIACF_OLDEST_MSG_AGE, MQIACF_Q_TIME_INDICATOR };
+         */
         int[] attrs = getIntAttributesArray(CMQC.MQCA_Q_NAME);
-        logger.debug("Attributes being sent along PCF agent request to query queue metrics: {} for command {}",Arrays.toString(attrs),COMMAND);
+        if (logger.isDebugEnabled()) {
+            logger.debug("Attributes being sent along PCF agent request to query queue metrics: {} for command {}", Arrays.toString(attrs), COMMAND);
+        }
 
         Set<String> queueGenericNames = this.queueManager.getQueueFilters().getInclude();
         for(String queueGenericName : queueGenericNames){

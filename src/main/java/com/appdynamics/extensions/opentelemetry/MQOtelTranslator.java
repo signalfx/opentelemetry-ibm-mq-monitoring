@@ -41,20 +41,20 @@ import java.util.Map;
 
 class MQOtelTranslator {
 
-  public static final Logger logger = ExtensionsLoggerFactory.getLogger(MQOtelTranslator.class);
+    public static final Logger logger = ExtensionsLoggerFactory.getLogger(MQOtelTranslator.class);
 
-  private static final long SCRAPE_PERIOD_NS = 60L * 1000 * 1000 * 1000;
-  private static final Splitter PIPE_SPLITTER = Splitter.on('|').trimResults();
+    private static final long SCRAPE_PERIOD_NS = 60L * 1000 * 1000 * 1000;
+    private static final Splitter PIPE_SPLITTER = Splitter.on('|').trimResults();
 
-  private static class Mapping {
-    private Map<String, String> nameMappings;
-    private Function<List<String>, Attributes> attributeMappingFunction;
+    private static class Mapping {
+        private final Map<String, String> nameMappings;
+        private final Function<List<String>, Attributes> attributeMappingFunction;
 
-    Mapping(Map<String, String> nameMappings, Function<List<String>, Attributes> attributeMappingFunction) {
-      this.nameMappings = nameMappings;
-      this.attributeMappingFunction = attributeMappingFunction;
+        Mapping(Map<String, String> nameMappings, Function<List<String>, Attributes> attributeMappingFunction) {
+            this.nameMappings = nameMappings;
+            this.attributeMappingFunction = attributeMappingFunction;
+        }
     }
-  }
 
   private static final Mapping queueMgrMetricNameMappings = new Mapping(new HashMap<String, String>() {{
     put("Status", "mq.mgr.status");
@@ -152,7 +152,7 @@ class MQOtelTranslator {
   private static final Mapping topicMetricNameMappings = new Mapping(new HashMap<String, String>() {{
     put("Publish Count", "mq.publish.count");
     put("Subscription Count", "mq.subscription.count");
-  }},  segments -> {
+  }}, segments -> {
     AttributesBuilder builder = Attributes.builder();
     builder.put("queue.manager", segments.get(segments.size() - 4));
     builder.put("topic.name", segments.get(segments.size() - 2));
@@ -186,85 +186,84 @@ class MQOtelTranslator {
         return builder.build();
       });
 
-  private static final Map<String, Mapping> nameMappings = new HashMap<String, Mapping>() {{
-    put("Queue Manager", queueMgrMetricNameMappings);
-    put("Queues", queueMetricNameMappings);
-    put("Channels", channelMetricNameMappings);
-    put("ChannelsGlobal", channelsNameMapping);
-    put("Listeners", listenerMetricNameMappings);
-    put("Topics", topicMetricNameMappings);
-    put("WebsphereMQ", websphereMQNameMappings);
-  }};
+    private static final Map<String, Mapping> nameMappings = new HashMap<String, Mapping>() {{
+        put("Queue Manager", queueMgrMetricNameMappings);
+        put("Queues", queueMetricNameMappings);
+        put("Channels", channelMetricNameMappings);
+        put("ChannelsGlobal", channelsNameMapping);
+        put("Listeners", listenerMetricNameMappings);
+        put("Topics", topicMetricNameMappings);
+        put("WebsphereMQ", websphereMQNameMappings);
+    }};
 
-
-  public MQOtelTranslator() {
-  }
-
-  public Collection<MetricData> translate(List<Metric> metricList) {
-    AssertUtils.assertNotNull(metricList, "Metrics List cannot be null");
-    Resource res = Resource.empty();
-    InstrumentationScopeInfo scopeInfo = InstrumentationScopeInfo.create("websphere/mq");
-    List<MetricData> metrics = new ArrayList<>();
-    for (Metric metric : metricList) {
-      Instant now = Instant.now();
-      long endTime = now.getEpochSecond() * 1_000_000_000 + now.getNano();
-      long startingTime = endTime - SCRAPE_PERIOD_NS;
-
-      ConversionResult result = convertMetricInfo(metric);
-      if (result == null) {
-        continue;
-      }
-
-      LongPointData pointData = ImmutableLongPointData.create(startingTime, endTime, result.attributes, Long.parseLong(metric.getMetricValue()));
-      MetricData mData = ImmutableMetricData.createLongGauge(
-          res,
-          scopeInfo,
-          result.metricName,
-          metric.getMetricPath(),
-          "1",
-          ImmutableGaugeData.create(Collections.singleton(pointData)));
-
-      metrics.add(mData);
+    public MQOtelTranslator() {
     }
 
-    return metrics;
-  }
+    public Collection<MetricData> translate(List<Metric> metricList) {
+        AssertUtils.assertNotNull(metricList, "Metrics List cannot be null");
+        Resource res = Resource.empty();
+        InstrumentationScopeInfo scopeInfo = InstrumentationScopeInfo.create("websphere/mq");
+        List<MetricData> metrics = new ArrayList<>();
+        for (Metric metric : metricList) {
+            Instant now = Instant.now();
+            long endTime = now.getEpochSecond() * 1_000_000_000 + now.getNano();
+            long startingTime = endTime - SCRAPE_PERIOD_NS;
 
-  ConversionResult convertMetricInfo(Metric metric) {
-    String metricPath = metric.getMetricPath();
-    List<String> splitList = new ArrayList<>(PIPE_SPLITTER.splitToList(metricPath));
-    Mapping mappings;
-    if (metricPath.endsWith("Channels|ActiveChannelsCount")) {
-       mappings = nameMappings.get("ChannelsGlobal");
-    } else {
-      mappings = nameMappings.get(splitList.get(splitList.size() - 3));
+            ConversionResult result = convertMetricInfo(metric);
+            if (result == null) {
+                continue;
+            }
+
+            LongPointData pointData = ImmutableLongPointData.create(startingTime, endTime, result.attributes, Long.parseLong(metric.getMetricValue()));
+            MetricData mData = ImmutableMetricData.createLongGauge(
+                    res,
+                    scopeInfo,
+                    result.metricName,
+                    metric.getMetricPath(),
+                    "1",
+                    ImmutableGaugeData.create(Collections.singleton(pointData)));
+
+            metrics.add(mData);
+        }
+
+        return metrics;
     }
 
-    if (mappings == null) {
-      logger.warn("No mapping found for {} with segment {}", metricPath, splitList.get(splitList.size() - 3));
-      return null;
-    }
-    String metricName = mappings.nameMappings.get(splitList.get(splitList.size() - 1));
-    if (metricName == null) {
-      logger.warn("Unknown metric path {} for mappings {} with segment {} (known keys {})", metricPath, splitList.get(splitList.size() - 3), splitList.get(splitList.size() - 1), mappings.nameMappings.keySet().toArray());
-      return null;
-    }
+    ConversionResult convertMetricInfo(Metric metric) {
+        String metricPath = metric.getMetricPath();
+        List<String> splitList = new ArrayList<>(PIPE_SPLITTER.splitToList(metricPath));
+        Mapping mappings;
+        if (metricPath.endsWith("Channels|ActiveChannelsCount")) {
+            mappings = nameMappings.get("ChannelsGlobal");
+        } else {
+            mappings = nameMappings.get(splitList.get(splitList.size() - 3));
+        }
 
-    Attributes attr = mappings.attributeMappingFunction.apply(splitList);
+        if (mappings == null) {
+            logger.warn("No mapping found for {} with segment {}", metricPath, splitList.get(splitList.size() - 3));
+            return null;
+        }
+        String metricName = mappings.nameMappings.get(splitList.get(splitList.size() - 1));
+        if (metricName == null) {
+            logger.warn("Unknown metric path {} for mappings {} with segment {} (known keys {})", metricPath, splitList.get(splitList.size() - 3), splitList.get(splitList.size() - 1), mappings.nameMappings.keySet().toArray());
+            return null;
+        }
 
-    return new ConversionResult(metricName, attr);
-  }
+        Attributes attr = mappings.attributeMappingFunction.apply(splitList);
+
+        return new ConversionResult(metricName, attr);
+    }
 
 }
 
 
 class ConversionResult {
 
-  String metricName;
-  Attributes attributes;
+    String metricName;
+    Attributes attributes;
 
-  ConversionResult(String name, Attributes attributes) {
-    this.metricName = name;
-    this.attributes = attributes;
-  }
+    ConversionResult(String name, Attributes attributes) {
+        this.metricName = name;
+        this.attributes = attributes;
+    }
 }

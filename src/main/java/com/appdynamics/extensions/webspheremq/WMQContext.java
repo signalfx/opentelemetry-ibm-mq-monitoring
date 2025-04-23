@@ -36,7 +36,7 @@ import java.util.Hashtable;
 public class WMQContext {
 
 	public static final Logger logger = ExtensionsLoggerFactory.getLogger(WMQContext.class);
-	private QueueManager queueManager;
+	private final QueueManager queueManager;
 
 	public WMQContext(QueueManager queueManager) {
 		this.queueManager = queueManager;
@@ -65,7 +65,9 @@ public class WMQContext {
 			addEnvProperty(env, CMQC.TRANSPORT_PROPERTY, CMQC.TRANSPORT_MQSERIES);
 		}
 
-		logger.debug("Transport property is " + env.get(CMQC.TRANSPORT_PROPERTY));
+        if (logger.isDebugEnabled()) {
+            logger.debug(String.format("Transport property is %s", env.get(CMQC.TRANSPORT_PROPERTY)));
+        }
 		return env;
 	}
 

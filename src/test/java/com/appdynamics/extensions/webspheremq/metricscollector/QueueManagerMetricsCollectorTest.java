@@ -100,8 +100,8 @@ public class QueueManagerMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Status")) {
-                        Assert.assertTrue(metric.getMetricValue().equals("2"));
-                        Assert.assertFalse(metric.getMetricValue().equals("10"));
+                        assertEquals("2", metric.getMetricValue());
+                        Assert.assertNotEquals("10", metric.getMetricValue());
                     }
                 }
             }

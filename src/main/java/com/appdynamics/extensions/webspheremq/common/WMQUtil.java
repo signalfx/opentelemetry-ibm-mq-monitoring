@@ -66,7 +66,7 @@ public class WMQUtil {
             } else {
                 overrideMap.put(metricName, override);
             }
-            logger.debug("Override Definition: " + override.toString());
+            logger.debug("Override Definition: {}", override);
         }
         return overrideMap;
     }

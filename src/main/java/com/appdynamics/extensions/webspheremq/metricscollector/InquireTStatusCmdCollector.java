@@ -38,20 +38,22 @@ class InquireTStatusCmdCollector extends TopicMetricsCollector implements Runnab
         super(metricsToReport,collector.monitorContextConfig,collector.agent,collector.queueManager,collector.metricWriteHelper, collector.countDownLatch);
     }
 
+    @Override
     public void run() {
         try {
-            logger.info("Collecting metrics for command {}",COMMAND);
+            logger.info("Collecting metrics for command {}", COMMAND);
             publishMetrics();
         } catch (TaskExecutionException e) {
-            logger.error("Something unforeseen has happened ",e);
+            logger.error("Something unforeseen has happened ", e);
         }
     }
 
+    @Override
     protected void publishMetrics() throws TaskExecutionException {
         long entryTime = System.currentTimeMillis();
 
         if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
-            logger.debug("Topic metrics to report from the config is null or empty, nothing to publish for command {}",COMMAND);
+            logger.debug("Topic metrics to report from the config is null or empty, nothing to publish for command {}", COMMAND);
             return;
         }
         Set<String> topicGenericNames = this.queueManager.getTopicFilters().getInclude();
@@ -64,12 +66,12 @@ class InquireTStatusCmdCollector extends TopicMetricsCollector implements Runnab
             try {
                 processPCFRequestAndPublishQMetrics(topicGenericName, request, COMMAND);
             } catch (PCFException pcfe) {
-                logger.error("PCFException caught while collecting metric for Queue: {} for command {}",topicGenericName,COMMAND, pcfe);
+                logger.error("PCFException caught while collecting metric for Queue: {} for command {}", topicGenericName, COMMAND, pcfe);
                 PCFMessage[] msgs = (PCFMessage[]) pcfe.exceptionSource;
                 for (PCFMessage msg : msgs) {
                     logger.error(msg.toString());
                 }
-                // Dont throw exception as it will stop queuemetric colloection
+                // Don't throw exception as it will stop queue metric colloection
             } catch (Exception mqe) {
                 logger.error("MQException caught", mqe);
                 // Dont throw exception as it will stop queuemetric colloection

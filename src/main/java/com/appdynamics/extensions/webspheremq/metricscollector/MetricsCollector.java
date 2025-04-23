@@ -90,8 +90,8 @@ public abstract class MetricsCollector implements Runnable {
 	}
 
 	public enum FilterType {
-		STARTSWITH, EQUALS, ENDSWITH, CONTAINS, NONE;
-	}
+		STARTSWITH, EQUALS, ENDSWITH, CONTAINS, NONE
+    }
 
 	public boolean isExcluded(String resourceName, Set<ExcludeFilters> excludeFilters) {
 		if(excludeFilters == null){
@@ -147,9 +147,7 @@ public abstract class MetricsCollector implements Runnable {
 	protected int[] getIntAttributesArray(int... inputAttrs) {
 		int[] attrs = new int[inputAttrs.length+getMetricsToReport().size()];
 		// fill input attrs
-		for(int i=0 ; i< inputAttrs.length; i++){
-			attrs[i]=inputAttrs[i];
-		}
+        System.arraycopy(inputAttrs, 0, attrs, 0, inputAttrs.length);
 		//fill attrs from metrics to report.
 		Iterator<String> overrideItr = getMetricsToReport().keySet().iterator();
 		for (int count = inputAttrs.length; overrideItr.hasNext() && count < attrs.length; count++) {

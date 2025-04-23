@@ -31,65 +31,49 @@ import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_M
  */
 class Config {
 
-  static OtlpGrpcMetricExporter createOtlpGrpcMetricsExporter(Map<String, ?> config) {
-    OtlpGrpcMetricExporterBuilder builder = OtlpGrpcMetricExporter.builder();
+    static OtlpGrpcMetricExporter createOtlpGrpcMetricsExporter(Map<String, ?> config) {
+        OtlpGrpcMetricExporterBuilder builder = OtlpGrpcMetricExporter.builder();
 
-    Map<String, String> props = new HashMap<>();
-    if (config.get("otlpExporter") instanceof Map) {
-      Map otlpConfig = (Map) config.get("otlpExporter");
-      for (Object key : otlpConfig.keySet()) {
-        if (key instanceof String && otlpConfig.get(key) instanceof String) {
-          props.put((String) key, (String) otlpConfig.get(key));
+        Map<String, String> props = new HashMap<>();
+        if (config.get("otlpExporter") instanceof Map) {
+            Map otlpConfig = (Map) config.get("otlpExporter");
+            for (Object key : otlpConfig.keySet()) {
+                if (key instanceof String && otlpConfig.get(key) instanceof String) {
+                    props.put((String) key, (String) otlpConfig.get(key));
+                }
+            }
         }
-      }
+
+        OtlpConfigUtil.configureOtlpExporterBuilder(
+                DATA_TYPE_METRICS,
+                DefaultConfigProperties.create(props),
+                builder::setEndpoint,
+                builder::addHeader,
+                builder::setCompression,
+                builder::setTimeout,
+                builder::setTrustedCertificates,
+                builder::setClientTls,
+                builder::setRetryPolicy,
+                builder::setMemoryMode);
+
+        return builder.build();
     }
 
-    OtlpConfigUtil.configureOtlpExporterBuilder(
-        DATA_TYPE_METRICS,
-        DefaultConfigProperties.create(props),
-        builder::setEndpoint,
-        builder::addHeader,
-        builder::setCompression,
-        builder::setTimeout,
-        builder::setTrustedCertificates,
-        builder::setClientTls,
-        builder::setRetryPolicy,
-        builder::setMemoryMode);
+    static void setUpSSLConnection(Map<String, ?> config) {
+        if (config.get("sslConnection") instanceof Map) {
+            Map otlpConfig = (Map) config.get("sslConnection");
 
-    return builder.build();
-  }
-
-  static void setUpSSLConnection(Map<String, ?> config) {
-    if (config.get("sslConnection") instanceof Map) {
-      Map otlpConfig = (Map) config.get("sslConnection");
-
-      {
-        Object keyStorePath = otlpConfig.get("keyStorePath");
-        if (keyStorePath instanceof String && !((String) keyStorePath).trim().isEmpty()) {
-          System.setProperty("javax.net.ssl.keyStore", (String) keyStorePath);
+            getConfigValueAndSetSystemProperty(otlpConfig, "keyStorePath", "javax.net.ssl.keyStore");
+            getConfigValueAndSetSystemProperty(otlpConfig, "keyStorePassword", "javax.net.ssl.keyStorePassword");
+            getConfigValueAndSetSystemProperty(otlpConfig, "trustStorePath", "javax.net.ssl.trustStorePath");
+            getConfigValueAndSetSystemProperty(otlpConfig, "trustStorePassword", "javax.net.ssl.trustStorePassword");
         }
-      }
-
-      {
-        Object keyStorePassword = otlpConfig.get("keyStorePassword");
-        if (keyStorePassword instanceof String && !((String) keyStorePassword).trim().isEmpty()) {
-          System.setProperty("javax.net.ssl.keyStorePassword", (String) keyStorePassword);
-        }
-      }
-
-      {
-        Object trustStorePath = otlpConfig.get("trustStorePath");
-        if (trustStorePath instanceof String && !((String) trustStorePath).trim().isEmpty()) {
-          System.setProperty("javax.net.ssl.trustStorePath", (String) trustStorePath);
-        }
-      }
-
-      {
-        Object trustStorePassword = otlpConfig.get("trustStorePassword");
-        if (trustStorePassword instanceof String && !((String) trustStorePassword).trim().isEmpty()) {
-          System.setProperty("javax.net.ssl.trustStorePassword", (String) trustStorePassword);
-        }
-      }
     }
-  }
+
+    private static void getConfigValueAndSetSystemProperty(Map otlpConfig, String configKey, String systemKey) {
+        Object configValue = otlpConfig.get(configKey);
+        if (configValue instanceof String && !((String) configValue).trim().isEmpty()) {
+            System.setProperty(systemKey, (String) configValue);
+        }
+    }
 }
