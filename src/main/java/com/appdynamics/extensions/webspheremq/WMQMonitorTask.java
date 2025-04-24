@@ -86,6 +86,11 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		}
 	}
 
+	/**
+	 * Initialize and construct an IBM MQQueueManager
+	 * @return
+	 * @throws TaskExecutionException
+	 */
 	private MQQueueManager initMQQueueManager() throws TaskExecutionException {
 		MQQueueManager ibmQueueManager = null;
 		// encryptionKey is global but encryptedPassword is queueManager specific
