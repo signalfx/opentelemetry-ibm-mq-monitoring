@@ -29,21 +29,21 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
+final class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
 
-    public static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQCmdCollector.class);
+    private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQCmdCollector.class);
 
-    protected static final String COMMAND = "MQCMD_INQUIRE_Q";
+    static final String COMMAND = "MQCMD_INQUIRE_Q";
 
-    public InquireQCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport){
-        super(metricsToReport, collector.monitorContextConfig, collector.agent, collector.queueManager,
-                collector.metricWriteHelper, collector.countDownLatch);
+    public InquireQCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport, QueueCollectorSharedState sharedState){
+        super(metricsToReport, collector.monitorContextConfig, collector.agent,
+                collector.metricWriteHelper, collector.queueManager, collector.countDownLatch, sharedState);
     }
 
     @Override
     public void run() {
         try {
-            logger.info("Collecting metrics for command {}",COMMAND);
+            logger.info("Collecting metrics for command {}", COMMAND);
             publishMetrics();
         } catch (TaskExecutionException e) {
             logger.error("Something unforeseen has happened ",e);
