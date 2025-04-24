@@ -16,7 +16,6 @@
 
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
@@ -24,6 +23,7 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -31,7 +31,7 @@ import java.util.Set;
 
 class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
 
-    public static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQCmdCollector.class);
+    public static final Logger logger = LoggerFactory.getLogger(InquireQCmdCollector.class);
 
     protected static final String COMMAND = "MQCMD_INQUIRE_Q";
 
@@ -74,8 +74,8 @@ class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
                 logger.error("PCFException caught while collecting metric for Queue: {} for command {}",queueGenericName,COMMAND, pcfe);
                 if (pcfe.exceptionSource instanceof PCFMessage[]) {
                     PCFMessage[] msgs = (PCFMessage[]) pcfe.exceptionSource;
-                    for (int i = 0; i < msgs.length; i++) {
-                      logger.error(msgs[i].toString());
+                    for (PCFMessage msg : msgs) {
+                        logger.error(msg.toString());
                     }
                 }
                 if (pcfe.exceptionSource instanceof PCFMessage) {

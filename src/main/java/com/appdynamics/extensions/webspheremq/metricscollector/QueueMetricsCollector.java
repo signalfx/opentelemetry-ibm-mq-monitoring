@@ -18,7 +18,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -30,6 +29,7 @@ import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.*;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -46,7 +46,7 @@ import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
 
 public class QueueMetricsCollector extends MetricsCollector implements Runnable {
 
-	public static final Logger logger = ExtensionsLoggerFactory.getLogger(QueueMetricsCollector.class);
+	public static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
 	private final String artifact = "Queues";
 
 	// hack to share state of queue type between collectors.
@@ -111,14 +111,12 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 			logger.debug("There are no metrics configured for {}",command);
 			return commandMetrics;
 		}
-		Iterator<String> itr = getMetricsToReport().keySet().iterator();
-		while (itr.hasNext()) {
-			String metrickey = itr.next();
-			WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
-			if(wmqOverride.getIbmCommand().equalsIgnoreCase(command)){
-				commandMetrics.put(metrickey,wmqOverride);
-			}
-		}
+        for (String metrickey : getMetricsToReport().keySet()) {
+            WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+            if (wmqOverride.getIbmCommand().equalsIgnoreCase(command)) {
+                commandMetrics.put(metrickey, wmqOverride);
+            }
+        }
 		return commandMetrics;
 	}
 
@@ -142,93 +140,90 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 			logger.debug("Unexpected Error while PCFMessage.send() for command {}, response is either null or empty",command);
 			return;
 		}
-		for (int i = 0; i < response.length; i++) {
-			String queueName = response[i].getStringParameterValue(CMQC.MQCA_Q_NAME).trim();
-			String queueType;
-			if (response[i].getParameterValue(CMQC.MQIA_Q_TYPE) == null) {
-				queueType = queueTypes.get(queueName);
-				if (queueType == null) {
-					continue;
-				}
-			} else {
-				switch(response[i].getIntParameterValue(CMQC.MQIA_Q_TYPE)) {
-					case MQQT_LOCAL:
-						queueType = "local";
-						break;
-					case MQQT_ALIAS:
-						queueType = "alias";
-						break;
-					case MQQT_REMOTE:
-						queueType = "remote";
-						break;
-					case MQQT_CLUSTER:
-						queueType = "cluster";
-						break;
-					case MQQT_MODEL:
-						queueType = "model";
-						break;
-					default:
-						logger.warn("Unknown type of queue {}", response[i].getIntParameterValue(CMQC.MQIA_Q_TYPE));
-						queueType = "unknown";
-						break;
-				}
-				if (response[i].getParameter(CMQC.MQIA_USAGE) != null) {
-					switch(response[i].getIntParameterValue(CMQC.MQIA_USAGE)) {
-						case CMQC.MQUS_NORMAL:
-							queueType += "-normal";
-							break;
-						case CMQC.MQUS_TRANSMISSION:
-							queueType += "-transmission";
-							break;
-					}
-				}
-				queueTypes.put(queueName,queueType);
-			}
+        for (PCFMessage pcfMessage : response) {
+            String queueName = pcfMessage.getStringParameterValue(CMQC.MQCA_Q_NAME).trim();
+            String queueType;
+            if (pcfMessage.getParameterValue(CMQC.MQIA_Q_TYPE) == null) {
+                queueType = queueTypes.get(queueName);
+                if (queueType == null) {
+                    continue;
+                }
+            } else {
+                switch (pcfMessage.getIntParameterValue(CMQC.MQIA_Q_TYPE)) {
+                    case MQQT_LOCAL:
+                        queueType = "local";
+                        break;
+                    case MQQT_ALIAS:
+                        queueType = "alias";
+                        break;
+                    case MQQT_REMOTE:
+                        queueType = "remote";
+                        break;
+                    case MQQT_CLUSTER:
+                        queueType = "cluster";
+                        break;
+                    case MQQT_MODEL:
+                        queueType = "model";
+                        break;
+                    default:
+                        logger.warn("Unknown type of queue {}", pcfMessage.getIntParameterValue(CMQC.MQIA_Q_TYPE));
+                        queueType = "unknown";
+                        break;
+                }
+                if (pcfMessage.getParameter(CMQC.MQIA_USAGE) != null) {
+                    switch (pcfMessage.getIntParameterValue(CMQC.MQIA_USAGE)) {
+                        case CMQC.MQUS_NORMAL:
+                            queueType += "-normal";
+                            break;
+                        case CMQC.MQUS_TRANSMISSION:
+                            queueType += "-transmission";
+                            break;
+                    }
+                }
+                queueTypes.put(queueName, queueType);
+            }
 
 
-			Set<ExcludeFilters> excludeFilters = this.queueManager.getQueueFilters().getExclude();
-			if(!isExcluded(queueName,excludeFilters)) { //check for exclude filters
-				logger.debug("Pulling out metrics for queue name {} for command {}",queueName,command);
-				Iterator<String> itr = getMetricsToReport().keySet().iterator();
-				List<Metric> metrics = Lists.newArrayList();
-				while (itr.hasNext()) {
-					String metrickey = itr.next();
-					WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
-					try{
-						PCFParameter pcfParam = response[i].getParameter(wmqOverride.getConstantValue());
-						if (pcfParam != null) {
-							if(pcfParam instanceof MQCFIN){
-								int metricVal = response[i].getIntParameterValue(wmqOverride.getConstantValue());
-								Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), queueName, queueType, metrickey);
-								metrics.add(metric);
-							}
-							else if(pcfParam instanceof MQCFIL){
-								int[] metricVals = response[i].getIntListParameterValue(wmqOverride.getConstantValue());
-								if(metricVals != null){
-									int count=0;
-									for(int val : metricVals){
-										count++;
-										Metric metric = createMetric(queueManager, metrickey + "_" + count,
-												val, wmqOverride, getArtifact(), queueName,
-												metrickey + "_" + count);
-										metrics.add(metric);
-									}
-								}
-							}
-						} else {
-							logger.warn("PCF parameter is null in response for Queue: {} for metric: {} in command {}", queueName, wmqOverride.getIbmCommand(),command);
-						}
-					}
-					catch (PCFException pcfe) {
-						logger.error("PCFException caught while collecting metric for Queue: {} for metric: {} in command {}",queueName, wmqOverride.getIbmCommand(),command, pcfe);
-					}
+            Set<ExcludeFilters> excludeFilters = this.queueManager.getQueueFilters().getExclude();
+            if (!isExcluded(queueName, excludeFilters)) { //check for exclude filters
+                logger.debug("Pulling out metrics for queue name {} for command {}", queueName, command);
+                Iterator<String> itr = getMetricsToReport().keySet().iterator();
+                List<Metric> metrics = Lists.newArrayList();
+                while (itr.hasNext()) {
+                    String metrickey = itr.next();
+                    WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+                    try {
+                        PCFParameter pcfParam = pcfMessage.getParameter(wmqOverride.getConstantValue());
+                        if (pcfParam != null) {
+                            if (pcfParam instanceof MQCFIN) {
+                                int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
+                                Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), queueName, queueType, metrickey);
+                                metrics.add(metric);
+                            } else if (pcfParam instanceof MQCFIL) {
+                                int[] metricVals = pcfMessage.getIntListParameterValue(wmqOverride.getConstantValue());
+                                if (metricVals != null) {
+                                    int count = 0;
+                                    for (int val : metricVals) {
+                                        count++;
+                                        Metric metric = createMetric(queueManager, metrickey + "_" + count,
+                                                val, wmqOverride, getArtifact(), queueName,
+                                                metrickey + "_" + count);
+                                        metrics.add(metric);
+                                    }
+                                }
+                            }
+                        } else {
+                            logger.warn("PCF parameter is null in response for Queue: {} for metric: {} in command {}", queueName, wmqOverride.getIbmCommand(), command);
+                        }
+                    } catch (PCFException pcfe) {
+                        logger.error("PCFException caught while collecting metric for Queue: {} for metric: {} in command {}", queueName, wmqOverride.getIbmCommand(), command, pcfe);
+                    }
 
-				}
-				publishMetrics(metrics);
-			}
-			else{
-				logger.debug("Queue name {} is excluded.",queueName);
-			}
-		}
+                }
+                publishMetrics(metrics);
+            } else {
+                logger.debug("Queue name {} is excluded.", queueName);
+            }
+        }
 	}
 }

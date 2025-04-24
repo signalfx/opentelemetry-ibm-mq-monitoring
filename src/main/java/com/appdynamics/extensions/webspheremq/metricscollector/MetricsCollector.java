@@ -18,7 +18,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
@@ -28,6 +27,7 @@ import com.google.common.base.Strings;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -45,7 +45,7 @@ public abstract class MetricsCollector implements Runnable {
 	protected QueueManager queueManager;
 	protected CountDownLatch countDownLatch;
 
-	public static final Logger logger = ExtensionsLoggerFactory.getLogger(MetricsCollector.class);
+	public static final Logger logger = LoggerFactory.getLogger(MetricsCollector.class);
 
 	protected abstract void publishMetrics() throws TaskExecutionException;
 

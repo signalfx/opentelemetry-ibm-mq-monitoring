@@ -17,7 +17,6 @@
 package com.appdynamics.extensions.webspheremq;
 
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.util.CryptoUtils;
 import com.appdynamics.extensions.util.StringUtils;
 import com.appdynamics.extensions.webspheremq.common.Constants;
@@ -26,6 +25,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.ibm.mq.constants.CMQC;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Hashtable;
 
@@ -35,7 +35,7 @@ import java.util.Hashtable;
  */
 public class WMQContext {
 
-	public static final Logger logger = ExtensionsLoggerFactory.getLogger(WMQContext.class);
+	public static final Logger logger = LoggerFactory.getLogger(WMQContext.class);
 	private final QueueManager queueManager;
 
 	public WMQContext(QueueManager queueManager) {

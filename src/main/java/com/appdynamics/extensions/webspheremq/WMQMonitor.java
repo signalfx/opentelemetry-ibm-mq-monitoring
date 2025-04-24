@@ -20,7 +20,6 @@ import com.appdynamics.extensions.ABaseMonitor;
 import com.appdynamics.extensions.Constants;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.TasksExecutionServiceProvider;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.util.AssertUtils;
 import com.appdynamics.extensions.util.CryptoUtils;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -28,13 +27,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
 
 public class WMQMonitor extends ABaseMonitor {
 
-	public static final Logger logger = ExtensionsLoggerFactory.getLogger(WMQMonitor.class);
+	public static final Logger logger = LoggerFactory.getLogger(WMQMonitor.class);
 
 	private final MetricWriteHelper overrideHelper;
 
