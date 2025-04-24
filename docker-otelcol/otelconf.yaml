@@ -1,0 +1,22 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+exporters:
+  debug:
+    verbosity: detailed
+  otlphttp:
+    metrics_endpoint: https://ingest.us0.signalfx.com/v2/datapoint/otlp
+    headers:
+      X-SF-Token: Q5DpUmd87igEfOE4z69GrA
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+        - otlp
+      exporters:
+        - debug
+        - otlphttp
+
