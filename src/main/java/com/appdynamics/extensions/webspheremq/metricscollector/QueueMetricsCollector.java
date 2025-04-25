@@ -44,7 +44,7 @@ import static com.ibm.mq.constants.CMQC.MQQT_LOCAL;
 import static com.ibm.mq.constants.CMQC.MQQT_MODEL;
 import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
 
-public class QueueMetricsCollector extends MetricsCollector implements Runnable {
+public class QueueMetricsCollector extends MetricsCollector {
 
 	private static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
 	private final static String ARTIFACT = "Queues";
@@ -60,17 +60,6 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 								 QueueCollectorSharedState sharedState) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
 		this.sharedState = sharedState;
-	}
-
-	@Override
-	public void run() {
-		try {
-			super.process();
-		} catch (TaskExecutionException e) {
-			logger.error("Error in QueueMetricsCollector ", e);
-		} finally {
-			countDownLatch.countDown();
-		}
 	}
 
 	@Override
