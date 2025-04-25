@@ -94,7 +94,8 @@
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.12.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -151,6 +152,8 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <testSource>11</testSource>
+                    <testTarget>11</testTarget>
                 </configuration>
             </plugin>
             <!-- shade plugin to create fat .jar file -->
@@ -295,6 +298,15 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
+            </plugin>
+<!--            <plugin>-->
+<!--                <groupId>org.apache.maven.plugins</groupId>-->
+<!--                <artifactId>maven-failsafe-plugin</artifactId>-->
+<!--                <version>2.22.0</version>-->
+<!--            </plugin>-->
         </plugins>
     </build>
     <repositories>

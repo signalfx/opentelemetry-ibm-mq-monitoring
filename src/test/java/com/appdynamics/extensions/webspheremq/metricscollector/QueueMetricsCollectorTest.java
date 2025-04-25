@@ -32,26 +32,21 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({QueueMetricsCollector.class})
-@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*",
-    "org.xml.*", "org.w3c.dom.*", "com.sun.org.apache.xalan.*", "javax.activation.*"})
+@ExtendWith(MockitoExtension.class)
 public class QueueMetricsCollectorTest {
     private QueueMetricsCollector classUnderTest;
 
@@ -72,8 +67,8 @@ public class QueueMetricsCollectorTest {
     private QueueManager queueManager;
     ArgumentCaptor<List> pathCaptor = ArgumentCaptor.forClass(List.class);
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         monitorContextConfig = new MonitorContextConfiguration("WMQMonitor", "Custom Metrics|WMQMonitor|", PathResolver.resolveDirectory(AManagedMonitor.class), aMonitorJob);
         monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
         Map<String, ?> configMap = monitorContextConfig.getConfigYml();
@@ -85,7 +80,7 @@ public class QueueMetricsCollectorTest {
     }
 
     @Test
-    public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
+    void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
         QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
         sharedState.putQueueType("AMQ.5AF1608820C7D76E","local-transmission");
         sharedState.putQueueType("DEV.DEAD.LETTER.QUEUE","local-transmission");
@@ -105,10 +100,10 @@ public class QueueMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.QUEUE.1|UncommittedMsgs")) {
-                        Assert.assertEquals("10", metric.getMetricValue());
+                        assertEquals("10", metric.getMetricValue());
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|OldestMsgAge")) {
-                        Assert.assertEquals("-1", metric.getMetricValue());
+                        assertEquals("-1", metric.getMetricValue());
                     }
                 }
             }
@@ -116,7 +111,7 @@ public class QueueMetricsCollectorTest {
     }
 
     @Test
-    public void testProcessPCFRequestAndPublishQMetricsForInquireQCmd() throws Exception {
+    void testProcessPCFRequestAndPublishQMetricsForInquireQCmd() throws Exception {
         PCFMessage request = createPCFRequestForInquireQCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQCmd());
         classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
@@ -132,10 +127,10 @@ public class QueueMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.QUEUE.1|local-transmission|CurrentQueueDepth")) {
-                        Assert.assertEquals("3", metric.getMetricValue());
+                        assertEquals("3", metric.getMetricValue());
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|CurrentQueueDepth")) {
-                        Assert.assertEquals("2", metric.getMetricValue());
+                        assertEquals("2", metric.getMetricValue());
                     }
                 }
             }
@@ -143,7 +138,7 @@ public class QueueMetricsCollectorTest {
     }
 
     @Test
-    public void testProcessPCFRequestAndPublishQMetricsForResetQStatsCmd() throws Exception {
+    void testProcessPCFRequestAndPublishQMetricsForResetQStatsCmd() throws Exception {
         QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
         sharedState.putQueueType("AMQ.5AF1608820C7D76E","local-transmission");
         sharedState.putQueueType("DEV.DEAD.LETTER.QUEUE","local-transmission");
@@ -163,10 +158,10 @@ public class QueueMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|HighQDepth")) {
-                        Assert.assertEquals("10", metric.getMetricValue());
+                        assertEquals("10", metric.getMetricValue());
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|MsgEnqCount")) {
-                        Assert.assertEquals("3", metric.getMetricValue());
+                        assertEquals("3", metric.getMetricValue());
                     }
                 }
             }
@@ -240,8 +235,7 @@ public class QueueMetricsCollectorTest {
         response3.addParameter(CMQCFC.MQIACF_Q_TIME_INDICATOR, new int[]{-1, -1});
         response3.addParameter(CMQCFC.MQIACF_UNCOMMITTED_MSGS, 10);
 
-        PCFMessage [] messages = { response1, response2, response3 };
-        return messages;
+        return new PCFMessage[]{ response1, response2, response3 };
     }
 
     /*
