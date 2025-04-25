@@ -44,7 +44,6 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
     @Override
     public void run() {
         try {
-            logger.info("Collecting metrics for command {}", COMMAND);
             publishMetrics();
         } catch (TaskExecutionException e) {
             logger.error("Something unforeseen has happened ",e);
@@ -53,6 +52,7 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
 
     @Override
     public void publishMetrics() throws TaskExecutionException {
+        logger.info("Collecting metrics for command {}", COMMAND);
         long entryTime = System.currentTimeMillis();
 
         if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {

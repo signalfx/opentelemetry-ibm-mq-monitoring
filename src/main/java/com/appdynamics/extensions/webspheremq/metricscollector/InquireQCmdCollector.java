@@ -43,7 +43,6 @@ final class InquireQCmdCollector extends QueueMetricsCollector implements Runnab
     @Override
     public void run() {
         try {
-            logger.info("Collecting metrics for command {}", COMMAND);
             publishMetrics();
         } catch (TaskExecutionException e) {
             logger.error("Something unforeseen has happened ",e);
@@ -52,6 +51,7 @@ final class InquireQCmdCollector extends QueueMetricsCollector implements Runnab
 
     @Override
     public void publishMetrics() throws TaskExecutionException {
+        logger.info("Collecting metrics for command {}", COMMAND);
 		/*
 		 * attrs = { CMQC.MQCA_Q_NAME, CMQC.MQIA_CURRENT_Q_DEPTH, CMQC.MQIA_MAX_Q_DEPTH, CMQC.MQIA_OPEN_INPUT_COUNT, CMQC.MQIA_OPEN_OUTPUT_COUNT };
 		 */
