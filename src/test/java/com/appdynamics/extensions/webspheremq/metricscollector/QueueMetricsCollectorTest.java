@@ -144,6 +144,10 @@ public class QueueMetricsCollectorTest {
 
     @Test
     public void testProcessPCFRequestAndPublishQMetricsForResetQStatsCmd() throws Exception {
+        QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
+        sharedState.putQueueType("AMQ.5AF1608820C7D76E","local-transmission");
+        sharedState.putQueueType("DEV.DEAD.LETTER.QUEUE","local-transmission");
+        sharedState.putQueueType("DEV.QUEUE.1","local-transmission");
         PCFMessage request = createPCFRequestForResetQStatsCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForResetQStatsCmd());
         classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
