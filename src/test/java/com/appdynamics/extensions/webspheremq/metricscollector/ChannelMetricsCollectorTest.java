@@ -27,36 +27,27 @@ import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.ibm.mq.MQException;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ChannelMetricsCollector.class})
-@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*",
-    "org.xml.*", "org.w3c.dom.*", "com.sun.org.apache.xalan.*", "javax.activation.*"})
+@ExtendWith(MockitoExtension.class)
 public class ChannelMetricsCollectorTest {
     private ChannelMetricsCollector classUnderTest;
 
@@ -72,9 +63,9 @@ public class ChannelMetricsCollectorTest {
     private MonitorContextConfiguration monitorContextConfig;
     private Map<String, WMQMetricOverride> channelMetricsToReport;
     private QueueManager queueManager;
-    ArgumentCaptor<List> pathCaptor = ArgumentCaptor.forClass(List.class);
+    ArgumentCaptor<List<Metric>> pathCaptor = ArgumentCaptor.forClass(List.class);
 
-    @Before
+    @BeforeEach
     public void setup() {
         monitorContextConfig = new MonitorContextConfiguration("WMQMonitor", "Custom Metrics|WMQMonitor|", PathResolver.resolveDirectory(AManagedMonitor.class),aMonitorJob);
         monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
@@ -96,19 +87,33 @@ public class ChannelMetricsCollectorTest {
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.APP.SVRCONN|Status");
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount");
 
-        for (List<Metric> metricList : pathCaptor.getAllValues()) {
+        List<List<Metric>> allValues = pathCaptor.getAllValues();
+        assertThat(allValues).hasSize(3);
+        assertThat(allValues.get(0)).hasSize(6);
+        assertThat(allValues.get(1)).hasSize(6);
+        assertThat(allValues.get(2)).hasSize(1);
+        for (List<Metric> metricList : allValues) {
+            /* TODO: Note -- the list could be the right size but the data inside completely borked
+               and this poorly written test would still pass. Please fix some day. */
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.ADMIN.SVRCONN|Status")) {
-                        assertEquals("3", metric.getMetricValue());
-                        assertNotEquals("10", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("3");
+                        assertThat(metric.getMetricValue()).isNotEqualTo("10");
                     }
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.APP.SVRCONN|Status")) {
-                        assertEquals("3", metric.getMetricValue());
+                    else if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.APP.SVRCONN|Status")) {
+                        assertThat(metric.getMetricValue()).isEqualTo("3");
                     }
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount")) {
-                        assertEquals("2", metric.getMetricValue());
+                    else if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount")) {
+                        assertThat(metric.getMetricValue()).isEqualTo("2");
                     }
+                    else {
+                        fail("Whoops. Didn't see that coming.");
+                    }
+                }
+                else {
+                    // are these simply unvalidated cases? :(
+                    // do we care?
                 }
             }
         }

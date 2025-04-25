@@ -27,6 +27,6 @@ jobs:
         with:
           cache-read-only: ${{ github.event_name == 'pull_request' }}
           java-distribution: 'temurin'
-          java-version: '8'
+          java-version: '11'
       - name: Maven build and test
         run: ./mvnw package
