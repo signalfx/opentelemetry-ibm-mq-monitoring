@@ -26,7 +26,6 @@ import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
-import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
@@ -36,6 +35,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
+
+import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
+import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
 
 /**
  * This class is responsible for channel metric collection.
@@ -123,12 +125,12 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
                 }
 			}
 			catch (PCFException pcfe) {
-				if (pcfe.getReason() == MQConstants.MQRCCF_CHL_STATUS_NOT_FOUND) {
+				if (pcfe.getReason() == MQRCCF_CHL_STATUS_NOT_FOUND) {
 					String errorMsg = "Channel- " + channelGenericName + " :";
 					errorMsg += "Could not collect channel information as channel is stopped or inactive: Reason '3065'\n";
 					errorMsg += "If the channel type is MQCHT_RECEIVER, MQCHT_SVRCONN or MQCHT_CLUSRCVR, then the only action is to enable the channel, not start it.";
-					logger.error(errorMsg,pcfe);
-				} else if (pcfe.getReason() == MQConstants.MQRC_SELECTOR_ERROR) {
+					logger.error(errorMsg, pcfe);
+				} else if (pcfe.getReason() == MQRC_SELECTOR_ERROR) {
 					logger.error("Invalid metrics passed while collecting channel metrics, check config.yaml: Reason '2067'",pcfe);
 				}
 			} catch (Exception e) {

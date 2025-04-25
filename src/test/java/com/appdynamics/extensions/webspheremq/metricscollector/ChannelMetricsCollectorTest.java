@@ -29,12 +29,16 @@ import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -45,12 +49,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.appdynamics.extensions.webspheremq.metricscollector.MetricAssert.assertThatMetric;
 import static com.appdynamics.extensions.webspheremq.metricscollector.MetricPropertiesAssert.metricPropertiesMatching;
+import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
+import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -246,5 +255,48 @@ class ChannelMetricsCollectorTest {
         classUnderTest.publishMetrics();
 
         verifyNoInteractions(metricWriteHelper);
+    }
+
+    @ParameterizedTest
+    @MethodSource("exceptionsToThrow")
+    void testPublishMetrics_pfException(Exception exceptionToThrow) throws Exception {
+        when(pcfMessageAgent.send(any(PCFMessage.class))).thenThrow(exceptionToThrow);
+        classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent,
+                queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+
+        classUnderTest.publishMetrics();
+
+        verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
+
+        // Even when exception is thrown, the active channels are still reported
+        List<List<Metric>> allValues = pathCaptor.getAllValues();
+        assertThat(allValues).hasSize(1);
+        assertThat(allValues.get(0)).hasSize(1);
+        assertThatMetric(allValues.get(0).get(0))
+                .hasName("ActiveChannelsCount")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|ActiveChannelsCount")
+                .hasValue("0")
+                .withPropertiesMatching(standardPropsForAlias("ActiveChannelsCount"));
+    }
+
+    @Test
+    void noMetricsToReport() throws Exception {
+        classUnderTest = new ChannelMetricsCollector(null, monitorContextConfig, pcfMessageAgent,
+                queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+        classUnderTest.publishMetrics();
+        verifyNoInteractions(metricWriteHelper);
+        classUnderTest = new ChannelMetricsCollector(emptyMap(), monitorContextConfig, pcfMessageAgent,
+                queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+        classUnderTest.publishMetrics();
+        verifyNoInteractions(metricWriteHelper);
+    }
+
+    static Stream<Arguments> exceptionsToThrow(){
+        return Stream.of(
+                arguments(new RuntimeException("KBAOOM")),
+                arguments(new PCFException(91, MQRCCF_CHL_STATUS_NOT_FOUND, "flimflam")),
+                arguments(new PCFException(4, MQRC_SELECTOR_ERROR, "shazbot")),
+                arguments(new PCFException(4, 42, "boz"))
+        );
     }
 }
