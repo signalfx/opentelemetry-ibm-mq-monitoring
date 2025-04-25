@@ -18,27 +18,21 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ibm.mq.constants.CMQC;
-import com.ibm.mq.headers.MQDataException;
-import com.ibm.mq.headers.pcf.*;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.*;
 
-public class TopicMetricsCollector extends MetricsCollector implements Runnable {
+public class TopicMetricsCollector extends MetricsCollector {
     private static final Logger logger = LoggerFactory.getLogger(TopicMetricsCollector.class);
     private static final String ARTIFACT = "Topics";
 
@@ -47,40 +41,29 @@ public class TopicMetricsCollector extends MetricsCollector implements Runnable 
     }
 
     @Override
-    public void run() {
-        try {
-            super.process();
-        } catch (TaskExecutionException e) {
-            logger.error("Error in TopicMetricsCollector ", e);
-        } finally {
-            countDownLatch.countDown();
-        }
-    }
-
-    @Override
     public void publishMetrics() throws TaskExecutionException {
         logger.info("Collecting Topic metrics...");
         List<Future> futures = Lists.newArrayList();
 
         //  to query the current status of topics, which is essential for monitoring and managing the publish/subscribe environment in IBM MQ.
-        Map<String, WMQMetricOverride>  metricsForInquireTStatusCmd = getMetricsToReport(InquireTStatusCmdCollector.COMMAND);
-        if(!metricsForInquireTStatusCmd.isEmpty()){
+        Map<String, WMQMetricOverride> metricsForInquireTStatusCmd = getMetricsToReport(InquireTStatusCmdCollector.COMMAND);
+        if (!metricsForInquireTStatusCmd.isEmpty()) {
             futures.add(monitorContextConfig.getContext().getExecutorService().submit("Topic Status Cmd Collector",
                     new InquireTStatusCmdCollector(this, metricsForInquireTStatusCmd)));
         }
-        for(Future f: futures){
+        for (Future f : futures) {
             try {
                 long timeout = 20;
-                if(monitorContextConfig.getConfigYml().get("topicMetricsCollectionTimeoutInSeconds") != null){
-                    timeout = (Integer)monitorContextConfig.getConfigYml().get("topicMetricsCollectionTimeoutInSeconds");
+                if (monitorContextConfig.getConfigYml().get("topicMetricsCollectionTimeoutInSeconds") != null) {
+                    timeout = (Integer) monitorContextConfig.getConfigYml().get("topicMetricsCollectionTimeoutInSeconds");
                 }
                 f.get(timeout, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
-                logger.error("The thread was interrupted ",e);
+                logger.error("The thread was interrupted ", e);
             } catch (ExecutionException e) {
-                logger.error("Something unforeseen has happened ",e);
+                logger.error("Something unforeseen has happened ", e);
             } catch (TimeoutException e) {
-                logger.error("Thread timed out ",e);
+                logger.error("Thread timed out ", e);
             }
         }
     }
@@ -88,15 +71,15 @@ public class TopicMetricsCollector extends MetricsCollector implements Runnable 
     private Map<String, WMQMetricOverride> getMetricsToReport(String command) {
         Map<String, WMQMetricOverride> commandMetrics = Maps.newHashMap();
         if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
-            logger.debug("There are no metrics configured for {}",command);
+            logger.debug("There are no metrics configured for {}", command);
             return commandMetrics;
         }
         Iterator<String> itr = getMetricsToReport().keySet().iterator();
         while (itr.hasNext()) {
             String metricKey = itr.next();
             WMQMetricOverride wmqOverride = getMetricsToReport().get(metricKey);
-            if(wmqOverride.getIbmCommand().equalsIgnoreCase(command)){
-                commandMetrics.put(metricKey,wmqOverride);
+            if (wmqOverride.getIbmCommand().equalsIgnoreCase(command)) {
+                commandMetrics.put(metricKey, wmqOverride);
             }
         }
         return commandMetrics;
