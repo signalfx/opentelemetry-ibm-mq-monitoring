@@ -40,7 +40,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * This class is responsible for channel metric collection.
  */
-public class ChannelMetricsCollector extends MetricsCollector implements Runnable {
+public final class ChannelMetricsCollector extends MetricsCollector implements Runnable {
 
 	public static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 	private static final String ARTIFACT = "Channels";
@@ -49,17 +49,13 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
 	 * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
 	 */
 	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-		this.metricsToReport = metricsToReport;
-		this.monitorContextConfig = monitorContextConfig;
-		this.agent = agent;
-		this.metricWriteHelper = metricWriteHelper;
-		this.queueManager = queueManager;
-		this.countDownLatch = countDownLatch;
+		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
 	}
 
+	@Override
 	public void run() {
 		try {
-			this.process();
+			super.process();
 		} catch (TaskExecutionException e) {
 			logger.error("Error in ChannelMetricsCollector ", e);
 		} finally {
@@ -106,7 +102,7 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
                 for (PCFMessage pcfMessage : response) {
                     String channelName = pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
                     Set<ExcludeFilters> excludeFilters = this.queueManager.getChannelFilters().getExclude();
-                    if (!isExcluded(channelName, excludeFilters)) { //check for exclude filters
+                    if (!ExcludeFilters.isExcluded(channelName, excludeFilters)) { //check for exclude filters
                         logger.debug("Pulling out metrics for channel name {}", channelName);
                         Iterator<String> itr = getMetricsToReport().keySet().iterator();
                         List<Metric> metrics = Lists.newArrayList();
@@ -120,8 +116,8 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
                                 activeChannels.add(channelName);
                             }
                         }
-                        publishMetrics(metrics);
-                    } else {
+						metricWriteHelper.transformAndPrintMetrics(metrics);
+					} else {
                         logger.debug("Channel name {} is excluded.", channelName);
                     }
                 }
@@ -142,18 +138,10 @@ public class ChannelMetricsCollector extends MetricsCollector implements Runnabl
 
 		logger.info("Active Channels in queueManager {} are {}", WMQUtil.getQueueManagerNameFromConfig(queueManager), activeChannels);
 		Metric activeChannelsCountMetric = createMetric(queueManager,"ActiveChannelsCount", activeChannels.size(), null, getArtifact(), "ActiveChannelsCount");
-		publishMetrics(Collections.singletonList(activeChannelsCountMetric));
+		metricWriteHelper.transformAndPrintMetrics(Collections.singletonList(activeChannelsCountMetric));
 
 		long exitTime = System.currentTimeMillis() - entryTime;
 		logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
 
-	}
-
-	public String getArtifact() {
-		return ARTIFACT;
-	}
-
-	public Map<String, WMQMetricOverride> getMetricsToReport() {
-		return this.metricsToReport;
 	}
 }

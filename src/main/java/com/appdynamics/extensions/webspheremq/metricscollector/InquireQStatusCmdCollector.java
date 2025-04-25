@@ -29,14 +29,16 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-class InquireQStatusCmdCollector extends QueueMetricsCollector implements Runnable {
+final class InquireQStatusCmdCollector extends QueueMetricsCollector implements Runnable {
 
-    public static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);
+    private static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);
 
-    protected static final String COMMAND = "MQCMD_INQUIRE_Q_STATUS";
+    static final String COMMAND = "MQCMD_INQUIRE_Q_STATUS";
 
-    public InquireQStatusCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport){
-        super(metricsToReport,collector.monitorContextConfig,collector.agent,collector.queueManager,collector.metricWriteHelper, collector.countDownLatch);
+    public InquireQStatusCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport,
+                                      QueueCollectorSharedState sharedState){
+        super(metricsToReport, collector.monitorContextConfig, collector.agent, collector.metricWriteHelper,
+                collector.queueManager, collector.countDownLatch, sharedState);
     }
 
     @Override

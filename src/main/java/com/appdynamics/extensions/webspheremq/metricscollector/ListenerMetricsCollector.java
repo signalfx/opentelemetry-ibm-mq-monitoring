@@ -34,22 +34,19 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 
-public class ListenerMetricsCollector extends MetricsCollector implements Runnable {
+final public class ListenerMetricsCollector extends MetricsCollector implements Runnable {
 
-    public static final Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
+    private static final Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
+    private final static String ARTIFACT = "Listeners";
 
     public ListenerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-        this.metricsToReport = metricsToReport;
-        this.monitorContextConfig = monitorContextConfig;
-        this.agent = agent;
-        this.metricWriteHelper = metricWriteHelper;
-        this.queueManager = queueManager;
-        this.countDownLatch = countDownLatch;
+        super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
     }
 
+    @Override
     public void run() {
         try {
-            this.process();
+            super.process();
         } catch (TaskExecutionException e) {
             logger.error("Error in ListenerMetricsCollector ", e);
         } finally {
@@ -57,6 +54,7 @@ public class ListenerMetricsCollector extends MetricsCollector implements Runnab
         }
     }
 
+    @Override
     protected void publishMetrics() throws TaskExecutionException {
         long entryTime = System.currentTimeMillis();
 
@@ -86,7 +84,7 @@ public class ListenerMetricsCollector extends MetricsCollector implements Runnab
                 for (PCFMessage pcfMessage : response) {
                     String listenerName = pcfMessage.getStringParameterValue(CMQCFC.MQCACH_LISTENER_NAME).trim();
                     Set<ExcludeFilters> excludeFilters = this.queueManager.getListenerFilters().getExclude();
-                    if (!isExcluded(listenerName, excludeFilters)) { //check for exclude filters
+                    if (!ExcludeFilters.isExcluded(listenerName, excludeFilters)) { //check for exclude filters
                         logger.debug("Pulling out metrics for listener name {}", listenerName);
                         Iterator<String> itr = getMetricsToReport().keySet().iterator();
                         List<Metric> metrics = Lists.newArrayList();
@@ -97,7 +95,7 @@ public class ListenerMetricsCollector extends MetricsCollector implements Runnab
                             Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), listenerName, metrickey);
                             metrics.add(metric);
                         }
-                        publishMetrics(metrics);
+                        metricWriteHelper.transformAndPrintMetrics(metrics);
                     } else {
                         logger.debug("Listener name {} is excluded.", listenerName);
                     }
@@ -110,13 +108,5 @@ public class ListenerMetricsCollector extends MetricsCollector implements Runnab
         long exitTime = System.currentTimeMillis() - entryTime;
         logger.debug("Time taken to publish metrics for all listener is {} milliseconds", exitTime);
 
-    }
-
-    public String getArtifact() {
-        return "Listeners";
-    }
-
-    public Map<String, WMQMetricOverride> getMetricsToReport() {
-        return this.metricsToReport;
     }
 }

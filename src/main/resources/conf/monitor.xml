@@ -18,22 +18,22 @@
 	<name>WMQMonitor</name>
 	<type>managed</type>
 	<enabled>true</enabled>
-	<description>Monitors IBM Websphere MQ</description>
+	<description>Monitors IBM QQ</description>
 	<monitor-configuration>
 	</monitor-configuration>
 	<monitor-run-task>
 		<execution-style>periodic</execution-style>
 		<execution-frequency-in-seconds>60</execution-frequency-in-seconds>
-		<name>Websphere Messaging Queue Monitor Run Task</name>
-		<display-name>Websphere Messaging Queue Monitor Task</display-name>
-		<description>Websphere Messaging Queue Monitor Task</description>
+		<name>IBM MQ Monitor Run Task</name>
+		<display-name>IBM MQ Monitor Task</display-name>
+		<description>IBM MQ Monitor Task</description>
 		<type>java</type>
 		<execution-timeout-in-secs>60</execution-timeout-in-secs>
 		<task-arguments>
 		    <argument name="config-file" is-required="false" default-value="monitors/WMQMonitor/config.yml"/>
 		</task-arguments>
 		<java-task>
-			<classpath>websphere-mq-monitoring-extension.jar;/opt/mqm/java/lib/com.ibm.mq.allclient.jar</classpath>
+			<classpath>ibm-mq-monitoring-extension.jar;/opt/mqm/java/lib/com.ibm.mq.allclient.jar</classpath>
 			<impl-class>com.appdynamics.extensions.webspheremq.WMQMonitor</impl-class>
 		</java-task>
 	</monitor-run-task>

@@ -37,27 +37,19 @@ import java.util.concurrent.CountDownLatch;
 /**
  * This class is responsible for queue metric collection.
  */
-public class QueueManagerMetricsCollector extends MetricsCollector implements Runnable {
+final public class QueueManagerMetricsCollector extends MetricsCollector implements Runnable {
 
-	public static final Logger logger = LoggerFactory.getLogger(QueueManagerMetricsCollector.class);
+	private static final Logger logger = LoggerFactory.getLogger(QueueManagerMetricsCollector.class);
+	private final static String ARTIFACT = "Queue Manager";
 
-    public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-		this.metricsToReport = metricsToReport;
-		this.monitorContextConfig = monitorContextConfig;
-		this.agent = agent;
-		this.metricWriteHelper = metricWriteHelper;
-		this.queueManager = queueManager;
-		this.countDownLatch = countDownLatch;
+	public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
+		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
 	}
 
-	public String getArtifact() {
-        String artifact = "Queue Manager";
-        return artifact;
-	}
-
+	@Override
 	public void run() {
 		try {
-			this.process();
+			super.process();
 		} catch (TaskExecutionException e) {
 			logger.error("Error in QueueManagerMetricsCollector ", e);
 		} finally {
@@ -65,6 +57,7 @@ public class QueueManagerMetricsCollector extends MetricsCollector implements Ru
 		}
 	}
 
+	@Override
 	public void publishMetrics() throws TaskExecutionException {
 		long entryTime = System.currentTimeMillis();
 		logger.debug("publishMetrics entry time for queuemanager {} is {} milliseconds", agent.getQManagerName(), entryTime);
@@ -97,7 +90,7 @@ public class QueueManagerMetricsCollector extends MetricsCollector implements Ru
 				Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, metrickey);
 				metrics.add(metric);
 			}
-			publishMetrics(metrics);
+			metricWriteHelper.transformAndPrintMetrics(metrics);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new TaskExecutionException(e);
@@ -105,9 +98,5 @@ public class QueueManagerMetricsCollector extends MetricsCollector implements Ru
 			long exitTime = System.currentTimeMillis() - entryTime;
 			logger.debug("Time taken to publish metrics for queuemanager is {} milliseconds", exitTime);
 		}
-	}
-
-	public Map<String, WMQMetricOverride> getMetricsToReport() {
-		return metricsToReport;
 	}
 }

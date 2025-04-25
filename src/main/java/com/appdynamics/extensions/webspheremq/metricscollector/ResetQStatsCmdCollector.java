@@ -35,16 +35,19 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
-class ResetQStatsCmdCollector extends QueueMetricsCollector implements Runnable{
+final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Runnable {
 
-    public static final Logger logger = LoggerFactory.getLogger(ResetQStatsCmdCollector.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResetQStatsCmdCollector.class);
 
     protected static final String COMMAND = "MQCMD_RESET_Q_STATS";
 
-    public ResetQStatsCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport){
-        super(metricsToReport,collector.monitorContextConfig,collector.agent,collector.queueManager,collector.metricWriteHelper, collector.countDownLatch);
+    public ResetQStatsCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport,
+                                   QueueCollectorSharedState sharedState){
+        super(metricsToReport, collector.monitorContextConfig, collector.agent,
+                collector.metricWriteHelper, collector.queueManager, collector.countDownLatch, sharedState);
     }
 
+    @Override
     public void run() {
         try {
             logger.info("Collecting metrics for command {}",COMMAND);
@@ -54,6 +57,7 @@ class ResetQStatsCmdCollector extends QueueMetricsCollector implements Runnable{
         }
     }
 
+    @Override
     protected void publishMetrics() throws TaskExecutionException {
 		/*
 		 * attrs = { CMQC.MQCA_Q_NAME, MQIA_HIGH_Q_DEPTH,MQIA_MSG_DEQ_COUNT, MQIA_MSG_ENQ_COUNT };

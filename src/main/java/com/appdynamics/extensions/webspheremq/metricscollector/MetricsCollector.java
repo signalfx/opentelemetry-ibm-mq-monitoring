@@ -29,7 +29,9 @@ import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -38,20 +40,37 @@ import java.util.concurrent.CountDownLatch;
  */
 public abstract class MetricsCollector implements Runnable {
 
-	protected Map<String, WMQMetricOverride> metricsToReport;
-	protected MonitorContextConfiguration monitorContextConfig;
-	protected PCFMessageAgent agent;
-	protected MetricWriteHelper metricWriteHelper;
-	protected QueueManager queueManager;
-	protected CountDownLatch countDownLatch;
+	protected final Map<String, WMQMetricOverride> metricsToReport;
+	protected final MonitorContextConfiguration monitorContextConfig;
+	protected final PCFMessageAgent agent;
+	protected final MetricWriteHelper metricWriteHelper;
+	protected final QueueManager queueManager;
+	protected final CountDownLatch countDownLatch;
+	private final String artifact;
 
-	public static final Logger logger = LoggerFactory.getLogger(MetricsCollector.class);
+	private static final Logger logger = LoggerFactory.getLogger(MetricsCollector.class);
+	public MetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
+                            MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent,
+                            MetricWriteHelper metricWriteHelper, QueueManager queueManager,
+                            CountDownLatch countDownLatch, String artifact) {
+		this.metricsToReport = metricsToReport;
+		this.monitorContextConfig = monitorContextConfig;
+		this.agent = agent;
+		this.metricWriteHelper = metricWriteHelper;
+		this.queueManager = queueManager;
+		this.countDownLatch = countDownLatch;
+        this.artifact = artifact;
+    }
 
 	protected abstract void publishMetrics() throws TaskExecutionException;
 
-	public abstract String getArtifact();
+	final public String getArtifact(){
+		return artifact;
+	}
 
-	public abstract Map<String, WMQMetricOverride> getMetricsToReport();
+	final public Map<String, WMQMetricOverride> getMetricsToReport() {
+		return metricsToReport;
+	}
 
 	/**
 	 * Applies include and exclude filters to the artifacts (i.e queue manager, q, or channel),<br>
@@ -85,64 +104,9 @@ public abstract class MetricsCollector implements Runnable {
 		return metric;
 	}
 
-	protected void publishMetrics(List<Metric> metrics) {
-		metricWriteHelper.transformAndPrintMetrics(metrics);
-	}
-
 	public enum FilterType {
 		STARTSWITH, EQUALS, ENDSWITH, CONTAINS, NONE
     }
-
-	public boolean isExcluded(String resourceName, Set<ExcludeFilters> excludeFilters) {
-		if(excludeFilters == null){
-			return false;
-		}
-		for(ExcludeFilters filter : excludeFilters){
-			if(isExcluded(resourceName, filter)){
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public boolean isExcluded(String resourceName, ExcludeFilters excludeFilter){
-		if (Strings.isNullOrEmpty(resourceName))
-			return true;
-		String type = excludeFilter.getType();
-		Set<String> filterValues = excludeFilter.getValues();
-		switch (FilterType.valueOf(type)){
-			case CONTAINS:
-				for (String filterValue : filterValues) {
-					if (resourceName.contains(filterValue)) {
-						return true;
-					}
-				}
-				break;
-			case STARTSWITH:
-				for (String filterValue : filterValues) {
-					if (resourceName.startsWith(filterValue)) {
-						return true;
-					}
-				}
-				break;
-			case NONE:
-				return false;
-			case EQUALS:
-				for (String filterValue : filterValues) {
-					if (resourceName.equals(filterValue)) {
-						return true;
-					}
-				}
-				break;
-			case ENDSWITH:
-				for (String filterValue : filterValues) {
-					if (resourceName.endsWith(filterValue)) {
-						return true;
-					}
-				}
-		}
-		return false;
-	}
 
 	protected int[] getIntAttributesArray(int... inputAttrs) {
 		int[] attrs = new int[inputAttrs.length+getMetricsToReport().size()];

@@ -54,7 +54,7 @@ java \
    -Djavax.net.ssl.keyStorePassword=<password> \
    -Djavax.net.ssl.trustStore=key.jks \
    -Djavax.net.ssl.trustStorePassword=<password> \
-   -cp target/websphere-mq-monitoring-extension-opentelemetry.jar:lib/com.ibm.mq.allclient.jar \
+   -cp target/ibm-mq-monitoring-extension-opentelemetry.jar:lib/com.ibm.mq.allclient.jar \
    com.appdynamics.extensions.opentelemetry.Main \
    ./my-config.yml
 ```
