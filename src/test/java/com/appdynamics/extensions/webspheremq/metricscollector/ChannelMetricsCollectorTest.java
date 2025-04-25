@@ -48,6 +48,7 @@ import java.util.function.Function;
 
 import static com.appdynamics.extensions.webspheremq.metricscollector.MetricAssert.assertThatMetric;
 import static com.appdynamics.extensions.webspheremq.metricscollector.MetricPropertiesAssert.metricPropertiesMatching;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
@@ -72,11 +73,11 @@ class ChannelMetricsCollectorTest {
 
     @BeforeEach
     void setup() {
-        monitorContextConfig = new MonitorContextConfiguration("WMQMonitor", "Custom Metrics|WMQMonitor|", PathResolver.resolveDirectory(AManagedMonitor.class),aMonitorJob);
+        monitorContextConfig = new MonitorContextConfiguration("WMQMonitor", "Custom Metrics|WMQMonitor|", PathResolver.resolveDirectory(AManagedMonitor.class), aMonitorJob);
         monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
         Map<String, ?> configMap = monitorContextConfig.getConfigYml();
         ObjectMapper mapper = new ObjectMapper();
-        queueManager = mapper.convertValue(((List)configMap.get("queueManagers")).get(0), QueueManager.class);
+        queueManager = mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         channelMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
         pathCaptor = ArgumentCaptor.forClass(List.class);
@@ -112,7 +113,7 @@ class ChannelMetricsCollectorTest {
                 .withPropertiesMatching(standardPropsForAlias("ActiveChannelsCount"));
     }
 
-    void assertRowWithList(List<Metric> metrics, String component){
+    void assertRowWithList(List<Metric> metrics, String component) {
         assertThatMetric(metrics.get(0))
                 .hasName("Status")
                 .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|DEV." + component + ".SVRCONN|Status")
@@ -150,12 +151,12 @@ class ChannelMetricsCollectorTest {
                 .withPropertiesMatching(standardPropsForAlias("Byte Received"));
     }
 
-    Function<MetricProperties,MetricPropertiesAssert> standardPropsForAlias(String alias){
+    Function<MetricProperties, MetricPropertiesAssert> standardPropsForAlias(String alias) {
         return mp -> metricPropertiesMatching(mp)
-                        .alias(alias)
-                        .multiplier(BigDecimal.ONE)
-                        .aggregationType("AVERAGE").timeRollup("AVERAGE").clusterRollUp("INDIVIDUAL")
-                        .delta(false);
+                .alias(alias)
+                .multiplier(BigDecimal.ONE)
+                .aggregationType("AVERAGE").timeRollup("AVERAGE").clusterRollUp("INDIVIDUAL")
+                .delta(false);
     }
 
     /*
@@ -225,4 +226,25 @@ class ChannelMetricsCollectorTest {
         return new PCFMessage[]{response1, response2, response3};
     }
 
+    @Test
+    void testPublishMetrics_nullResponse() throws Exception {
+        when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(null);
+        classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, null, pcfMessageAgent,
+                queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+
+        classUnderTest.publishMetrics();
+
+        verifyNoInteractions(metricWriteHelper);
+    }
+
+    @Test
+    void testPublishMetrics_emptyResponse() throws Exception {
+        when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(new PCFMessage[]{});
+        classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, null, pcfMessageAgent,
+                queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+
+        classUnderTest.publishMetrics();
+
+        verifyNoInteractions(metricWriteHelper);
+    }
 }

@@ -132,7 +132,7 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
 					logger.error("Invalid metrics passed while collecting channel metrics, check config.yaml: Reason '2067'",pcfe);
 				}
 			} catch (Exception e) {
-				logger.error("Unexpected Error occoured while collecting metrics for channel " + channelGenericName, e);
+				logger.error("Unexpected Error occurred while collecting metrics for channel " + channelGenericName, e);
 			}
 		}
 

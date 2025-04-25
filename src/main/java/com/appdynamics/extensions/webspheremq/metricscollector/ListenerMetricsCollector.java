@@ -102,7 +102,7 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
                 }
             }
             catch (Exception e) {
-                logger.error("Unexpected Error occoured while collecting metrics for listener " + listenerGenericName, e);
+                logger.error("Unexpected Error occurred while collecting metrics for listener " + listenerGenericName, e);
             }
         }
         long exitTime = System.currentTimeMillis() - entryTime;
