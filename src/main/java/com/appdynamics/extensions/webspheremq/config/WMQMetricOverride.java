@@ -21,6 +21,11 @@ import org.slf4j.Logger;
 
 import java.util.Map;
 
+/**
+ * Represents an override for WebSphere MQ metrics with custom properties.
+ * This class provides functionality to specify and manage IBM constants,
+ * commands, and associated metric properties for WebSphere MQ configuration.
+ */
 public class WMQMetricOverride {
 
 	String ibmConstant;

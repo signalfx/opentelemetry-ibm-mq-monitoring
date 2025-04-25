@@ -25,17 +25,13 @@ import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ibm.mq.constants.CMQC;
-import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.*;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.*;
 
 public class TopicMetricsCollector extends MetricsCollector implements Runnable {
@@ -86,7 +82,7 @@ public class TopicMetricsCollector extends MetricsCollector implements Runnable 
     private Map<String, WMQMetricOverride> getMetricsToReport(String command) {
         Map<String, WMQMetricOverride> commandMetrics = Maps.newHashMap();
         if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
-            logger.debug("There are no metrics configured for {}",command);
+            logger.debug("There are no metrics configured for {}", command);
             return commandMetrics;
         }
         Iterator<String> itr = getMetricsToReport().keySet().iterator();

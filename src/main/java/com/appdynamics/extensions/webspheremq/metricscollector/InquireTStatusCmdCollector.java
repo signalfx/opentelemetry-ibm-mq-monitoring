@@ -103,6 +103,7 @@ final class InquireTStatusCmdCollector extends MetricsCollector implements Runna
             logger.debug("Unexpected Error while PCFMessage.send() for command {}, response is either null or empty",command);
             return;
         }
+
         for (PCFMessage pcfMessage : response) {
             String topicString = pcfMessage.getStringParameterValue(CMQC.MQCA_TOPIC_STRING).trim();
             Set<ExcludeFilters> excludeFilters = this.queueManager.getTopicFilters().getExclude();

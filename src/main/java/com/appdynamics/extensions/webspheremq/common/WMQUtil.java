@@ -16,25 +16,32 @@
 
 package com.appdynamics.extensions.webspheremq.common;
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
 
 public class WMQUtil {
-    public static final Logger logger = ExtensionsLoggerFactory.getLogger(WMQUtil.class);
+    public static final Logger logger = LoggerFactory.getLogger(WMQUtil.class);
     /**
-     * Returns master data structure,This map will contain only those metrics which are to be reported to controller.<br>
+     * Returns master data structure, this map will contain only those metrics which are configured in the yaml config file.<br>
      * It contains metric type as key and a map of metric and WMQMetricOverride as value,<br>
-     * entryset of internal map implicitly represents metrics to be reported.
+     *    Map <metric type, Map<metric name, WMQMetricOverride> >
+     * EntrySet of internal map implicitly represents metrics to be reported.
      */
     public static Map<String, Map<String, WMQMetricOverride>> getMetricsToReportFromConfigYml(List<Map> mqMetrics) {
         Map<String, Map<String, WMQMetricOverride>> metricsMap = Maps.newHashMap();
+        //
+        // mqMetrics represents "mqMetrics:" defined in config yaml.
+        //    i.e:  - metricsType: "..." \ metrics: \ include: \
+        //                           <the metric name>:  alias: "" ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_Q_MGR_STATUS"
+        //                           ibmCommand="MQCMD_" aggregationType: "" timeRollUpType: "" clusterRollUpType:"" clusterRollUpType=""
+        //
         for (Map mqMetric : mqMetrics) {
             String metricType = (String) mqMetric.get("metricsType");
             List includeMetrics = (List) ((Map) mqMetric.get("metrics")).get("include");
