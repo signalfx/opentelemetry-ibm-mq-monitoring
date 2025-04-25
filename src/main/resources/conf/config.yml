@@ -230,29 +230,35 @@ mqMetrics:
         - Messages:
             alias: "Messages"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS"
-          
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - Status:
             alias: "Status"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_CHANNEL_STATUS"  #http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
             aggregationType: "OBSERVATION"
             timeRollUpType: "AVERAGE"
             clusterRollUpType: "INDIVIDUAL"
-          
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - ByteSent:
             alias: "Byte Sent"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BYTES_SENT"
-          
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - ByteReceived:
             alias: "Byte Received"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BYTES_RECEIVED"
-          
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - BuffersSent:
             alias: "Buffers Sent"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BUFFERS_SENT"
-          
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - BuffersReceived:
             alias: "Buffers Received"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BUFFERS_RECEIVED"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
 
         - CurrentSharingConversations:
             alias: "Current Sharing Conversations"
@@ -262,6 +268,30 @@ mqMetrics:
             alias: "Max Sharing Conversations"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_SHARING_CONVS"
 
+        - MaxInstances:
+            alias: "Max Instances"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_INSTANCES"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MaxInstancesPerClient:
+            alias: "Max Instances per Client"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgRetryCount:
+            alias: "Message Retry Count"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MR_COUNT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgsReceived:
+            alias: "Message Received Count"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS_RECEIVED"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgsSent:
+            alias: "Message Sent"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS_SENT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
 
   - metricsType: "listenerMetrics"
     metrics:

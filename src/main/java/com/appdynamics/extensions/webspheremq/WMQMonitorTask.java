@@ -36,6 +36,7 @@ import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException
 import org.slf4j.Logger;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -148,8 +149,21 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 		Map<String, WMQMetricOverride> channelMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
 		if (channelMetricsToReport != null) {
-			MetricsCollector channelMetricsCollector = new ChannelMetricsCollector(channelMetricsToReport, this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch);
-			monitorContextConfig.getContext().getExecutorService().execute("ChannelMetricsCollector", channelMetricsCollector);
+			Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
+			for (String key : channelMetricsToReport.keySet()) {
+				WMQMetricOverride wmqOverride = channelMetricsToReport.get(key);
+				String cmd = wmqOverride.getIbmCommand() == null ? "MQCMD_INQUIRE_CHANNEL_STATUS" : wmqOverride.getIbmCommand();
+				metricsByCommand.putIfAbsent(cmd, new HashMap<>());
+				metricsByCommand.get(cmd).put(key, wmqOverride);
+			}
+			if (metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS") != null) {
+				MetricsCollector channelMetricsCollector = new ChannelMetricsCollector(metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS"), this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch);
+				monitorContextConfig.getContext().getExecutorService().execute("ChannelMetricsCollector", channelMetricsCollector);
+			}
+			if (metricsByCommand.get("MQCMD_INQUIRE_CHANNEL") != null) {
+				MetricsCollector inquireChannelMetricsCollector = new InquireChannelCmdCollector(metricsByCommand.get("MQCMD_INQUIRE_CHANNEL"), this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch);
+				monitorContextConfig.getContext().getExecutorService().execute("ChannelMetricsCollector", inquireChannelMetricsCollector);
+			}
 		} else {
 			logger.warn("No channel metrics to report");
 		}
