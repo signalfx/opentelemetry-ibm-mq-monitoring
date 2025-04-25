@@ -37,24 +37,13 @@ import java.util.concurrent.CountDownLatch;
 /**
  * This class is responsible for queue metric collection.
  */
-final public class QueueManagerMetricsCollector extends MetricsCollector implements Runnable {
+final public class QueueManagerMetricsCollector extends MetricsCollector {
 
 	private static final Logger logger = LoggerFactory.getLogger(QueueManagerMetricsCollector.class);
 	private final static String ARTIFACT = "Queue Manager";
 
 	public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
-	}
-
-	@Override
-	public void run() {
-		try {
-			super.process();
-		} catch (TaskExecutionException e) {
-			logger.error("Error in QueueManagerMetricsCollector ", e);
-		} finally {
-			countDownLatch.countDown();
-		}
 	}
 
 	@Override

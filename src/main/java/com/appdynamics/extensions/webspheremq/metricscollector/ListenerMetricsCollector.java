@@ -34,24 +34,13 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 
-final public class ListenerMetricsCollector extends MetricsCollector implements Runnable {
+final public class ListenerMetricsCollector extends MetricsCollector {
 
     private static final Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
     private final static String ARTIFACT = "Listeners";
 
     public ListenerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
         super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
-    }
-
-    @Override
-    public void run() {
-        try {
-            super.process();
-        } catch (TaskExecutionException e) {
-            logger.error("Error in ListenerMetricsCollector ", e);
-        } finally {
-            countDownLatch.countDown();
-        }
     }
 
     @Override
