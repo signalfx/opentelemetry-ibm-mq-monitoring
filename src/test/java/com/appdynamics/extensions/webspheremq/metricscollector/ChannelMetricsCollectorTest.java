@@ -55,10 +55,8 @@ import static com.appdynamics.extensions.webspheremq.metricscollector.MetricAsse
 import static com.appdynamics.extensions.webspheremq.metricscollector.MetricPropertiesAssert.metricPropertiesMatching;
 import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
 import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.*;
 
@@ -100,7 +98,7 @@ class ChannelMetricsCollectorTest {
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount");
 
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireChannelStatusCmd());
-        classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+        classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper);
 
         classUnderTest.publishMetrics();
 
@@ -239,7 +237,7 @@ class ChannelMetricsCollectorTest {
     void testPublishMetrics_nullResponse() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(null);
         classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, null, pcfMessageAgent,
-                queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+                queueManager, metricWriteHelper);
 
         classUnderTest.publishMetrics();
 
@@ -250,7 +248,7 @@ class ChannelMetricsCollectorTest {
     void testPublishMetrics_emptyResponse() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(new PCFMessage[]{});
         classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, null, pcfMessageAgent,
-                queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+                queueManager, metricWriteHelper);
 
         classUnderTest.publishMetrics();
 
@@ -262,7 +260,7 @@ class ChannelMetricsCollectorTest {
     void testPublishMetrics_pfException(Exception exceptionToThrow) throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenThrow(exceptionToThrow);
         classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+                queueManager, metricWriteHelper);
 
         classUnderTest.publishMetrics();
 
@@ -282,16 +280,16 @@ class ChannelMetricsCollectorTest {
     @Test
     void noMetricsToReport() throws Exception {
         classUnderTest = new ChannelMetricsCollector(null, monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+                queueManager, metricWriteHelper);
         classUnderTest.publishMetrics();
         verifyNoInteractions(metricWriteHelper);
         classUnderTest = new ChannelMetricsCollector(emptyMap(), monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+                queueManager, metricWriteHelper);
         classUnderTest.publishMetrics();
         verifyNoInteractions(metricWriteHelper);
     }
 
-    static Stream<Arguments> exceptionsToThrow(){
+    static Stream<Arguments> exceptionsToThrow() {
         return Stream.of(
                 arguments(new RuntimeException("KBAOOM")),
                 arguments(new PCFException(91, MQRCCF_CHL_STATUS_NOT_FOUND, "flimflam")),

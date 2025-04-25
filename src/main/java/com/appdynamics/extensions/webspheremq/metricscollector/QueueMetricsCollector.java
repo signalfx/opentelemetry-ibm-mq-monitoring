@@ -74,7 +74,7 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 	}
 
 	@Override
-	protected void publishMetrics() throws TaskExecutionException {
+	public void publishMetrics() throws TaskExecutionException {
 		logger.info("Collecting queue metrics...");
 		List<Future> futures = Lists.newArrayList();
 		Map<String, WMQMetricOverride>  metricsForInquireQCmd = getMetricsToReport(InquireQCmdCollector.COMMAND);

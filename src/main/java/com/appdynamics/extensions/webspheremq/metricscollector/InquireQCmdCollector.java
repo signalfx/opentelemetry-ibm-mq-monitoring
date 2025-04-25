@@ -51,7 +51,7 @@ final class InquireQCmdCollector extends QueueMetricsCollector implements Runnab
     }
 
     @Override
-    protected void publishMetrics() throws TaskExecutionException {
+    public void publishMetrics() throws TaskExecutionException {
 		/*
 		 * attrs = { CMQC.MQCA_Q_NAME, CMQC.MQIA_CURRENT_Q_DEPTH, CMQC.MQIA_MAX_Q_DEPTH, CMQC.MQIA_OPEN_INPUT_COUNT, CMQC.MQIA_OPEN_OUTPUT_COUNT };
 		 */

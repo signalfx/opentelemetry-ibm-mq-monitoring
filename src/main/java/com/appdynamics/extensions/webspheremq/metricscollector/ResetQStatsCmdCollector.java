@@ -58,7 +58,7 @@ final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Run
     }
 
     @Override
-    protected void publishMetrics() throws TaskExecutionException {
+    public void publishMetrics() throws TaskExecutionException {
 		/*
 		 * attrs = { CMQC.MQCA_Q_NAME, MQIA_HIGH_Q_DEPTH,MQIA_MSG_DEQ_COUNT, MQIA_MSG_ENQ_COUNT };
 		 */

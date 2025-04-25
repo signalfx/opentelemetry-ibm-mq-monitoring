@@ -52,7 +52,7 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
     }
 
     @Override
-    protected void publishMetrics() throws TaskExecutionException {
+    public void publishMetrics() throws TaskExecutionException {
         long entryTime = System.currentTimeMillis();
 
         if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {

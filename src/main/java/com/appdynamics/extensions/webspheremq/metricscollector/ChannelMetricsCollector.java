@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 
 import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
 import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
@@ -42,7 +41,7 @@ import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
 /**
  * This class is responsible for channel metric collection.
  */
-public final class ChannelMetricsCollector extends MetricsCollector implements Runnable {
+public final class ChannelMetricsCollector extends MetricsCollector {
 
 	public static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 	private static final String ARTIFACT = "Channels";
@@ -50,23 +49,12 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
 	/*
 	 * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
 	 */
-	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
+	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper) {
+		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, null, ARTIFACT);
 	}
 
 	@Override
-	public void run() {
-		try {
-			super.process();
-		} catch (TaskExecutionException e) {
-			logger.error("Error in ChannelMetricsCollector ", e);
-		} finally {
-			countDownLatch.countDown();
-		}
-	}
-
-	@Override
-	protected void publishMetrics() throws TaskExecutionException {
+	public void publishMetrics() throws TaskExecutionException {
 		long entryTime = System.currentTimeMillis();
 
 		if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
