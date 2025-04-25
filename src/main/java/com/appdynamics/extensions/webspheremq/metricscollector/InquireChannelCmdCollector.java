@@ -76,11 +76,6 @@ public class InquireChannelCmdCollector extends MetricsCollector {
 			return;
 		}
 
-		int[] attrs = getIntAttributesArray(CMQCFC.MQIACF_ALL);
-		if (logger.isDebugEnabled()) {
-            logger.debug("Attributes being sent along PCF agent request to query channel metrics: {}", Arrays.toString(attrs));
-		}
-
 		Set<String> channelGenericNames = this.queueManager.getChannelFilters().getInclude();
 
 		for(String channelGenericName : channelGenericNames){

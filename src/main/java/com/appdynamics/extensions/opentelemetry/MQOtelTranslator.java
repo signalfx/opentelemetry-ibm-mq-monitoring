@@ -63,44 +63,6 @@ class MQOtelTranslator {
         AttributesBuilder builder = Attributes.builder();
         builder.put("queue.manager", segments.get(segments.size() - 2));
         return builder.build();
-  });
-
-    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Status
-    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Messages
-    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Buffers Sent
-    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Byte Sent
-    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Buffers Received
-    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Byte Received
-    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Listeners|CLOUD.LISTENER.TCP|Status
-    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Current Sharing Conversations
-    private static final Mapping channelMetricNameMappings = new Mapping(new HashMap<String, String>() {{
-        put("Messages", "mq.messages");
-        put("Status", "mq.status");
-        put("Byte Sent", "mq.byte.sent");
-        put("Byte Received", "mq.byte.received");
-        put("Buffers Sent", "mq.buffers.sent");
-        put("Buffers Received", "mq.buffers.received");
-        put("Current Sharing Conversations", "mq.current.sharing.conversations");
-        put("Max Sharing Conversations", "mq.max.sharing.conversations");
-        put("Max Instances", "mq.max.instances");
-        put("Max Instances per Client", "mq.instances.per.client");
-        put("Message Retry Count", "mq.message.retry.count");
-        put("Message Received Count", "mq.message.received.count");
-        put("Message Sent", "mq.message.sent.count");
-      }}, segments -> {
-          AttributesBuilder builder = Attributes.builder();
-          builder.put("queue.manager", segments.get(segments.size() - 4));
-	  	  builder.put("channel.name", segments.get(segments.size() - 2));
-          return builder.build();
-      });
-
-    private static final Mapping listenerMetricNameMappings = new Mapping(new HashMap<String, String>() {{
-        put("Status", "mq.status");
-    }}, segments -> {
-        AttributesBuilder builder = Attributes.builder();
-        builder.put("queue.manager", segments.get(segments.size() - 4));
-        builder.put("channel.name", segments.get(segments.size() - 2));
-        return builder.build();
     });
 
     //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Queues|DEV.DEAD.LETTER.QUEUE|local|UncommittedMsgs
@@ -153,6 +115,44 @@ class MQOtelTranslator {
                 builder.put("queue.type", segments.get(segments.size() - 2));
                 return builder.build();
             });
+
+    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Status
+    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Messages
+    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Buffers Sent
+    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Byte Sent
+    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Buffers Received
+    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Byte Received
+    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Listeners|CLOUD.LISTENER.TCP|Status
+    //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Channels|CLOUD.ADMIN.SVRCONN|Current Sharing Conversations
+    private static final Mapping channelMetricNameMappings = new Mapping(new HashMap<String, String>() {{
+        put("Messages", "mq.messages");
+        put("Status", "mq.status");
+        put("Byte Sent", "mq.byte.sent");
+        put("Byte Received", "mq.byte.received");
+        put("Buffers Sent", "mq.buffers.sent");
+        put("Buffers Received", "mq.buffers.received");
+        put("Current Sharing Conversations", "mq.current.sharing.conversations");
+        put("Max Sharing Conversations", "mq.max.sharing.conversations");
+        put("Max Instances", "mq.max.instances");
+        put("Max Instances per Client", "mq.instances.per.client");
+        put("Message Retry Count", "mq.message.retry.count");
+        put("Message Received Count", "mq.message.received.count");
+        put("Message Sent", "mq.message.sent.count");
+    }}, segments -> {
+        AttributesBuilder builder = Attributes.builder();
+        builder.put("queue.manager", segments.get(segments.size() - 4));
+        builder.put("channel.name", segments.get(segments.size() - 2));
+        return builder.build();
+    });
+
+    private static final Mapping listenerMetricNameMappings = new Mapping(new HashMap<String, String>() {{
+        put("Status", "mq.status");
+    }}, segments -> {
+        AttributesBuilder builder = Attributes.builder();
+        builder.put("queue.manager", segments.get(segments.size() - 4));
+        builder.put("channel.name", segments.get(segments.size() - 2));
+        return builder.build();
+    });
 
     //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Topics|dev|Publish Count
     //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Topics|dev|Subscription Count
