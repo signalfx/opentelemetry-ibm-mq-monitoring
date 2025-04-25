@@ -48,8 +48,10 @@ public class TopicMetricsCollector extends MetricsCollector {
         //  to query the current status of topics, which is essential for monitoring and managing the publish/subscribe environment in IBM MQ.
         Map<String, WMQMetricOverride> metricsForInquireTStatusCmd = getMetricsToReport(InquireTStatusCmdCollector.COMMAND);
         if (!metricsForInquireTStatusCmd.isEmpty()) {
-            futures.add(monitorContextConfig.getContext().getExecutorService().submit("Topic Status Cmd Collector",
-                    new InquireTStatusCmdCollector(this, metricsForInquireTStatusCmd)));
+            InquireTStatusCmdCollector metricsPublisher = new InquireTStatusCmdCollector(this, metricsForInquireTStatusCmd);
+            MetricsPublisherJob job = new MetricsPublisherJob(metricsPublisher, countDownLatch);
+            futures.add(monitorContextConfig.getContext().getExecutorService()
+                    .submit("Topic Status Cmd Collector", job));
         }
         for (Future f : futures) {
             try {
