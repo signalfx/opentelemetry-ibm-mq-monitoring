@@ -50,7 +50,6 @@ final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Run
     @Override
     public void run() {
         try {
-            logger.info("Collecting metrics for command {}",COMMAND);
             publishMetrics();
         } catch (TaskExecutionException e) {
             logger.error("Something unforeseen has happened ",e);
@@ -58,7 +57,8 @@ final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Run
     }
 
     @Override
-    protected void publishMetrics() throws TaskExecutionException {
+    public void publishMetrics() throws TaskExecutionException {
+        logger.info("Collecting metrics for command {}",COMMAND);
 		/*
 		 * attrs = { CMQC.MQCA_Q_NAME, MQIA_HIGH_Q_DEPTH,MQIA_MSG_DEQ_COUNT, MQIA_MSG_ENQ_COUNT };
 		 */

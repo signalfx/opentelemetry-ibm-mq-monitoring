@@ -34,7 +34,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 
-final public class ListenerMetricsCollector extends MetricsCollector implements Runnable {
+final public class ListenerMetricsCollector extends MetricsCollector {
 
     private static final Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
     private final static String ARTIFACT = "Listeners";
@@ -44,18 +44,7 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
     }
 
     @Override
-    public void run() {
-        try {
-            super.process();
-        } catch (TaskExecutionException e) {
-            logger.error("Error in ListenerMetricsCollector ", e);
-        } finally {
-            countDownLatch.countDown();
-        }
-    }
-
-    @Override
-    protected void publishMetrics() throws TaskExecutionException {
+    public void publishMetrics() throws TaskExecutionException {
         long entryTime = System.currentTimeMillis();
 
         if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
@@ -102,7 +91,7 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
                 }
             }
             catch (Exception e) {
-                logger.error("Unexpected Error occoured while collecting metrics for listener " + listenerGenericName, e);
+                logger.error("Unexpected Error occurred while collecting metrics for listener " + listenerGenericName, e);
             }
         }
         long exitTime = System.currentTimeMillis() - entryTime;

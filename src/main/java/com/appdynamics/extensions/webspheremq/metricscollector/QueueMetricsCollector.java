@@ -44,7 +44,7 @@ import static com.ibm.mq.constants.CMQC.MQQT_LOCAL;
 import static com.ibm.mq.constants.CMQC.MQQT_MODEL;
 import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
 
-public class QueueMetricsCollector extends MetricsCollector implements Runnable {
+public class QueueMetricsCollector extends MetricsCollector {
 
 	private static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
 	private final static String ARTIFACT = "Queues";
@@ -63,18 +63,7 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 	}
 
 	@Override
-	public void run() {
-		try {
-			super.process();
-		} catch (TaskExecutionException e) {
-			logger.error("Error in QueueMetricsCollector ", e);
-		} finally {
-			countDownLatch.countDown();
-		}
-	}
-
-	@Override
-	protected void publishMetrics() throws TaskExecutionException {
+	public void publishMetrics() throws TaskExecutionException {
 		logger.info("Collecting queue metrics...");
 		List<Future> futures = Lists.newArrayList();
 		Map<String, WMQMetricOverride>  metricsForInquireQCmd = getMetricsToReport(InquireQCmdCollector.COMMAND);
