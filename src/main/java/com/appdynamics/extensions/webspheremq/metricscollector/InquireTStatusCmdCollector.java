@@ -16,7 +16,6 @@
 
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
@@ -30,6 +29,7 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFParameter;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -39,7 +39,7 @@ import java.util.Set;
 
 final class InquireTStatusCmdCollector extends MetricsCollector implements Runnable {
 
-    private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireTStatusCmdCollector.class);
+    private static final Logger logger = LoggerFactory.getLogger(InquireTStatusCmdCollector.class);
     private static final String ARTIFACT = "Topics";
 
     static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";
@@ -69,6 +69,8 @@ final class InquireTStatusCmdCollector extends MetricsCollector implements Runna
             return;
         }
         Set<String> topicGenericNames = this.queueManager.getTopicFilters().getInclude();
+        //
+         //  to query the current status of topics, which is essential for monitoring and managing the publish/subscribe environment in IBM MQ.
         for(String topicGenericName : topicGenericNames){
             // Request: https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ref.adm.doc/q088140_.htm
             // list of all metrics extracted through MQCMD_INQUIRE_TOPIC_STATUS is mentioned here https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ref.adm.doc/q088150_.htm

@@ -20,7 +20,6 @@ import com.appdynamics.extensions.AMonitorTaskRunnable;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.TasksExecutionServiceProvider;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.util.StringUtils;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
@@ -34,6 +33,7 @@ import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.Hashtable;
@@ -46,7 +46,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class WMQMonitorTask implements AMonitorTaskRunnable {
 
-	public static final Logger logger = ExtensionsLoggerFactory.getLogger(WMQMonitorTask.class);
+	public static final Logger logger = LoggerFactory.getLogger(WMQMonitorTask.class);
 	private QueueManager queueManager;
 	private MonitorContextConfiguration monitorContextConfig;
 	private Map<String, ?> configMap;

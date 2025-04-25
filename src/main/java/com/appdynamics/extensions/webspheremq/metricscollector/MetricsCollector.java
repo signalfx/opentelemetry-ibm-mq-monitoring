@@ -26,6 +26,8 @@ import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.base.Strings;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -46,6 +48,7 @@ public abstract class MetricsCollector implements Runnable {
 	protected final CountDownLatch countDownLatch;
 	private final String artifact;
 
+	private static final Logger logger = LoggerFactory.getLogger(MetricsCollector.class);
 	public MetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
                             MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent,
                             MetricWriteHelper metricWriteHelper, QueueManager queueManager,

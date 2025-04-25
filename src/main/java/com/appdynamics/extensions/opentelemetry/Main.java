@@ -45,7 +45,7 @@ public class Main {
         OtlpGrpcMetricExporter exporter = Config.createOtlpGrpcMetricsExporter(config);
 
         WMQMonitor monitor = new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter));
-        TaskExecutionContext ctxt = new TaskExecutionContext();
+        TaskExecutionContext taskExecCtx = new TaskExecutionContext();
 
         int numberOfThreads = 1;
         int taskDelaySeconds = 60;
@@ -61,7 +61,7 @@ public class Main {
             try {
                 Map<String, String> taskArguments = new HashMap<>();
                 taskArguments.put("config-file", configFile);
-                monitor.execute(taskArguments, ctxt);
+                monitor.execute(taskArguments, taskExecCtx);
             } catch (TaskExecutionException e) {
                 throw new RuntimeException(e);
             }

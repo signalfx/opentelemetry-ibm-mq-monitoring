@@ -18,7 +18,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
@@ -33,6 +32,7 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -42,7 +42,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public final class ChannelMetricsCollector extends MetricsCollector implements Runnable {
 
-	private static final Logger logger = ExtensionsLoggerFactory.getLogger(ChannelMetricsCollector.class);
+	public static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 	private static final String ARTIFACT = "Channels";
 
 	/*
@@ -79,6 +79,10 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
 
 		Set<String> channelGenericNames = this.queueManager.getChannelFilters().getInclude();
 
+		//
+ 		// The MQCMD_INQUIRE_CHANNEL_STATUS command queries the current operational status of channels.
+		// This includes information about whether a channel is running, stopped, or in another state,
+		// as well as details about the channel’s performance and usage.
 		List<String> activeChannels = Lists.newArrayList();
 		for(String channelGenericName : channelGenericNames){
 			PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS);

@@ -16,7 +16,6 @@
 
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
@@ -24,6 +23,7 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -31,7 +31,7 @@ import java.util.Set;
 
 final class InquireQStatusCmdCollector extends QueueMetricsCollector implements Runnable {
 
-    private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQStatusCmdCollector.class);
+    private static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);
 
     static final String COMMAND = "MQCMD_INQUIRE_Q_STATUS";
 
@@ -60,9 +60,9 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
             return;
         }
 
-        /**
-         * attrs = { CMQC.MQCA_Q_NAME, MQIACF_OLDEST_MSG_AGE, MQIACF_Q_TIME_INDICATOR };
-         */
+        //
+        // attrs = { CMQC.MQCA_Q_NAME, MQIACF_OLDEST_MSG_AGE, MQIACF_Q_TIME_INDICATOR };
+        //
         int[] attrs = getIntAttributesArray(CMQC.MQCA_Q_NAME);
         if (logger.isDebugEnabled()) {
             logger.debug("Attributes being sent along PCF agent request to query queue metrics: {} for command {}", Arrays.toString(attrs), COMMAND);

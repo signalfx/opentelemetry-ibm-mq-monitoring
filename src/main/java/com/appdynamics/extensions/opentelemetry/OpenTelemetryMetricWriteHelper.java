@@ -20,6 +20,8 @@ import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.metrics.transformers.Transformer;
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.Collection;
@@ -27,6 +29,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class OpenTelemetryMetricWriteHelper extends MetricWriteHelper {
+
+  private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryMetricWriteHelper.class);
 
   private final OtlpGrpcMetricExporter exporter;
 
