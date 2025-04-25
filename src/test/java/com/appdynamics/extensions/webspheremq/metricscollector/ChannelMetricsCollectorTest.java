@@ -20,6 +20,7 @@ import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
+import com.appdynamics.extensions.metrics.MetricProperties;
 import com.appdynamics.extensions.util.PathResolver;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
@@ -39,16 +40,20 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Function;
 
+import static com.appdynamics.extensions.webspheremq.metricscollector.MetricAssert.assertThatMetric;
+import static com.appdynamics.extensions.webspheremq.metricscollector.MetricPropertiesAssert.metricPropertiesMatching;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ChannelMetricsCollectorTest {
+class ChannelMetricsCollectorTest {
     private ChannelMetricsCollector classUnderTest;
 
     @Mock
@@ -63,10 +68,10 @@ public class ChannelMetricsCollectorTest {
     private MonitorContextConfiguration monitorContextConfig;
     private Map<String, WMQMetricOverride> channelMetricsToReport;
     private QueueManager queueManager;
-    ArgumentCaptor<List<Metric>> pathCaptor = ArgumentCaptor.forClass(List.class);
+    private ArgumentCaptor<List<Metric>> pathCaptor;
 
     @BeforeEach
-    public void setup() {
+    void setup() {
         monitorContextConfig = new MonitorContextConfiguration("WMQMonitor", "Custom Metrics|WMQMonitor|", PathResolver.resolveDirectory(AManagedMonitor.class),aMonitorJob);
         monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
         Map<String, ?> configMap = monitorContextConfig.getConfigYml();
@@ -74,49 +79,83 @@ public class ChannelMetricsCollectorTest {
         queueManager = mapper.convertValue(((List)configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         channelMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
+        pathCaptor = ArgumentCaptor.forClass(List.class);
     }
 
     @Test
-    public void testpublishMetrics() throws Exception {
-        when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireChannelStatusCmd());
-        classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
-        classUnderTest.publishMetrics();
-        verify(metricWriteHelper, times(3)).transformAndPrintMetrics(pathCaptor.capture());
+    void testPublishMetrics() throws Exception {
         List<String> metricPathsList = Lists.newArrayList();
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.ADMIN.SVRCONN|Status");
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.APP.SVRCONN|Status");
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount");
+
+        when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireChannelStatusCmd());
+        classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+
+        classUnderTest.publishMetrics();
+
+        verify(metricWriteHelper, times(3)).transformAndPrintMetrics(pathCaptor.capture());
 
         List<List<Metric>> allValues = pathCaptor.getAllValues();
         assertThat(allValues).hasSize(3);
         assertThat(allValues.get(0)).hasSize(6);
         assertThat(allValues.get(1)).hasSize(6);
         assertThat(allValues.get(2)).hasSize(1);
-        for (List<Metric> metricList : allValues) {
-            /* TODO: Note -- the list could be the right size but the data inside completely borked
-               and this poorly written test would still pass. Please fix some day. */
-            for (Metric metric : metricList) {
-                if (metricPathsList.contains(metric.getMetricPath())) {
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.ADMIN.SVRCONN|Status")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("3");
-                        assertThat(metric.getMetricValue()).isNotEqualTo("10");
-                    }
-                    else if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.APP.SVRCONN|Status")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("3");
-                    }
-                    else if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("2");
-                    }
-                    else {
-                        fail("Whoops. Didn't see that coming.");
-                    }
-                }
-                else {
-                    // are these simply unvalidated cases? :(
-                    // do we care?
-                }
-            }
-        }
+
+        assertRowWithList(allValues.get(0), "ADMIN");
+        assertRowWithList(allValues.get(1), "APP");
+
+        assertThatMetric(allValues.get(2).get(0))
+                .hasName("ActiveChannelsCount")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|ActiveChannelsCount")
+                .hasValue("2")
+                .withPropertiesMatching(standardPropsForAlias("ActiveChannelsCount"));
+    }
+
+    void assertRowWithList(List<Metric> metrics, String component){
+        assertThatMetric(metrics.get(0))
+                .hasName("Status")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|DEV." + component + ".SVRCONN|Status")
+                .hasValue("3")
+                .withPropertiesMatching(standardPropsForAlias("Status"));
+
+        assertThatMetric(metrics.get(1))
+                .hasName("Messages")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|DEV." + component + ".SVRCONN|Messages")
+                .hasValue("17")
+                .withPropertiesMatching(standardPropsForAlias("Messages"));
+
+        assertThatMetric(metrics.get(2))
+                .hasName("BuffersSent")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|DEV." + component + ".SVRCONN|BuffersSent")
+                .hasValue("19")
+                .withPropertiesMatching(standardPropsForAlias("Buffers Sent"));
+
+        assertThatMetric(metrics.get(3))
+                .hasName("ByteSent")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|DEV." + component + ".SVRCONN|ByteSent")
+                .hasValue("6984")
+                .withPropertiesMatching(standardPropsForAlias("Byte Sent"));
+
+        assertThatMetric(metrics.get(4))
+                .hasName("BuffersReceived")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|DEV." + component + ".SVRCONN|BuffersReceived")
+                .hasValue("20")
+                .withPropertiesMatching(standardPropsForAlias("Buffers Received"));
+
+        assertThatMetric(metrics.get(5))
+                .hasName("ByteReceived")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|DEV." + component + ".SVRCONN|ByteReceived")
+                .hasValue("5772")
+                .withPropertiesMatching(standardPropsForAlias("Byte Received"));
+    }
+
+    Function<MetricProperties,MetricPropertiesAssert> standardPropsForAlias(String alias){
+        return mp -> metricPropertiesMatching(mp)
+                        .alias(alias)
+                        .multiplier(BigDecimal.ONE)
+                        .aggregationType("AVERAGE").timeRollup("AVERAGE").clusterRollUp("INDIVIDUAL")
+                        .delta(false);
     }
 
     /*

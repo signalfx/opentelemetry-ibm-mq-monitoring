@@ -63,7 +63,7 @@ public class TopicMetricsCollectorTest {
     private MonitorContextConfiguration monitorContextConfig;
     private Map<String, WMQMetricOverride> topicMetricsToReport;
     private QueueManager queueManager;
-    ArgumentCaptor<List<Metric>> pathCaptor = ArgumentCaptor.forClass(List.class);
+    private ArgumentCaptor<List<Metric>> pathCaptor;
 
     @BeforeEach
     void setup() {
@@ -74,6 +74,7 @@ public class TopicMetricsCollectorTest {
         queueManager = mapper.convertValue(((List)configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         topicMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_TOPIC);
+        pathCaptor = ArgumentCaptor.forClass(List.class);
     }
 
     @Test

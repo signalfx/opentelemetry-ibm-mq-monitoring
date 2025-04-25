@@ -47,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ListenerMetricsCollectorTest {
+class ListenerMetricsCollectorTest {
     private ListenerMetricsCollector classUnderTest;
     @Mock
     private AMonitorJob aMonitorJob;
@@ -61,7 +61,7 @@ public class ListenerMetricsCollectorTest {
     private MonitorContextConfiguration monitorContextConfig;
     private Map<String, WMQMetricOverride> listenerMetricsToReport;
     private QueueManager queueManager;
-    ArgumentCaptor<List<Metric>> pathCaptor = ArgumentCaptor.forClass(List.class);
+    private ArgumentCaptor<List<Metric>> pathCaptor;
 
     @BeforeEach
     public void setup() {
@@ -72,6 +72,7 @@ public class ListenerMetricsCollectorTest {
         queueManager = mapper.convertValue(((List)configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         listenerMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_LISTENER);
+        pathCaptor = ArgumentCaptor.forClass(List.class);
     }
 
     @Test
