@@ -44,8 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -92,17 +91,16 @@ public class TopicMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|test|PublishCount")) {
-                        assertEquals("2", metric.getMetricValue());
-                        assertNotEquals("10", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("2");
+                        assertThat(metric.getMetricValue()).isNotEqualTo("10");
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|dev|SubscriptionCount")) {
-                        assertEquals("4", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("4");
                     }
                 }
             }
         }
     }
-
 
     private PCFMessage[] createPCFResponseForInquireTopicStatusCmd() {
         PCFMessage response1 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_TOPIC_STATUS, 1, false);

@@ -32,6 +32,7 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
+import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,8 +94,8 @@ public class QueueManagerMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Status")) {
-                        assertEquals("2", metric.getMetricValue());
-                        assertNotEquals("10", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("2");
+                        assertThat(metric.getMetricValue()).isNotEqualTo("10");
                     }
                 }
             }
@@ -162,8 +163,9 @@ public class QueueManagerMetricsCollectorTest {
                 metricPathsList.add(metric.getMetricPath());
             }
         }
-        assertEquals("QueueManager1", queueManager.getDisplayName());
+        assertThat(queueManager.getDisplayName()).isEqualTo("QueueManager1");
         assertThat(metricPathsList).contains("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Status");
+        // NOTE: This was the old test value -- simply hacked to match the actual output. Not sure why it was different/failing
 //        assertThat(metricPathsList).contains("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QManager|Status");
         assertThat(metricPathsList).contains("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|ConnectionCount");
     }

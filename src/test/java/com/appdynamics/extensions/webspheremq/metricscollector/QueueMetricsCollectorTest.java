@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -100,10 +100,10 @@ public class QueueMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.QUEUE.1|UncommittedMsgs")) {
-                        assertEquals("10", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("10");
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|OldestMsgAge")) {
-                        assertEquals("-1", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("-1");
                     }
                 }
             }
@@ -127,10 +127,10 @@ public class QueueMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.QUEUE.1|local-transmission|CurrentQueueDepth")) {
-                        assertEquals("3", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("3");
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|CurrentQueueDepth")) {
-                        assertEquals("2", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("2");
                     }
                 }
             }
@@ -158,10 +158,10 @@ public class QueueMetricsCollectorTest {
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|HighQDepth")) {
-                        assertEquals("10", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("10");
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|MsgEnqCount")) {
-                        assertEquals("3", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("3");
                     }
                 }
             }
