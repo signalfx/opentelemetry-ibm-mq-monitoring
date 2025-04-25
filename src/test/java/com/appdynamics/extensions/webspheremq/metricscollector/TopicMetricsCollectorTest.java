@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,7 +63,7 @@ public class TopicMetricsCollectorTest {
     private MonitorContextConfiguration monitorContextConfig;
     private Map<String, WMQMetricOverride> topicMetricsToReport;
     private QueueManager queueManager;
-    ArgumentCaptor<List> pathCaptor = ArgumentCaptor.forClass(List.class);
+    ArgumentCaptor<List<Metric>> pathCaptor = ArgumentCaptor.forClass(List.class);
 
     @BeforeEach
     void setup() {
@@ -87,7 +87,14 @@ public class TopicMetricsCollectorTest {
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|dev|SubscriptionCount");
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|system|PublishCount");
 
-        for (List<Metric> metricList : pathCaptor.getAllValues()) {
+        List<List<Metric>> allValues = pathCaptor.getAllValues();
+        assertThat(allValues).hasSize(2);
+        assertThat(allValues.get(0)).hasSize(2);
+        assertThat(allValues.get(1)).hasSize(2);
+
+        for (List<Metric> metricList : allValues) {
+            /* TODO: Note -- the list could be the right size but the data inside completely borked
+               and this poorly written test would still pass. Please fix some day. */
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|test|PublishCount")) {

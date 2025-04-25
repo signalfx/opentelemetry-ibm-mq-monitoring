@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,7 +65,7 @@ public class QueueMetricsCollectorTest {
     private MonitorContextConfiguration monitorContextConfig;
     private Map<String, WMQMetricOverride> queueMetricsToReport;
     private QueueManager queueManager;
-    ArgumentCaptor<List> pathCaptor = ArgumentCaptor.forClass(List.class);
+    ArgumentCaptor<List<Metric>> pathCaptor = ArgumentCaptor.forClass(List.class);
 
     @BeforeEach
     void setup() {
@@ -96,7 +96,13 @@ public class QueueMetricsCollectorTest {
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.QUEUE.1|UncommittedMsgs");
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|OldestMsgAge");
 
-        for (List<Metric> metricList : pathCaptor.getAllValues()) {
+        List<List<Metric>> allValues = pathCaptor.getAllValues();
+        assertThat(allValues).hasSize(2);
+        assertThat(allValues.get(0)).hasSize(5);
+        assertThat(allValues.get(1)).hasSize(5);
+        for (List<Metric> metricList : allValues) {
+            /* TODO: Note -- the list could be the right size but the data inside completely borked
+               and this poorly written test would still pass. Please fix some day. */
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.QUEUE.1|UncommittedMsgs")) {
@@ -123,18 +129,29 @@ public class QueueMetricsCollectorTest {
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.QUEUE.1|local-transmission|CurrentQueueDepth");
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|CurrentQueueDepth");
 
-        for (List<Metric> metricList : pathCaptor.getAllValues()) {
+        List<List<Metric>> allValues = pathCaptor.getAllValues();
+        assertThat(allValues).hasSize(2);
+        assertThat(allValues.get(0)).hasSize(4);
+        assertThat(allValues.get(1)).hasSize(4);
+        int assertionCount = 0;
+        for (List<Metric> metricList : allValues) {
+            /* TODO: Note -- the list could be the right size but the data inside completely borked
+               and this poorly written test would still pass. Please fix some day. */
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.QUEUE.1|local-transmission|CurrentQueueDepth")) {
                         assertThat(metric.getMetricValue()).isEqualTo("3");
+                        assertionCount++;
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|CurrentQueueDepth")) {
                         assertThat(metric.getMetricValue()).isEqualTo("2");
+                        assertionCount++;
                     }
                 }
             }
         }
+        // Maybe one day this would be 8...
+        assertThat(assertionCount).isEqualTo(2);
     }
 
     @Test
@@ -154,7 +171,12 @@ public class QueueMetricsCollectorTest {
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|HighQDepth");
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|MsgEnqCount");
 
-        for (List<Metric> metricList : pathCaptor.getAllValues()) {
+        List<List<Metric>> allValues = pathCaptor.getAllValues();
+        assertThat(allValues).hasSize(1);
+        assertThat(allValues.get(0)).hasSize(3);
+        for (List<Metric> metricList : allValues) {
+            /* TODO: Note -- the list could be the right size but the data inside completely borked
+               and this poorly written test would still pass. Please fix some day. */
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|HighQDepth")) {

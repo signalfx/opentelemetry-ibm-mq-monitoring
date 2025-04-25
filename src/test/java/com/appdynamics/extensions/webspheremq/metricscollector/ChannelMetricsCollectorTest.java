@@ -43,7 +43,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -62,7 +63,7 @@ public class ChannelMetricsCollectorTest {
     private MonitorContextConfiguration monitorContextConfig;
     private Map<String, WMQMetricOverride> channelMetricsToReport;
     private QueueManager queueManager;
-    ArgumentCaptor<List> pathCaptor = ArgumentCaptor.forClass(List.class);
+    ArgumentCaptor<List<Metric>> pathCaptor = ArgumentCaptor.forClass(List.class);
 
     @BeforeEach
     public void setup() {
@@ -86,20 +87,33 @@ public class ChannelMetricsCollectorTest {
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.APP.SVRCONN|Status");
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount");
 
-        // TODO: Move the assertions out of a damn loop that doesn't check the size.
-        for (List<Metric> metricList : pathCaptor.getAllValues()) {
+        List<List<Metric>> allValues = pathCaptor.getAllValues();
+        assertThat(allValues).hasSize(3);
+        assertThat(allValues.get(0)).hasSize(6);
+        assertThat(allValues.get(1)).hasSize(6);
+        assertThat(allValues.get(2)).hasSize(1);
+        for (List<Metric> metricList : allValues) {
+            /* TODO: Note -- the list could be the right size but the data inside completely borked
+               and this poorly written test would still pass. Please fix some day. */
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.ADMIN.SVRCONN|Status")) {
                         assertThat(metric.getMetricValue()).isEqualTo("3");
                         assertThat(metric.getMetricValue()).isNotEqualTo("10");
                     }
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.APP.SVRCONN|Status")) {
+                    else if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.APP.SVRCONN|Status")) {
                         assertThat(metric.getMetricValue()).isEqualTo("3");
                     }
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount")) {
+                    else if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount")) {
                         assertThat(metric.getMetricValue()).isEqualTo("2");
                     }
+                    else {
+                        fail("Whoops. Didn't see that coming.");
+                    }
+                }
+                else {
+                    // are these simply unvalidated cases? :(
+                    // do we care?
                 }
             }
         }
