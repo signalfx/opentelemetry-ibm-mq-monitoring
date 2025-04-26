@@ -1,4 +1,4 @@
-
+ 
 
 MetricWriteHelper  <---work with--- WMQMonitor --create --> WMQMonitorTask
 
@@ -11,13 +11,17 @@ Then, the task begins collecting metrics for Queue Manager, Channel, Queue, List
 
 ```mermaid
 sequenceDiagram
-    WMQMonitorTask->>QueueManagerMetricsCollector: new
-    ThreadPoolExecutor->>QueueManagerMetricsCollector: execute
+   box collector run
+   participant QueueManagerMetricsCollector
+   MetricsCollector
+   end
 
-    box collector run
-    QueueManagerMetricsCollector->>MetricsCollector: process
-    MetricsCollector->>QueueManagerMetricsCollector: publishMetrics
+   WMQMonitorTask->>QueueManagerMetricsCollector: new
+   ThreadPoolExecutor->>QueueManagerMetricsCollector: execute
+
+   QueueManagerMetricsCollector->>MetricsCollector: process
+   MetricsCollector->>QueueManagerMetricsCollector: publishMetrics
      
-    QueueManagerMetricsCollector->>PCF: collect metrics
+   QueueManagerMetricsCollector->>PCF: collect metrics
 ```
 
