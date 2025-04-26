@@ -140,9 +140,23 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 		Map<String, WMQMetricOverride> qMgrMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER);
 		if (qMgrMetricsToReport != null) {
-			MetricsCollector qMgrMetricsCollector = new QueueManagerMetricsCollector(qMgrMetricsToReport, this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch);
-			Runnable job = new MetricsPublisherJob(qMgrMetricsCollector, countDownLatch);
-			monitorContextConfig.getContext().getExecutorService().execute("QueueManagerMetricsCollector", job);
+			Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
+			for (String key : qMgrMetricsToReport.keySet()) {
+				WMQMetricOverride wmqOverride = qMgrMetricsToReport.get(key);
+				String cmd = wmqOverride.getIbmCommand() == null ? "MQCMD_INQUIRE_Q_MGR_STATUS" : wmqOverride.getIbmCommand();
+				metricsByCommand.putIfAbsent(cmd, new HashMap<>());
+				metricsByCommand.get(cmd).put(key, wmqOverride);
+			}
+			if (metricsByCommand.get("MQCMD_INQUIRE_Q_MGR_STATUS") != null) {
+				MetricsCollector qMgrMetricsCollector = new QueueManagerMetricsCollector(metricsByCommand.get("MQCMD_INQUIRE_Q_MGR_STATUS"), this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch);
+                Runnable job = new MetricsPublisherJob(qMgrMetricsCollector, countDownLatch);
+                monitorContextConfig.getContext().getExecutorService().execute("QueueManagerMetricsCollector", job);
+			}
+			if (metricsByCommand.get("MQCMD_INQUIRE_Q_MGR") != null) {
+				MetricsCollector inquireQueueMgrMetricsCollector = new InquireQueueManagerCmdCollector(metricsByCommand.get("MQCMD_INQUIRE_Q_MGR"), this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch);
+                Runnable job = new MetricsPublisherJob(inquireQueueMgrMetricsCollector, countDownLatch);
+                monitorContextConfig.getContext().getExecutorService().execute("InquireQueueManagerCmdCollector", job);
+			}
 		} else {
 			logger.warn("No queue manager metrics to report");
 		}

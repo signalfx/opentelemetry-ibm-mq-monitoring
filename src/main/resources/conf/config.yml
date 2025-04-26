@@ -139,6 +139,11 @@ mqMetrics:
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_ARCHIVE_LOG_SIZE"
             ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
 
+        - StatisticsInterval:
+            alias: "Statistics Interval"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_STATISTICS_INTERVAL"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR"
+
   # This Object will extract queue metrics
   - metricsType: "queueMetrics"
     metrics:
