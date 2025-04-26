@@ -14,7 +14,7 @@ sequenceDiagram
     WMQMonitorTask->>QueueManagerMetricsCollector: new
     ThreadPoolExecutor->>QueueManagerMetricsCollector: execute
 
-    box run()
+    box collector run
     QueueManagerMetricsCollector->>MetricsCollector: process
     MetricsCollector->>QueueManagerMetricsCollector: publishMetrics
      
