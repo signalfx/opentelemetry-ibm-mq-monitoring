@@ -197,6 +197,20 @@ mqMetrics:
             alias: "Buffers Received"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BUFFERS_RECEIVED"
 
+        - MsgRetryCount:
+            alias: "Message Retry Count"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MR_COUNT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgsReceived:
+            alias: "Message Received Count"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS_RECEIVED"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgsSent:
+            alias: "Message Sent"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS_SENT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
 
   - metricsType: "listenerMetrics"
     metrics:
