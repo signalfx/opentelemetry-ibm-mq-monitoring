@@ -20,13 +20,13 @@ sequenceDiagram
    participant Collector as One of the subclass of MetricsCollector
    participant MetricsCollector
    participant PCF
-   Note right of Collector: QueueManagerMetricsCollector, ListenerMetricsCollector, ChannelMetricsCollector, TopicMetricsCollector, QueueMetricsCollector, and InquireTStatusCmdCollector
    end
 
    WMQMonitorTask->>Collector: new
    ThreadPoolExecutor->>Collector: execute
 
    Collector->>MetricsCollector: process
+   Note right of Collector: QueueManagerMetricsCollector, ListenerMetricsCollector ChannelMetricsCollector TopicMetricsCollector  QueueMetricsCollector  and InquireTStatusCmdCollector
    MetricsCollector->>Collector: publishMetrics
      
    Collector->>PCF: collect metrics
