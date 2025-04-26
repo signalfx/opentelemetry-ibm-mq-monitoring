@@ -13,7 +13,7 @@ Then, the task begins collecting metrics for Queue Manager, Channel, Queue, List
 sequenceDiagram
    box collector run
    participant QueueManagerMetricsCollector
-   MetricsCollector
+   participant MetricsCollector
    end
 
    WMQMonitorTask->>QueueManagerMetricsCollector: new
