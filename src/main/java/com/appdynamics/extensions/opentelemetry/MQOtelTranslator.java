@@ -184,6 +184,7 @@ class MQOtelTranslator {
         put("Reusable Log Size", "mq.reusable.log.size");
         put("Archive Log Size", "mq.archive.log.size");
         put("Statistics Interval", "mq.manager.statistics.interval");
+        put("Max Handles", "mq.manager.max.handles");
     }},
             segments -> {
                 AttributesBuilder builder = Attributes.builder();
