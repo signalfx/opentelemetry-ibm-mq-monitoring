@@ -26,7 +26,8 @@ sequenceDiagram
    ThreadPoolExecutor->>Collector: execute
 
    Collector->>MetricsCollector: process
-   Note right of Collector: QueueManagerMetricsCollector, ListenerMetricsCollector ChannelMetricsCollector TopicMetricsCollector  QueueMetricsCollector  and InquireTStatusCmdCollector
+   Note right of Collector: QueueManagerMetricsCollector, ListenerMetricsCollector </br>
+     ChannelMetricsCollector TopicMetricsCollector  QueueMetricsCollector  and InquireTStatusCmdCollector
    MetricsCollector->>Collector: publishMetrics
      
    Collector->>PCF: collect metrics
