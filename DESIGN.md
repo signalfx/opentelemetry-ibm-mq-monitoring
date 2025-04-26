@@ -9,6 +9,8 @@ WMQMonitorTask is then scheduled as a task to run.
 When WMQMonitorTask is run, it initializes the MQ stuff, such as MQQueueManager, and initializes the PCFMessageAgent. 
 Then, the task begins collecting metrics for Queue Manager, Channel, Queue, Listener, Topic 
 
+<pre lang="markdown">
+```mermaid
 sequenceDiagram
     WMQMonitorTask->>QueueManagerMetricsCollector: new
     ThreadPoolExecutor->>QueueManagerMetricsCollector: execute
@@ -18,5 +20,5 @@ sequenceDiagram
     MetricsCollector->>QueueManagerMetricsCollector: publishMetrics
      
     QueueManagerMetricsCollector->>PCF: collect metrics
-    
+```
 
