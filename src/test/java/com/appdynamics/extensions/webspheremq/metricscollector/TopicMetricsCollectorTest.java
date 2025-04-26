@@ -32,29 +32,22 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.mockito.Matchers.any;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({TopicMetricsCollector.class})
-@PowerMockIgnore({"javax.management.*", "com.sun.org.apache.xerces.*", "javax.xml.*",
-    "org.xml.*", "org.w3c.dom.*", "com.sun.org.apache.xalan.*", "javax.activation.*"})
+@ExtendWith(MockitoExtension.class)
 public class TopicMetricsCollectorTest {
     private TopicMetricsCollector classUnderTest;
 
@@ -70,10 +63,10 @@ public class TopicMetricsCollectorTest {
     private MonitorContextConfiguration monitorContextConfig;
     private Map<String, WMQMetricOverride> topicMetricsToReport;
     private QueueManager queueManager;
-    ArgumentCaptor<List> pathCaptor = ArgumentCaptor.forClass(List.class);
+    private ArgumentCaptor<List<Metric>> pathCaptor;
 
-    @Before
-    public void setup() {
+    @BeforeEach
+    void setup() {
         monitorContextConfig = new MonitorContextConfiguration("WMQMonitor", "Custom Metrics|WMQMonitor|", PathResolver.resolveDirectory(AManagedMonitor.class), aMonitorJob);
         monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
         Map<String, ?> configMap = monitorContextConfig.getConfigYml();
@@ -81,10 +74,11 @@ public class TopicMetricsCollectorTest {
         queueManager = mapper.convertValue(((List)configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         topicMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_TOPIC);
+        pathCaptor = ArgumentCaptor.forClass(List.class);
     }
 
     @Test
-    public void testpublishMetrics() throws Exception {
+    void testpublishMetrics() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireTopicStatusCmd());
         classUnderTest = new TopicMetricsCollector(topicMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
         classUnderTest.publishMetrics();
@@ -94,21 +88,27 @@ public class TopicMetricsCollectorTest {
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|dev|SubscriptionCount");
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|system|PublishCount");
 
-        for (List<Metric> metricList : pathCaptor.getAllValues()) {
+        List<List<Metric>> allValues = pathCaptor.getAllValues();
+        assertThat(allValues).hasSize(2);
+        assertThat(allValues.get(0)).hasSize(2);
+        assertThat(allValues.get(1)).hasSize(2);
+
+        for (List<Metric> metricList : allValues) {
+            /* TODO: Note -- the list could be the right size but the data inside completely borked
+               and this poorly written test would still pass. Please fix some day. */
             for (Metric metric : metricList) {
                 if (metricPathsList.contains(metric.getMetricPath())) {
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|test|PublishCount")) {
-                        assertEquals("2", metric.getMetricValue());
-                        assertNotEquals("10", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("2");
+                        assertThat(metric.getMetricValue()).isNotEqualTo("10");
                     }
                     if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|dev|SubscriptionCount")) {
-                        assertEquals("4", metric.getMetricValue());
+                        assertThat(metric.getMetricValue()).isEqualTo("4");
                     }
                 }
             }
         }
     }
-
 
     private PCFMessage[] createPCFResponseForInquireTopicStatusCmd() {
         PCFMessage response1 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_TOPIC_STATUS, 1, false);

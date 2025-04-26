@@ -16,7 +16,6 @@
 
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
@@ -24,6 +23,7 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -55,7 +55,7 @@ import java.util.Set;
  */
 final class InquireQStatusCmdCollector extends QueueMetricsCollector implements Runnable {
 
-    private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQStatusCmdCollector.class);
+    private static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);
 
     static final String COMMAND = "MQCMD_INQUIRE_Q_STATUS";
 
@@ -69,7 +69,6 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
     @Override
     public void run() {
         try {
-            logger.info("Collecting metrics for command {}", COMMAND);
             publishMetrics();
         } catch (TaskExecutionException e) {
             logger.error("Something unforeseen has happened ",e);
@@ -77,7 +76,8 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
     }
 
     @Override
-    protected void publishMetrics() throws TaskExecutionException {
+    public void publishMetrics() throws TaskExecutionException {
+        logger.info("Collecting metrics for command {}", COMMAND);
         long entryTime = System.currentTimeMillis();
 
         if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {

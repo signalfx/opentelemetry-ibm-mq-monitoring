@@ -16,8 +16,8 @@
 
 package com.appdynamics.extensions.webspheremq.config;
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -33,7 +33,7 @@ public class WMQMetricOverride {
 	int constantValue = -1;
 	Map<String, ?> metricProperties;
 
-	public static final Logger logger = ExtensionsLoggerFactory.getLogger(WMQMetricOverride.class);
+	public static final Logger logger = LoggerFactory.getLogger(WMQMetricOverride.class);
 
 	public String getIbmConstant() {
 		return ibmConstant;

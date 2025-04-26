@@ -20,23 +20,20 @@ import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
-import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
-import com.google.common.base.Strings;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 
 /**
  * MetricsCollector class is abstract and serves as superclass for all types of metric collection class.<br>
  * It contains common methods to extract or transform metric value and names.
  */
-public abstract class MetricsCollector implements Runnable {
+public abstract class MetricsCollector implements MetricsPublisher {
 
 	protected final Map<String, WMQMetricOverride> metricsToReport;
 	protected final MonitorContextConfiguration monitorContextConfig;
@@ -59,7 +56,6 @@ public abstract class MetricsCollector implements Runnable {
         this.artifact = artifact;
     }
 
-	protected abstract void publishMetrics() throws TaskExecutionException;
 
 	final public String getArtifact(){
 		return artifact;

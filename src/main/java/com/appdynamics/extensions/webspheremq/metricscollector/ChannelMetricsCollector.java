@@ -18,7 +18,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
@@ -27,49 +26,35 @@ import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
-import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
+
+import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
+import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
 
 /**
  * This class is responsible for channel metric collection.
  */
-public final class ChannelMetricsCollector extends MetricsCollector implements Runnable {
+public final class ChannelMetricsCollector extends MetricsCollector {
 
-	private static final Logger logger = ExtensionsLoggerFactory.getLogger(ChannelMetricsCollector.class);
+	public static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 	private static final String ARTIFACT = "Channels";
 
 	/*
 	 * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
 	 */
-	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
-								   MonitorContextConfiguration monitorContextConfig,
-								   PCFMessageAgent agent,
-								   QueueManager queueManager,
-								   MetricWriteHelper metricWriteHelper,
-								   CountDownLatch countDownLatch) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
+	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper) {
+		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, null, ARTIFACT);
 	}
 
 	@Override
-	public void run() {
-		try {
-			super.process();
-		} catch (TaskExecutionException e) {
-			logger.error("Error in ChannelMetricsCollector ", e);
-		} finally {
-			countDownLatch.countDown();
-		}
-	}
-
-	@Override
-	protected void publishMetrics() throws TaskExecutionException {
+	public void publishMetrics() throws TaskExecutionException {
 		long entryTime = System.currentTimeMillis();
 
 		if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
@@ -84,6 +69,10 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
 
 		Set<String> channelGenericNames = this.queueManager.getChannelFilters().getInclude();
 
+		//
+ 		// The MQCMD_INQUIRE_CHANNEL_STATUS command queries the current operational status of channels.
+		// This includes information about whether a channel is running, stopped, or in another state,
+		// as well as details about the channel’s performance and usage.
 		List<String> activeChannels = Lists.newArrayList();
 		for(String channelGenericName : channelGenericNames){
 			PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS);
@@ -124,16 +113,16 @@ public final class ChannelMetricsCollector extends MetricsCollector implements R
                 }
 			}
 			catch (PCFException pcfe) {
-				if (pcfe.getReason() == MQConstants.MQRCCF_CHL_STATUS_NOT_FOUND) {
+				if (pcfe.getReason() == MQRCCF_CHL_STATUS_NOT_FOUND) {
 					String errorMsg = "Channel- " + channelGenericName + " :";
 					errorMsg += "Could not collect channel information as channel is stopped or inactive: Reason '3065'\n";
 					errorMsg += "If the channel type is MQCHT_RECEIVER, MQCHT_SVRCONN or MQCHT_CLUSRCVR, then the only action is to enable the channel, not start it.";
-					logger.error(errorMsg,pcfe);
-				} else if (pcfe.getReason() == MQConstants.MQRC_SELECTOR_ERROR) {
+					logger.error(errorMsg, pcfe);
+				} else if (pcfe.getReason() == MQRC_SELECTOR_ERROR) {
 					logger.error("Invalid metrics passed while collecting channel metrics, check config.yaml: Reason '2067'",pcfe);
 				}
 			} catch (Exception e) {
-				logger.error("Unexpected Error occoured while collecting metrics for channel " + channelGenericName, e);
+				logger.error("Unexpected Error occurred while collecting metrics for channel " + channelGenericName, e);
 			}
 		}
 

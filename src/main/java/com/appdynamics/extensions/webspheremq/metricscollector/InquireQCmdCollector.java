@@ -16,7 +16,6 @@
 
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
@@ -24,6 +23,7 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -31,7 +31,7 @@ import java.util.Set;
 
 final class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
 
-    private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQCmdCollector.class);
+    private static final Logger logger = LoggerFactory.getLogger(InquireQCmdCollector.class);
 
     static final String COMMAND = "MQCMD_INQUIRE_Q";
 
@@ -43,7 +43,6 @@ final class InquireQCmdCollector extends QueueMetricsCollector implements Runnab
     @Override
     public void run() {
         try {
-            logger.info("Collecting metrics for command {}", COMMAND);
             publishMetrics();
         } catch (TaskExecutionException e) {
             logger.error("Something unforeseen has happened ",e);
@@ -51,7 +50,8 @@ final class InquireQCmdCollector extends QueueMetricsCollector implements Runnab
     }
 
     @Override
-    protected void publishMetrics() throws TaskExecutionException {
+    public void publishMetrics() throws TaskExecutionException {
+        logger.info("Collecting metrics for command {}", COMMAND);
 		/*
 		 * attrs = { CMQC.MQCA_Q_NAME, CMQC.MQIA_CURRENT_Q_DEPTH, CMQC.MQIA_MAX_Q_DEPTH, CMQC.MQIA_OPEN_INPUT_COUNT, CMQC.MQIA_OPEN_OUTPUT_COUNT };
 		 */
@@ -74,8 +74,8 @@ final class InquireQCmdCollector extends QueueMetricsCollector implements Runnab
                 logger.error("PCFException caught while collecting metric for Queue: {} for command {}",queueGenericName,COMMAND, pcfe);
                 if (pcfe.exceptionSource instanceof PCFMessage[]) {
                     PCFMessage[] msgs = (PCFMessage[]) pcfe.exceptionSource;
-                    for (int i = 0; i < msgs.length; i++) {
-                      logger.error(msgs[i].toString());
+                    for (PCFMessage msg : msgs) {
+                        logger.error(msg.toString());
                     }
                 }
                 if (pcfe.exceptionSource instanceof PCFMessage) {

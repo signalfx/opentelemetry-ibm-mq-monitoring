@@ -16,7 +16,6 @@
 
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
@@ -30,6 +29,7 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFParameter;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -37,31 +37,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-final class InquireTStatusCmdCollector extends MetricsCollector implements Runnable {
+final class InquireTStatusCmdCollector extends MetricsCollector {
 
-    private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireTStatusCmdCollector.class);
+    private static final Logger logger = LoggerFactory.getLogger(InquireTStatusCmdCollector.class);
     private static final String ARTIFACT = "Topics";
 
     static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";
 
-    public InquireTStatusCmdCollector(TopicMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport){
+    public InquireTStatusCmdCollector(TopicMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport) {
         super(metricsToReport, collector.monitorContextConfig, collector.agent,
                 collector.metricWriteHelper, collector.queueManager,
                 collector.countDownLatch, ARTIFACT);
     }
 
     @Override
-    public void run() {
-        try {
-            logger.info("Collecting metrics for command {}", COMMAND);
-            publishMetrics();
-        } catch (TaskExecutionException e) {
-            logger.error("Something unforeseen has happened ", e);
-        }
-    }
-
-    @Override
-    protected void publishMetrics() throws TaskExecutionException {
+    public void publishMetrics() throws TaskExecutionException {
+        logger.info("Collecting metrics for command {}", COMMAND);
         long entryTime = System.currentTimeMillis();
 
         if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
@@ -69,7 +60,9 @@ final class InquireTStatusCmdCollector extends MetricsCollector implements Runna
             return;
         }
         Set<String> topicGenericNames = this.queueManager.getTopicFilters().getInclude();
-        for(String topicGenericName : topicGenericNames){
+        //
+        //  to query the current status of topics, which is essential for monitoring and managing the publish/subscribe environment in IBM MQ.
+        for (String topicGenericName : topicGenericNames) {
             // Request: https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ref.adm.doc/q088140_.htm
             // list of all metrics extracted through MQCMD_INQUIRE_TOPIC_STATUS is mentioned here https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ref.adm.doc/q088150_.htm
             PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_TOPIC_STATUS);
@@ -90,17 +83,17 @@ final class InquireTStatusCmdCollector extends MetricsCollector implements Runna
             }
         }
         long exitTime = System.currentTimeMillis() - entryTime;
-        logger.debug("Time taken to publish metrics for all queues is {} milliseconds for command {}", exitTime,COMMAND);
+        logger.debug("Time taken to publish metrics for all queues is {} milliseconds for command {}", exitTime, COMMAND);
     }
 
     private void processPCFRequestAndPublishQMetrics(String topicGenericName, PCFMessage request, String command) throws IOException, MQDataException {
-        logger.debug("sending PCF agent request to topic metrics for generic topic {} for command {}",topicGenericName,command);
+        logger.debug("sending PCF agent request to topic metrics for generic topic {} for command {}", topicGenericName, command);
         long startTime = System.currentTimeMillis();
         PCFMessage[] response = agent.send(request);
         long endTime = System.currentTimeMillis() - startTime;
-        logger.debug("PCF agent topic metrics query response for generic topic {} for command {} received in {} milliseconds", topicGenericName, command,endTime);
+        logger.debug("PCF agent topic metrics query response for generic topic {} for command {} received in {} milliseconds", topicGenericName, command, endTime);
         if (response == null || response.length <= 0) {
-            logger.debug("Unexpected Error while PCFMessage.send() for command {}, response is either null or empty",command);
+            logger.debug("Unexpected Error while PCFMessage.send() for command {}, response is either null or empty", command);
             return;
         }
 

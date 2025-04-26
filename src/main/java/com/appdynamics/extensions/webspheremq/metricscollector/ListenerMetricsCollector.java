@@ -18,7 +18,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -29,6 +28,7 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
@@ -54,9 +54,9 @@ import java.util.concurrent.CountDownLatch;
  *
  *
  */
-final public class ListenerMetricsCollector extends MetricsCollector implements Runnable {
+final public class ListenerMetricsCollector extends MetricsCollector {
 
-    private static final Logger logger = ExtensionsLoggerFactory.getLogger(ListenerMetricsCollector.class);
+    private static final Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
     private final static String ARTIFACT = "Listeners";
 
     public ListenerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
@@ -64,18 +64,7 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
     }
 
     @Override
-    public void run() {
-        try {
-            super.process();
-        } catch (TaskExecutionException e) {
-            logger.error("Error in ListenerMetricsCollector ", e);
-        } finally {
-            countDownLatch.countDown();
-        }
-    }
-
-    @Override
-    protected void publishMetrics() throws TaskExecutionException {
+    public void publishMetrics() throws TaskExecutionException {
         long entryTime = System.currentTimeMillis();
 
         if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
@@ -122,7 +111,7 @@ final public class ListenerMetricsCollector extends MetricsCollector implements 
                 }
             }
             catch (Exception e) {
-                logger.error("Unexpected Error occoured while collecting metrics for listener " + listenerGenericName, e);
+                logger.error("Unexpected Error occurred while collecting metrics for listener " + listenerGenericName, e);
             }
         }
         long exitTime = System.currentTimeMillis() - entryTime;

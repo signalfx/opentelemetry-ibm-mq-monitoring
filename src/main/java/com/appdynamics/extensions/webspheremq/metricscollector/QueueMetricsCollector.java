@@ -18,7 +18,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -30,6 +29,7 @@ import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.*;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Iterator;
@@ -38,11 +38,15 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.*;
 
-import static com.ibm.mq.constants.CMQC.*;
+import static com.ibm.mq.constants.CMQC.MQQT_ALIAS;
+import static com.ibm.mq.constants.CMQC.MQQT_CLUSTER;
+import static com.ibm.mq.constants.CMQC.MQQT_LOCAL;
+import static com.ibm.mq.constants.CMQC.MQQT_MODEL;
+import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
 
-public class QueueMetricsCollector extends MetricsCollector implements Runnable {
+public class QueueMetricsCollector extends MetricsCollector {
 
-	private static final Logger logger = ExtensionsLoggerFactory.getLogger(QueueMetricsCollector.class);
+	private static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
 	private final static String ARTIFACT = "Queues";
 
 	// hack to share state of queue type between collectors.
@@ -59,18 +63,7 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 	}
 
 	@Override
-	public void run() {
-		try {
-			super.process();
-		} catch (TaskExecutionException e) {
-			logger.error("Error in QueueMetricsCollector ", e);
-		} finally {
-			countDownLatch.countDown();
-		}
-	}
-
-	@Override
-	protected void publishMetrics() throws TaskExecutionException {
+	public void publishMetrics() throws TaskExecutionException {
 		logger.info("Collecting queue metrics...");
 		List<Future> futures = Lists.newArrayList();
 		Map<String, WMQMetricOverride>  metricsForInquireQCmd = getMetricsToReport(InquireQCmdCollector.COMMAND);
@@ -108,14 +101,12 @@ public class QueueMetricsCollector extends MetricsCollector implements Runnable 
 			logger.debug("There are no metrics configured for {}",command);
 			return commandMetrics;
 		}
-		Iterator<String> itr = getMetricsToReport().keySet().iterator();
-		while (itr.hasNext()) {
-			String metrickey = itr.next();
-			WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
-			if(wmqOverride.getIbmCommand().equalsIgnoreCase(command)){
-				commandMetrics.put(metrickey,wmqOverride);
-			}
-		}
+        for (String metrickey : getMetricsToReport().keySet()) {
+            WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+            if (wmqOverride.getIbmCommand().equalsIgnoreCase(command)) {
+                commandMetrics.put(metrickey, wmqOverride);
+            }
+        }
 		return commandMetrics;
 	}
 

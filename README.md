@@ -14,7 +14,8 @@ The MQ Monitor is compatible with IBM MQ version 7.x, 8.x and 9.x.
 
 ## Prerequisites
 
-This software requires compilation with Java 8.
+This software requires compilation with Java 11. 
+It targets language level 8 and outputs java 8 class files.
 
 The extension has a dependency on the following jar's depending on IBM MQ version:
 
