@@ -53,7 +53,9 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 	private MetricWriteHelper metricWriteHelper;
 	private BigDecimal heartBeatMetricValue = BigDecimal.ZERO;
 
-	public WMQMonitorTask(TasksExecutionServiceProvider tasksExecutionServiceProvider, MonitorContextConfiguration monitorContextConfig, QueueManager queueManager) {
+	public WMQMonitorTask(TasksExecutionServiceProvider tasksExecutionServiceProvider,
+						  MonitorContextConfiguration monitorContextConfig,
+						  QueueManager queueManager) {
 		this.monitorContextConfig = monitorContextConfig;
 		this.queueManager = queueManager;
 		this.configMap = monitorContextConfig.getConfigYml();

@@ -42,7 +42,12 @@ final public class QueueManagerMetricsCollector extends MetricsCollector impleme
 	private static final Logger logger = ExtensionsLoggerFactory.getLogger(QueueManagerMetricsCollector.class);
 	private final static String ARTIFACT = "Queue Manager";
 
-	public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
+	public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
+										MonitorContextConfiguration monitorContextConfig,
+										PCFMessageAgent agent,
+										QueueManager queueManager,
+										MetricWriteHelper metricWriteHelper,
+										CountDownLatch countDownLatch) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
 	}
 
