@@ -11,9 +11,15 @@ Then, the task begins collecting metrics for Queue Manager, Channel, Queue, List
 
 ```mermaid
 sequenceDiagram
+   box Task creation
+   participant WMQMonitorTask
+   participant ThreadPoolExecutor
+   end
+
    box collector run
    participant QueueManagerMetricsCollector
    participant MetricsCollector
+   participant PCF
    end
 
    WMQMonitorTask->>QueueManagerMetricsCollector: new
