@@ -22,6 +22,7 @@ public class Constants {
 	public static final String METRIC_TYPE_CHANNEL = "channelMetrics";
 	public static final String METRIC_TYPE_LISTENER = "listenerMetrics";
 	public static final String METRIC_TYPE_TOPIC = "topicMetrics";
+	public static final String METRIC_TYPE_CONFIGURATION = "configurationMetrics";
 	
 	public static final String TRANSPORT_TYPE_CLIENT = "Client";
 	public static final String TRANSPORT_TYPE_BINGINGS = "Bindings";

@@ -73,7 +73,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 				logger.debug("MQQueueManager connection initiated for queueManager {} in thread {}", queueManagerTobeDisplayed, Thread.currentThread().getName());
 				heartBeatMetricValue = BigDecimal.ONE;
 				agent = initPCFMesageAgent(ibmQueueManager);
-				extractAndReportMetrics(agent);
+				extractAndReportMetrics(ibmQueueManager, agent);
 			} else {
 				logger.error("MQQueueManager connection could not be initiated for queueManager {} in thread {} ", queueManagerTobeDisplayed, Thread.currentThread().getName());
 			}
@@ -134,7 +134,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		return agent;
 	}
 
-	private void extractAndReportMetrics(PCFMessageAgent agent) {
+	private void extractAndReportMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
 		Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
 
 		CountDownLatch countDownLatch = new CountDownLatch(metricsMap.size());
@@ -204,6 +204,14 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 			monitorContextConfig.getContext().getExecutorService().execute("TopicMetricsCollector", topicsMetricsCollector);
 		} else {
 			logger.warn("No topic metrics to report");
+		}
+
+		Map<String, WMQMetricOverride> configurationMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CONFIGURATION);
+		if (configurationMetricsToReport != null) {
+			ReadConfigurationEventQueueCollector configurationEventQueueCollector = new ReadConfigurationEventQueueCollector(configurationMetricsToReport, this.monitorContextConfig, agent, mqQueueManager, queueManager, metricWriteHelper, countDownLatch);
+			monitorContextConfig.getContext().getExecutorService().execute("ReadConfigurationEventQueueCollector", configurationEventQueueCollector);
+		} else {
+			logger.warn("No configuration queue metrics to report");
 		}
 
 		try {

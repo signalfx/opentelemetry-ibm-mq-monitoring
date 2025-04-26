@@ -65,7 +65,7 @@ public class WMQMetricOverride {
 					clazz = Class.forName(classStr);
 					constantValue = (Integer) clazz.getDeclaredField(declaredField).get(Integer.class);
 				} catch (Exception e) {
-					logger.warn(e.getMessage());
+					logger.warn(e.getMessage(), e);
 					logger.warn("ibmConstant {} is not a valid constant defaulting constant value to -1", getIbmConstant());
 				}
 			}
