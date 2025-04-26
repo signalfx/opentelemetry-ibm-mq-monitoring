@@ -18,9 +18,9 @@ sequenceDiagram
 
    box collector run
    participant Collector as One of the subclass of MetricsCollector
-   Note right of Collector: QueueManagerMetricsCollector, ListenerMetricsCollector, ChannelMetricsCollector, TopicMetricsCollector, QueueMetricsCollector, and InquireTStatusCmdCollector
    participant MetricsCollector
    participant PCF
+   Note right of Collector: QueueManagerMetricsCollector, ListenerMetricsCollector, ChannelMetricsCollector, TopicMetricsCollector, QueueMetricsCollector, and InquireTStatusCmdCollector
    end
 
    WMQMonitorTask->>Collector: new
