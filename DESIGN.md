@@ -17,17 +17,17 @@ sequenceDiagram
    end
 
    box collector run
-   participant QueueManagerMetricsCollector
+   participant Collector as One of the subclass of MetricsCollector
    participant MetricsCollector
    participant PCF
    end
 
-   WMQMonitorTask->>QueueManagerMetricsCollector: new
-   ThreadPoolExecutor->>QueueManagerMetricsCollector: execute
+   WMQMonitorTask->>Collector: new
+   ThreadPoolExecutor->>Collector: execute
 
-   QueueManagerMetricsCollector->>MetricsCollector: process
-   MetricsCollector->>QueueManagerMetricsCollector: publishMetrics
+   Collector->>MetricsCollector: process
+   MetricsCollector->>Collector: publishMetrics
      
-   QueueManagerMetricsCollector->>PCF: collect metrics
+   Collector->>PCF: collect metrics
 ```
 
