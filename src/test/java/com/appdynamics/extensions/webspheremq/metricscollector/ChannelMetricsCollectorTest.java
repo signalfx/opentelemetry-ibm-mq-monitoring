@@ -45,6 +45,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -86,8 +87,17 @@ class ChannelMetricsCollectorTest {
         ObjectMapper mapper = new ObjectMapper();
         queueManager = mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
-        channelMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
+        Map<String, WMQMetricOverride> channelMetrics = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
+        Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
+        for (String key : channelMetrics.keySet()) {
+            WMQMetricOverride wmqOverride = channelMetrics.get(key);
+            String cmd = wmqOverride.getIbmCommand() == null ? "MQCMD_INQUIRE_CHANNEL_STATUS" : wmqOverride.getIbmCommand();
+            metricsByCommand.putIfAbsent(cmd, new HashMap<>());
+            metricsByCommand.get(cmd).put(key, wmqOverride);
+        }
+        channelMetricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS");
         pathCaptor = ArgumentCaptor.forClass(List.class);
+
     }
 
     @Test
