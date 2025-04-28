@@ -52,7 +52,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 	private MonitorContextConfiguration monitorContextConfig;
 	private Map<String, ?> configMap;
 	private MetricWriteHelper metricWriteHelper;
-	private BigDecimal heartBeatMetricValue = BigDecimal.ZERO;
 
 	public WMQMonitorTask(TasksExecutionServiceProvider tasksExecutionServiceProvider,
 						  MonitorContextConfiguration monitorContextConfig,
@@ -69,14 +68,18 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		long startTime = System.currentTimeMillis();
 		MQQueueManager ibmQueueManager = null;
 		PCFMessageAgent agent = null;
-
+		BigDecimal heartBeatMetricValue = BigDecimal.ZERO;
+		// encryptionKey is a global setting, which we need to inject to allow decrypting the queue manager password.
+		String encryptionKey = (String) configMap.get("encryptionKey");
 		try {
-			ibmQueueManager = initMQQueueManager();
-			if (ibmQueueManager == null) {
-				logger.error("MQQueueManager connection could not be initiated for queueManager {} in thread {}", queueManagerTobeDisplayed, Thread.currentThread().getName());
-				return;
+			WMQContext auth = new WMQContext(queueManager, encryptionKey);
+			Hashtable env = auth.getMQEnvironment();
+			try {
+                ibmQueueManager = new MQQueueManager(queueManager.getName(), env);
+			} catch (MQException mqe) {
+                logger.error(mqe.getMessage(), mqe);
+                throw new TaskExecutionException(mqe.getMessage());
 			}
-
 			logger.debug("MQQueueManager connection initiated for queueManager {} in thread {}", queueManagerTobeDisplayed, Thread.currentThread().getName());
 			heartBeatMetricValue = BigDecimal.ONE;
 			agent = initPCFMesageAgent(ibmQueueManager);
@@ -93,30 +96,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 			long endTime = System.currentTimeMillis() - startTime;
 			logger.debug("WMQMonitor thread for queueManager {} ended. Time taken = {} ms", queueManagerTobeDisplayed, endTime);
 		}
-	}
-
-	/**
-	 * Initialize and construct an IBM MQQueueManager
-	 * @return
-	 * @throws TaskExecutionException
-	 */
-	private MQQueueManager initMQQueueManager() throws TaskExecutionException {
-		MQQueueManager ibmQueueManager = null;
-		// encryptionKey is global but encryptedPassword is queueManager specific
-		queueManager.setEncryptionKey((String) configMap.get("encryptionKey"));
-		WMQContext auth = new WMQContext(queueManager);
-		Hashtable env = auth.getMQEnvironment();
-		try {
-			if (env != null) {
-				ibmQueueManager = new MQQueueManager(queueManager.getName(), env);
-			} else {
-				ibmQueueManager = new MQQueueManager(queueManager.getName());
-			}
-		} catch (MQException mqe) {
-			logger.error(mqe.getMessage(), mqe);
-			throw new TaskExecutionException(mqe.getMessage());
-		}
-		return ibmQueueManager;
 	}
 
 	private PCFMessageAgent initPCFMesageAgent(MQQueueManager ibmQueueManager) {

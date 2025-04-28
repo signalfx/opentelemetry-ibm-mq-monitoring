@@ -34,7 +34,6 @@ public class QueueManager {
 	private String cipherSuite;
 	private String cipherSpec;
 	private String encryptedPassword;
-	private String encryptionKey;
 	private String replyQueuePrefix;
 	private String modelQueueName;
 	private String configurationQueueName = "SYSTEM.ADMIN.CONFIG.EVENT";
@@ -176,14 +175,6 @@ public class QueueManager {
 
 	public void setEncryptedPassword(String encryptedPassword) {
 		this.encryptedPassword = encryptedPassword;
-	}
-
-	public String getEncryptionKey() {
-		return encryptionKey;
-	}
-
-	public void setEncryptionKey(String encryptionKey) {
-		this.encryptionKey = encryptionKey;
 	}
 
 	public String getReplyQueuePrefix() {
