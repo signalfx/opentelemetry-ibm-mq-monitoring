@@ -45,10 +45,12 @@ public class InquireChannelCmdCollector extends MetricsCollector {
 
 	public static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireChannelCmdCollector.class);
 	private static final String ARTIFACT = "Channels";
+	private final MetricCreator metricCreator;
 
-	public InquireChannelCmdCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper) {
+	public InquireChannelCmdCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, MetricCreator metricCreator) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, null, ARTIFACT);
-	}
+        this.metricCreator = metricCreator;
+    }
 
 
 	@Override
@@ -91,7 +93,7 @@ public class InquireChannelCmdCollector extends MetricsCollector {
 								continue;
 							}
                             int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                            Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), channelName, metrickey);
+                            Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, getArtifact(), channelName, metrickey);
                             metrics.add(metric);
                         }
 						metricWriteHelper.transformAndPrintMetrics(metrics);

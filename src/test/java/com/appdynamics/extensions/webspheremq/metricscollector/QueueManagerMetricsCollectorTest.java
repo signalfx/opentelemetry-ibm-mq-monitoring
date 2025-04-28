@@ -32,7 +32,6 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
-import org.assertj.core.api.AssertionsForClassTypes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,40 +48,44 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class QueueManagerMetricsCollectorTest {
+class QueueManagerMetricsCollectorTest {
 
-    private QueueManagerMetricsCollector classUnderTest;
-
-    @Mock
-    private AMonitorJob aMonitorJob;
+    QueueManagerMetricsCollector classUnderTest;
 
     @Mock
-    private PCFMessageAgent pcfMessageAgent;
+    AMonitorJob aMonitorJob;
 
     @Mock
-    private MetricWriteHelper metricWriteHelper;
+    PCFMessageAgent pcfMessageAgent;
 
-    private MonitorContextConfiguration monitorContextConfig;
-    private Map<String, WMQMetricOverride> queueMgrMetricsToReport;
-    private QueueManager queueManager;
-    private ArgumentCaptor<List> pathCaptor;
+    @Mock
+    MetricWriteHelper metricWriteHelper;
+
+    MonitorContextConfiguration monitorContextConfig;
+    Map<String, WMQMetricOverride> queueMgrMetricsToReport;
+    QueueManager queueManager;
+    ArgumentCaptor<List> pathCaptor;
+    MetricCreator metricCreator;
 
     @BeforeEach
     public void setup() {
-        monitorContextConfig = new MonitorContextConfiguration("WMQMonitor", "Custom Metrics|WMQMonitor|", PathResolver.resolveDirectory(AManagedMonitor.class),aMonitorJob);
+        monitorContextConfig = new MonitorContextConfiguration("WMQMonitor", "Custom Metrics|WMQMonitor|", PathResolver.resolveDirectory(AManagedMonitor.class), aMonitorJob);
         monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
         Map<String, ?> configMap = monitorContextConfig.getConfigYml();
         ObjectMapper mapper = new ObjectMapper();
-        queueManager = mapper.convertValue(((List)configMap.get("queueManagers")).get(0), QueueManager.class);
+        queueManager = mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         queueMgrMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER);
         pathCaptor = ArgumentCaptor.forClass(List.class);
+        metricCreator = new MetricCreator(monitorContextConfig, queueManager);
     }
 
     @Test
     public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
+        CountDownLatch latch = mock(CountDownLatch.class);
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireQMgrStatusCmd());
-        classUnderTest = new QueueManagerMetricsCollector(queueMgrMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+        classUnderTest = new QueueManagerMetricsCollector(queueMgrMetricsToReport, monitorContextConfig, pcfMessageAgent,
+                queueManager, metricWriteHelper, latch, metricCreator);
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();
@@ -151,8 +154,10 @@ public class QueueManagerMetricsCollectorTest {
 
     @Test
     public void testDisplayName() throws Exception {
+        CountDownLatch latch = mock(CountDownLatch.class);
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireQMgrStatusCmd());
-        classUnderTest = new QueueManagerMetricsCollector(queueMgrMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+        classUnderTest = new QueueManagerMetricsCollector(queueMgrMetricsToReport, monitorContextConfig, pcfMessageAgent,
+                queueManager, metricWriteHelper, latch, metricCreator);
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();

@@ -52,23 +52,24 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class InquireChannelCmdCollectorTest {
+class InquireChannelCmdCollectorTest {
 
-    private InquireChannelCmdCollector classUnderTest;
-
-    @Mock
-    private AMonitorJob aMonitorJob;
+    InquireChannelCmdCollector classUnderTest;
 
     @Mock
-    private PCFMessageAgent pcfMessageAgent;
+    AMonitorJob aMonitorJob;
 
     @Mock
-    private MetricWriteHelper metricWriteHelper;
+    PCFMessageAgent pcfMessageAgent;
 
-    private MonitorContextConfiguration monitorContextConfig;
-    private Map<String, WMQMetricOverride> channelMetricsToReport;
-    private QueueManager queueManager;
-    private ArgumentCaptor<List> pathCaptor;
+    @Mock
+    MetricWriteHelper metricWriteHelper;
+
+    MonitorContextConfiguration monitorContextConfig;
+    Map<String, WMQMetricOverride> channelMetricsToReport;
+    QueueManager queueManager;
+    ArgumentCaptor<List> pathCaptor;
+    MetricCreator metricCreator;
 
     @BeforeEach
     public void setup() {
@@ -88,12 +89,14 @@ public class InquireChannelCmdCollectorTest {
         }
         channelMetricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL");
         pathCaptor = ArgumentCaptor.forClass(List.class);
+        metricCreator = new MetricCreator(monitorContextConfig, queueManager);
     }
 
     @Test
     public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireChannelCmd());
-        classUnderTest = new InquireChannelCmdCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper);
+        classUnderTest = new InquireChannelCmdCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent,
+                queueManager, metricWriteHelper, metricCreator);
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();

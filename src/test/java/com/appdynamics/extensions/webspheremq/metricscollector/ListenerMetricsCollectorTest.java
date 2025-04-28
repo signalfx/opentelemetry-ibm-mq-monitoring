@@ -36,7 +36,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -62,23 +61,27 @@ class ListenerMetricsCollectorTest {
     private Map<String, WMQMetricOverride> listenerMetricsToReport;
     private QueueManager queueManager;
     private ArgumentCaptor<List<Metric>> pathCaptor;
+    private MetricCreator metricCreator;
 
     @BeforeEach
     public void setup() {
-        monitorContextConfig = new MonitorContextConfiguration("WMQMonitor", "Custom Metrics|WMQMonitor|", PathResolver.resolveDirectory(AManagedMonitor.class),aMonitorJob);
+        monitorContextConfig = new MonitorContextConfiguration("WMQMonitor", "Custom Metrics|WMQMonitor|", PathResolver.resolveDirectory(AManagedMonitor.class), aMonitorJob);
         monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
         Map<String, ?> configMap = monitorContextConfig.getConfigYml();
         ObjectMapper mapper = new ObjectMapper();
-        queueManager = mapper.convertValue(((List)configMap.get("queueManagers")).get(0), QueueManager.class);
+        queueManager = mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         listenerMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_LISTENER);
         pathCaptor = ArgumentCaptor.forClass(List.class);
+        metricCreator = new MetricCreator(monitorContextConfig, queueManager);
     }
 
     @Test
     public void testpublishMetrics() throws Exception {
+        CountDownLatch latch = mock(CountDownLatch.class);
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireListenerStatusCmd());
-        classUnderTest = new ListenerMetricsCollector(listenerMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+        classUnderTest = new ListenerMetricsCollector(listenerMetricsToReport, monitorContextConfig, pcfMessageAgent,
+                queueManager, metricWriteHelper, latch, metricCreator);
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();

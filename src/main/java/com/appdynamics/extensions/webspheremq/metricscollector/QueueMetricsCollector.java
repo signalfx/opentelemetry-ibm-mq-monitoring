@@ -52,15 +52,17 @@ public class QueueMetricsCollector extends MetricsCollector {
 	// hack to share state of queue type between collectors.
 	// The queue information is only available as response of some commands.
 	private final QueueCollectorSharedState sharedState;
+	private final MetricCreator metricCreator;
 
 	public QueueMetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
-								 MonitorContextConfiguration monitorContextConfig,
-								 PCFMessageAgent agent, MetricWriteHelper metricWriteHelper,
-								 QueueManager queueManager, CountDownLatch countDownLatch,
-								 QueueCollectorSharedState sharedState) {
+                                 MonitorContextConfiguration monitorContextConfig,
+                                 PCFMessageAgent agent, MetricWriteHelper metricWriteHelper,
+                                 QueueManager queueManager, CountDownLatch countDownLatch,
+                                 QueueCollectorSharedState sharedState, MetricCreator metricCreator) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
 		this.sharedState = sharedState;
-	}
+        this.metricCreator = metricCreator;
+    }
 
 	@Override
 	public void publishMetrics() throws TaskExecutionException {
@@ -68,15 +70,15 @@ public class QueueMetricsCollector extends MetricsCollector {
 		List<Future> futures = Lists.newArrayList();
 		Map<String, WMQMetricOverride>  metricsForInquireQCmd = getMetricsToReport(InquireQCmdCollector.COMMAND);
 		if(!metricsForInquireQCmd.isEmpty()){
-			futures.add(monitorContextConfig.getContext().getExecutorService().submit("InquireQCmdCollector", new InquireQCmdCollector(this,metricsForInquireQCmd, sharedState)));
+			futures.add(monitorContextConfig.getContext().getExecutorService().submit("InquireQCmdCollector", new InquireQCmdCollector(this,metricsForInquireQCmd, sharedState, metricCreator)));
 		}
 		Map<String, WMQMetricOverride>  metricsForInquireQStatusCmd = getMetricsToReport(InquireQStatusCmdCollector.COMMAND);
 		if(!metricsForInquireQStatusCmd.isEmpty()){
-			futures.add(monitorContextConfig.getContext().getExecutorService().submit("InquireQStatusCmdCollector", new InquireQStatusCmdCollector(this,metricsForInquireQStatusCmd, sharedState)));
+			futures.add(monitorContextConfig.getContext().getExecutorService().submit("InquireQStatusCmdCollector", new InquireQStatusCmdCollector(this,metricsForInquireQStatusCmd, sharedState, metricCreator)));
 		}
 		Map<String, WMQMetricOverride>  metricsForResetQStatsCmd = getMetricsToReport(ResetQStatsCmdCollector.COMMAND);
 		if(!metricsForResetQStatsCmd.isEmpty()){
-			futures.add(monitorContextConfig.getContext().getExecutorService().submit("ResetQStatsCmdCollector", new ResetQStatsCmdCollector(this,metricsForResetQStatsCmd, sharedState)));
+			futures.add(monitorContextConfig.getContext().getExecutorService().submit("ResetQStatsCmdCollector", new ResetQStatsCmdCollector(this,metricsForResetQStatsCmd, sharedState, metricCreator)));
 		}
 		for(Future f: futures){
 			try {
@@ -176,7 +178,7 @@ public class QueueMetricsCollector extends MetricsCollector {
 						if (pcfParam != null) {
 							if(pcfParam instanceof MQCFIN){
 								int metricVal = response[i].getIntParameterValue(wmqOverride.getConstantValue());
-								Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), queueName, queueType, metrickey);
+								Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, getArtifact(), queueName, queueType, metrickey);
 								metrics.add(metric);
 							}
 							else if(pcfParam instanceof MQCFIL){
@@ -185,7 +187,7 @@ public class QueueMetricsCollector extends MetricsCollector {
 									int count=0;
 									for(int val : metricVals){
 										count++;
-										Metric metric = createMetric(queueManager, metrickey + "_" + count,
+										Metric metric = metricCreator.createMetric( metrickey + "_" + count,
 												val, wmqOverride, getArtifact(), queueName,
 												metrickey + "_" + count);
 										metrics.add(metric);

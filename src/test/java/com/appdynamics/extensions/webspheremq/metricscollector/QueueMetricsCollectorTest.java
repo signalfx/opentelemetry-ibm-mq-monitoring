@@ -66,6 +66,7 @@ public class QueueMetricsCollectorTest {
     private Map<String, WMQMetricOverride> queueMetricsToReport;
     private QueueManager queueManager;
     ArgumentCaptor<List<Metric>> pathCaptor;
+    MetricCreator metricCreator;
 
     @BeforeEach
     void setup() {
@@ -78,6 +79,7 @@ public class QueueMetricsCollectorTest {
         queueMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE);
         QueueCollectorSharedState.getInstance().resetForTest();
         pathCaptor = ArgumentCaptor.forClass(List.class);
+        metricCreator = new MetricCreator(monitorContextConfig, queueManager);
     }
 
     @Test
@@ -89,7 +91,7 @@ public class QueueMetricsCollectorTest {
         PCFMessage request = createPCFRequestForInquireQStatusCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQStatusCmd());
         classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                metricWriteHelper, queueManager, phaser, sharedState);
+                metricWriteHelper, queueManager, phaser, sharedState, metricCreator);
         classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_INQUIRE_Q_STATUS");
 
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
@@ -122,7 +124,7 @@ public class QueueMetricsCollectorTest {
         PCFMessage request = createPCFRequestForInquireQCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQCmd());
         classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                metricWriteHelper, queueManager, phaser, QueueCollectorSharedState.getInstance());
+                metricWriteHelper, queueManager, phaser, QueueCollectorSharedState.getInstance(), metricCreator);
         classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_INQUIRE_Q");
 
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
@@ -164,7 +166,7 @@ public class QueueMetricsCollectorTest {
         PCFMessage request = createPCFRequestForResetQStatsCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForResetQStatsCmd());
         classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                metricWriteHelper, queueManager, phaser, QueueCollectorSharedState.getInstance());
+                metricWriteHelper, queueManager, phaser, QueueCollectorSharedState.getInstance(), metricCreator);
         classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_RESET_Q_STATS");
 
         verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
