@@ -50,16 +50,6 @@ public class InquireChannelCmdCollector extends MetricsCollector {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, null, ARTIFACT);
 	}
 
-	public void run() {
-		try {
-			logger.info("Collecting metrics for command MQCMD_INQUIRE_CHANNEL");
-			this.process();
-		} catch (TaskExecutionException e) {
-			logger.error("Error in ChannelMetricsCollector ", e);
-		} finally {
-			countDownLatch.countDown();
-		}
-	}
 
 	@Override
 	public void publishMetrics() throws TaskExecutionException {
