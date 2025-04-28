@@ -47,7 +47,6 @@ import java.util.concurrent.CountDownLatch;
 public class ReadConfigurationEventQueueCollector implements MetricsPublisher {
 
 	private static final Logger logger = ExtensionsLoggerFactory.getLogger(ReadConfigurationEventQueueCollector.class);
-	private final CountDownLatch countDownLatch;
 	private final MetricWriteHelper metricWriteHelper;
 	private final QueueManager queueManager;
 	private final PCFMessageAgent agent;
@@ -56,14 +55,13 @@ public class ReadConfigurationEventQueueCollector implements MetricsPublisher {
 	private final Map<String, WMQMetricOverride> metricsToReport;
 	private final long bootTime;
 
-	public ReadConfigurationEventQueueCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, MQQueueManager mqQueueManager, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
+	public ReadConfigurationEventQueueCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, MQQueueManager mqQueueManager, QueueManager queueManager, MetricWriteHelper metricWriteHelper) {
 		this.metricsToReport = metricsToReport;
 		this.monitorContextConfig = monitorContextConfig;
 		this.agent = agent;
 		this.mqQueueManager = mqQueueManager;
 		this.queueManager = queueManager;
 		this.metricWriteHelper = metricWriteHelper;
-		this.countDownLatch = countDownLatch;
 		this.bootTime = System.currentTimeMillis();
 	}
 
@@ -82,6 +80,7 @@ public class ReadConfigurationEventQueueCollector implements MetricsPublisher {
 			}
 			queue = mqQueueManager.accessQueue(configurationQueueName, queueAccessOptions);
 			int maxSequenceNumber = 0;
+            // keep going until receiving the exception MQConstants.MQRC_NO_MSG_AVAILABLE
 			while (true) {
 				try {
 					MQGetMessageOptions getOptions = new MQGetMessageOptions();
@@ -156,7 +155,7 @@ public class ReadConfigurationEventQueueCollector implements MetricsPublisher {
 			}
 
 		} catch (Exception e) {
-			logger.error("Unexpected Error occoured while collecting configuration events for queue " + configurationQueueName, e);
+			logger.error("Unexpected Error occurred while collecting configuration events for queue " + configurationQueueName, e);
 		}
 		long exitTime = System.currentTimeMillis() - entryTime;
 		logger.debug("Time taken to publish metrics for configuration events is {} milliseconds", exitTime);
