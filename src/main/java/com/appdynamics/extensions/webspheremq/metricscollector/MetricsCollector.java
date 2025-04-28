@@ -35,7 +35,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public abstract class MetricsCollector implements MetricsPublisher {
 
-	protected final Map<String, WMQMetricOverride> metricsToReport;
+	private final Map<String, WMQMetricOverride> metricsToReport;
 	protected final MonitorContextConfiguration monitorContextConfig;
 	protected final PCFMessageAgent agent;
 	protected final MetricWriteHelper metricWriteHelper;
@@ -73,28 +73,6 @@ public abstract class MetricsCollector implements MetricsPublisher {
 	 */
 	public final void process() throws TaskExecutionException {
 		publishMetrics();
-	}
-
-	protected String getMetricsName(String qmNameToBeDisplayed, String... pathelements) {
-		StringBuilder pathBuilder = new StringBuilder(monitorContextConfig.getMetricPrefix()).append("|").append(qmNameToBeDisplayed).append("|");
-		for (int i = 0; i < pathelements.length; i++) {
-			pathBuilder.append(pathelements[i]);
-			if (i != pathelements.length - 1) {
-				pathBuilder.append("|");
-			}
-		}
-		return pathBuilder.toString();
-	}
-
-	protected Metric createMetric(QueueManager queueManager, String metricName, int metricValue, WMQMetricOverride wmqOverride, String... pathelements) {
-		String metricPath = getMetricsName(WMQUtil.getQueueManagerNameFromConfig(queueManager), pathelements);
-		Metric metric;
-		if (wmqOverride != null && wmqOverride.getMetricProperties() != null) {
-			metric = new Metric(metricName, String.valueOf(metricValue), metricPath, wmqOverride.getMetricProperties());
-		} else {
-			metric = new Metric(metricName, String.valueOf(metricValue), metricPath);
-		}
-		return metric;
 	}
 
 	public enum FilterType {

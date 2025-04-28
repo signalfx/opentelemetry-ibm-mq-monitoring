@@ -45,13 +45,15 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 
 	public static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 	private static final String ARTIFACT = "Channels";
+	private final MetricCreator metricCreator;
 
 	/*
 	 * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
 	 */
-	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper) {
+	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, MetricCreator metricCreator) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, null, ARTIFACT);
-	}
+        this.metricCreator = metricCreator;
+    }
 
 	@Override
 	public void publishMetrics() throws TaskExecutionException {
@@ -100,7 +102,7 @@ public final class ChannelMetricsCollector extends MetricsCollector {
                             String metrickey = itr.next();
                             WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
                             int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                            Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), channelName, metrickey);
+                            Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, getArtifact(), channelName, metrickey);
                             metrics.add(metric);
                             if ("Status".equals(metrickey) && metricVal == 3) {
                                 activeChannels.add(channelName);
@@ -127,7 +129,7 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 		}
 
 		logger.info("Active Channels in queueManager {} are {}", WMQUtil.getQueueManagerNameFromConfig(queueManager), activeChannels);
-		Metric activeChannelsCountMetric = createMetric(queueManager,"ActiveChannelsCount", activeChannels.size(), null, getArtifact(), "ActiveChannelsCount");
+		Metric activeChannelsCountMetric = metricCreator.createMetric("ActiveChannelsCount", activeChannels.size(), null, getArtifact(), "ActiveChannelsCount");
 		metricWriteHelper.transformAndPrintMetrics(Collections.singletonList(activeChannelsCountMetric));
 
 		long exitTime = System.currentTimeMillis() - entryTime;

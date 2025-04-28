@@ -41,13 +41,15 @@ final class InquireTStatusCmdCollector extends MetricsCollector {
 
     private static final Logger logger = LoggerFactory.getLogger(InquireTStatusCmdCollector.class);
     private static final String ARTIFACT = "Topics";
+    private final MetricCreator metricCreator;
 
     static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";
 
-    public InquireTStatusCmdCollector(TopicMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport) {
+    public InquireTStatusCmdCollector(TopicMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport, MetricCreator metricCreator) {
         super(metricsToReport, collector.monitorContextConfig, collector.agent,
                 collector.metricWriteHelper, collector.queueManager,
                 collector.countDownLatch, ARTIFACT);
+        this.metricCreator = metricCreator;
     }
 
     @Override
@@ -110,7 +112,7 @@ final class InquireTStatusCmdCollector extends MetricsCollector {
                         PCFParameter pcfParam = pcfMessage.getParameter(wmqOverride.getConstantValue());
                         if (pcfParam instanceof MQCFIN) {
                             int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                            Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), topicString, metrickey);
+                            Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, getArtifact(), topicString, metrickey);
                             metrics.add(metric);
                         }
                     } catch (PCFException pcfe) {

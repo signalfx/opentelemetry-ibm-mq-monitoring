@@ -41,10 +41,12 @@ final public class QueueManagerMetricsCollector extends MetricsCollector {
 
 	private static final Logger logger = LoggerFactory.getLogger(QueueManagerMetricsCollector.class);
 	private final static String ARTIFACT = "Queue Manager";
+	private final MetricCreator metricCreator;
 
-	public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
+	public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch, MetricCreator metricCreator) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
-	}
+        this.metricCreator = metricCreator;
+    }
 
 	@Override
 	public void publishMetrics() throws TaskExecutionException {
@@ -76,7 +78,7 @@ final public class QueueManagerMetricsCollector extends MetricsCollector {
 				if (logger.isDebugEnabled()) {
 					logger.debug("Metric: " + metrickey + "=" + metricVal);
 				}
-				Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, metrickey);
+				Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, metrickey);
 				metrics.add(metric);
 			}
 			metricWriteHelper.transformAndPrintMetrics(metrics);

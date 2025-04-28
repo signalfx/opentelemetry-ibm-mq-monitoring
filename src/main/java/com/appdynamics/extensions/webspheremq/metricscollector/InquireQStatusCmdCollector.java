@@ -36,9 +36,9 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
     static final String COMMAND = "MQCMD_INQUIRE_Q_STATUS";
 
     public InquireQStatusCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport,
-                                      QueueCollectorSharedState sharedState){
+                                      QueueCollectorSharedState sharedState, MetricCreator metricCreator){
         super(metricsToReport, collector.monitorContextConfig, collector.agent, collector.metricWriteHelper,
-                collector.queueManager, collector.countDownLatch, sharedState);
+                collector.queueManager, collector.countDownLatch, sharedState, metricCreator);
     }
 
     @Override
