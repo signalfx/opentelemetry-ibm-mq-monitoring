@@ -50,17 +50,6 @@ final public class InquireQueueManagerCmdCollector extends MetricsCollector {
 	}
 
 	@Override
-	public void run() {
-		try {
-			super.process();
-		} catch (TaskExecutionException e) {
-			logger.error("Error in QueueManagerMetricsCollector ", e);
-		} finally {
-			countDownLatch.countDown();
-		}
-	}
-
-	@Override
 	public void publishMetrics() throws TaskExecutionException {
 		long entryTime = System.currentTimeMillis();
 		logger.debug("publishMetrics entry time for queuemanager {} is {} milliseconds", agent.getQManagerName(), entryTime);
