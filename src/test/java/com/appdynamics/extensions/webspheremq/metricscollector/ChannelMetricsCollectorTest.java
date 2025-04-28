@@ -89,11 +89,11 @@ class ChannelMetricsCollectorTest {
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         Map<String, WMQMetricOverride> channelMetrics = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
         Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
-        for (String key : channelMetrics.keySet()) {
-            WMQMetricOverride wmqOverride = channelMetrics.get(key);
-            String cmd = wmqOverride.getIbmCommand() == null ? "MQCMD_INQUIRE_CHANNEL_STATUS" : wmqOverride.getIbmCommand();
+        assertThat(channelMetrics).isNotEmpty();
+        for (Map.Entry<String, WMQMetricOverride> e : channelMetrics.entrySet()) {
+            String cmd = e.getValue().getIbmCommand() == null ? "MQCMD_INQUIRE_CHANNEL_STATUS" : e.getValue().getIbmCommand();
             metricsByCommand.putIfAbsent(cmd, new HashMap<>());
-            metricsByCommand.get(cmd).put(key, wmqOverride);
+            metricsByCommand.get(cmd).put(e.getKey(), e.getValue());
         }
         channelMetricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS");
         pathCaptor = ArgumentCaptor.forClass(List.class);
