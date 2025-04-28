@@ -6,10 +6,10 @@ import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 
-public class MetricCreator {
+public final class MetricCreator {
 
     private final MonitorContextConfiguration monitorContextConfig;
-    protected final QueueManager queueManager;
+    private final QueueManager queueManager;
 
     public MetricCreator(MonitorContextConfiguration monitorContextConfig, QueueManager queueManager) {
         this.monitorContextConfig = monitorContextConfig;
