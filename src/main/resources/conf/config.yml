@@ -50,6 +50,19 @@ queueManagers:
     #modelQueueName: ""
     #replyQueuePrefix: ""
 
+    # Name of the temporary dynamic queue holding the configuration events. This queue contains information regarding the configuration of the queue manager, notable MaxChannels and MaxActiveChannels.
+    # If unset, the default queue name `SYSTEM.ADMIN.CONFIG.EVENT` is applied.
+    # Configuration events need to be enabled explicitly in the queue manager configuration. See https://www.ibm.com/docs/en/ibm-mq/9.4.x?topic=monitoring-configuration-events for reference.
+    #configurationQueueName: "SYSTEM.ADMIN.CONFIG.EVENT"
+
+    # Interval in milliseconds at which the configuration events in the configuration queue can be consumed.
+    # By default, no events are consumed.
+    #consumeConfigurationEventInterval: 600000 # 10 minutes
+
+    # Enable running a queue manager refresh request to reload its configuration and create a configuration event.
+    # This action is only executed if no configuration events are found when reading the configuration queue.name:
+    # By default, this action is disabled.
+    #refreshQueueManagerConfigurationEnabled: false
 
     #Sets the CCSID used in the message descriptor of request and response messages. The default value is MQC.MQCCSI_Q_MGR.
     #To set this, please use the integer value.
@@ -320,6 +333,14 @@ mqMetrics:
             alias: "Subscription Count"
             ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_SUB_COUNT"
             ibmCommand: "MQCMD_INQUIRE_TOPIC_STATUS"
+
+  # Sets up reading configuration events from the configuration queue.
+  - metricsType: "configurationMetrics"
+    metrics:
+      include:
+        - MaxHandles:
+            alias: "Max Handles"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MAX_HANDLES"
 
 #Run it as a scheduled task instead of running every minute.
 #If you want to run this every minute, comment this out
