@@ -18,8 +18,8 @@ package com.appdynamics.extensions.opentelemetry;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.metrics.transformers.Transformer;
-import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
+import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,17 +32,19 @@ public class OpenTelemetryMetricWriteHelper extends MetricWriteHelper {
 
   private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryMetricWriteHelper.class);
 
-  private final OtlpGrpcMetricExporter exporter;
+  private final MetricExporter exporter;
 
-  public OpenTelemetryMetricWriteHelper(OtlpGrpcMetricExporter otlpGrpcMetricExporter) {
+  public OpenTelemetryMetricWriteHelper(MetricExporter otlpGrpcMetricExporter) {
     this.exporter = otlpGrpcMetricExporter;
   }
 
+  @Override
   public void printMetric(String metricPath, BigDecimal value, String metricType) {
     String metricName = metricPath.substring(metricPath.lastIndexOf('|'));
     transformAndPrintMetrics(Collections.singletonList(new Metric(metricName, value.toString(), metricPath)));
   }
 
+    @Override
     public void transformAndPrintMetrics(List<Metric> metrics) {
     Transformer transformer = new Transformer(metrics);
     transformer.transform();
