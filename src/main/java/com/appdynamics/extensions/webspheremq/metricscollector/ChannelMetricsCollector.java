@@ -46,6 +46,7 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 	public static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 	private static final String ARTIFACT = "Channels";
 	private final MetricCreator metricCreator;
+	private final IntAttributesBuilder attributesBuilder;
 
 	/*
 	 * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
@@ -53,6 +54,8 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, MetricCreator metricCreator) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, null, ARTIFACT);
         this.metricCreator = metricCreator;
+		this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
+
     }
 
 	@Override
@@ -64,7 +67,7 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 			return;
 		}
 
-		int[] attrs = getIntAttributesArray(CMQCFC.MQCACH_CHANNEL_NAME, CMQCFC.MQCACH_CONNECTION_NAME);
+		int[] attrs = attributesBuilder.buildIntAttributesArray(CMQCFC.MQCACH_CHANNEL_NAME, CMQCFC.MQCACH_CONNECTION_NAME);
 		if (logger.isDebugEnabled()) {
             logger.debug("Attributes being sent along PCF agent request to query channel metrics: {}", Arrays.toString(attrs));
 		}

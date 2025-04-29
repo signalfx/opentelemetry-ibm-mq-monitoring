@@ -18,14 +18,11 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
@@ -78,19 +75,4 @@ public abstract class MetricsCollector implements MetricsPublisher {
 	public enum FilterType {
 		STARTSWITH, EQUALS, ENDSWITH, CONTAINS, NONE
     }
-
-	protected int[] getIntAttributesArray(int... inputAttrs) {
-		int[] attrs = new int[inputAttrs.length+getMetricsToReport().size()];
-		// fill input attrs
-        System.arraycopy(inputAttrs, 0, attrs, 0, inputAttrs.length);
-		//fill attrs from metrics to report.
-		Iterator<String> overrideItr = getMetricsToReport().keySet().iterator();
-		for (int count = inputAttrs.length; overrideItr.hasNext() && count < attrs.length; count++) {
-			String metrickey = overrideItr.next();
-			WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
-			attrs[count] = wmqOverride.getConstantValue();
-		}
-		return attrs;
-
-	}
 }
