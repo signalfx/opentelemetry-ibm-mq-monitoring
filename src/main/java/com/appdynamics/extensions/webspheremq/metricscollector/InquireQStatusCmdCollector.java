@@ -58,11 +58,13 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
     private static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);
 
     static final String COMMAND = "MQCMD_INQUIRE_Q_STATUS";
+    private final IntAttributesBuilder attributesBuilder;
 
     public InquireQStatusCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport,
                                       QueueCollectorSharedState sharedState, MetricCreator metricCreator){
         super(metricsToReport, collector.monitorContextConfig, collector.agent, collector.metricWriteHelper,
                 collector.queueManager, collector.countDownLatch, sharedState, metricCreator);
+        this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
     }
 
     @Override
@@ -87,7 +89,7 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
         //
         // attrs = { CMQC.MQCA_Q_NAME, MQIACF_OLDEST_MSG_AGE, MQIACF_Q_TIME_INDICATOR };
         //
-        int[] attrs = getIntAttributesArray(CMQC.MQCA_Q_NAME);
+        int[] attrs = attributesBuilder.buildIntAttributesArray(CMQC.MQCA_Q_NAME);
         if (logger.isDebugEnabled()) {
             logger.debug("Attributes being sent along PCF agent request to query queue metrics: {} for command {}", Arrays.toString(attrs), COMMAND);
         }

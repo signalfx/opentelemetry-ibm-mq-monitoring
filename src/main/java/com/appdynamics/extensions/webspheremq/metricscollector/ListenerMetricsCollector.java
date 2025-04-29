@@ -59,10 +59,12 @@ final public class ListenerMetricsCollector extends MetricsCollector {
     private  final static Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
     public final static String ARTIFACT = "Listeners";
     private final MetricCreator metricCreator;
+    private final IntAttributesBuilder attributesBuilder;
 
     public ListenerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch, MetricCreator metricCreator) {
         super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
         this.metricCreator = metricCreator;
+        this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
     }
 
     @Override
@@ -74,7 +76,7 @@ final public class ListenerMetricsCollector extends MetricsCollector {
             return;
         }
 
-        int[] attrs = getIntAttributesArray(CMQCFC.MQCACH_LISTENER_NAME);
+        int[] attrs = attributesBuilder.buildIntAttributesArray(CMQCFC.MQCACH_LISTENER_NAME);
         logger.debug("Attributes being sent along PCF agent request to query channel metrics: " + Arrays.toString(attrs));
 
         Set<String> listenerGenericNames = this.queueManager.getListenerFilters().getInclude();

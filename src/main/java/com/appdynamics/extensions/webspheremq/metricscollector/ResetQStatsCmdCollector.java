@@ -34,13 +34,15 @@ final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Run
 
     private static final Logger logger = LoggerFactory.getLogger(ResetQStatsCmdCollector.class);
 
-    protected static final String COMMAND = "MQCMD_RESET_Q_STATS";
+    static final String COMMAND = "MQCMD_RESET_Q_STATS";
+    private final IntAttributesBuilder attributesBuilder;
 
     public ResetQStatsCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport,
                                    QueueCollectorSharedState sharedState, MetricCreator metricCreator){
         super(metricsToReport, collector.monitorContextConfig, collector.agent,
                 collector.metricWriteHelper, collector.queueManager, collector.countDownLatch, sharedState,
                 metricCreator);
+        this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
     }
 
     @Override
@@ -65,7 +67,7 @@ final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Run
             return;
         }
 
-        int[] attrs = getIntAttributesArray(CMQC.MQCA_Q_NAME);
+        int[] attrs = attributesBuilder.buildIntAttributesArray(CMQC.MQCA_Q_NAME);
         logger.debug("Attributes being sent along PCF agent request to query queue metrics: {} for command {}", Arrays.toString(attrs),COMMAND);
 
         Set<String> queueGenericNames = this.queueManager.getQueueFilters().getInclude();
