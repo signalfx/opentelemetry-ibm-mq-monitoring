@@ -12,7 +12,7 @@ jobs:
 
     services:
       mq:
-        image: ibmcom/mq:9.2.3.0-r1-amd64
+        image: ibmcom/mq:9.3.4.0
         # image: icr.io/ibm-messaging/mq:latest
         ports:
           - 1414:1414
