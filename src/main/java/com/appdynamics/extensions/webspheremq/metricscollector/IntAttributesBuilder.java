@@ -3,7 +3,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -12,14 +11,14 @@ import java.util.Map;
  * by allocating a new int[] and appending the predefined values to
  * an array of input values.
  */
-final class IntAttributesBuilder {
+public final class IntAttributesBuilder {
     private final Collection<WMQMetricOverride> metrics;
 
-    IntAttributesBuilder(Map<String, WMQMetricOverride> metrics) {
+    public IntAttributesBuilder(Map<String, WMQMetricOverride> metrics) {
         this(metrics.values());
     }
 
-    IntAttributesBuilder(Collection<WMQMetricOverride> metrics) {
+    public IntAttributesBuilder(Collection<WMQMetricOverride> metrics) {
         this.metrics = metrics;
     }
 
