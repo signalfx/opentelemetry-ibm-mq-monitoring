@@ -12,7 +12,7 @@ jobs:
 
     services:
       mq:
-        image: ibmcom/mq
+        image: icr.io/ibm-messaging/mq:latest
         ports:
           - 1414:1414
           - 9443:9443
@@ -21,10 +21,11 @@ jobs:
           MQ_QMGR: QM1
           MQ_APP_PASSWORD: passw0rd
         options: >-
-          --health-cmd "echo 'dis qmgr' | runmqsc QM1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 20
+          --name mqtest
+          --health-cmd="echo 'SET' | /opt/mqm/bin/runmqsc QM1"
+          --health-interval=10s
+          --health-timeout=10s
+          --health-retries=5
 
     steps:
       - name: Checkout code
@@ -36,12 +37,15 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      - name: Wait for MQ to become ready
+      - name: Wait for MQ to become healthy
         run: |
-          echo "Waiting for MQ to be ready..."
           for i in {1..30}; do
-            nc -z localhost 1414 && break
-            sleep 2
+            if docker inspect --format='{{.State.Health.Status}}' mqtest | grep -q "healthy"; then
+              echo "MQ is healthy!"
+              break
+            fi
+            echo "Waiting for MQ to be healthy..."
+            sleep 5
           done
 
       - name: Run integration tests
