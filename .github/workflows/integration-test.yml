@@ -22,6 +22,8 @@ jobs:
           MQ_APP_PASSWORD: passw0rd
         options: >-
           --name mqtest
+          --memory=2g
+          --cpus=1
           --health-cmd="echo 'SET' | /opt/mqm/bin/runmqsc QM1"
           --health-interval=10s
           --health-timeout=20s
