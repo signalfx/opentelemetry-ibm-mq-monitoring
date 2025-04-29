@@ -19,10 +19,8 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
-import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -31,28 +29,21 @@ import java.util.concurrent.CountDownLatch;
  */
 public abstract class MetricsCollector implements MetricsPublisher {
 
-	private final Map<String, WMQMetricOverride> metricsToReport;
 	protected final MonitorContextConfiguration monitorContextConfig;
 	protected final PCFMessageAgent agent;
 	protected final MetricWriteHelper metricWriteHelper;
 	protected final QueueManager queueManager;
 	protected final CountDownLatch countDownLatch;
 
-	public MetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
-                            MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent,
-                            MetricWriteHelper metricWriteHelper, QueueManager queueManager,
-                            CountDownLatch countDownLatch) {
-		this.metricsToReport = metricsToReport;
+	public MetricsCollector(MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent,
+							MetricWriteHelper metricWriteHelper, QueueManager queueManager,
+							CountDownLatch countDownLatch) {
 		this.monitorContextConfig = monitorContextConfig;
 		this.agent = agent;
 		this.metricWriteHelper = metricWriteHelper;
 		this.queueManager = queueManager;
 		this.countDownLatch = countDownLatch;
     }
-
-	final public Map<String, WMQMetricOverride> getMetricsToReport() {
-		return metricsToReport;
-	}
 
 	public enum FilterType {
 		STARTSWITH, EQUALS, ENDSWITH, CONTAINS, NONE

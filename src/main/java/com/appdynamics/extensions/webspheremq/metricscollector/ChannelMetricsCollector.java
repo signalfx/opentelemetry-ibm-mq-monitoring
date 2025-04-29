@@ -45,6 +45,7 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 
 	public static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 	public static final String ARTIFACT = "Channels";
+	private final Map<String, WMQMetricOverride> metrics;
 	private final MetricCreator metricCreator;
 	private final IntAttributesBuilder attributesBuilder;
 
@@ -52,17 +53,17 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 	 * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
 	 */
 	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, MetricCreator metricCreator) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, null);
+		super(monitorContextConfig, agent, metricWriteHelper, queueManager, null);
         this.metricCreator = metricCreator;
 		this.attributesBuilder = new IntAttributesBuilder(metricsToReport == null ? Collections.emptyList() : metricsToReport.values());
-
+		this.metrics = metricsToReport;
     }
 
 	@Override
 	public void publishMetrics() throws TaskExecutionException {
 		long entryTime = System.currentTimeMillis();
 
-		if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
+		if (metrics == null || metrics.isEmpty()) {
 			logger.debug("Channel metrics to report from the config is null or empty, nothing to publish");
 			return;
 		}
@@ -96,22 +97,22 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 				}
                 for (PCFMessage pcfMessage : response) {
                     String channelName = pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
-                    Set<ExcludeFilters> excludeFilters = this.queueManager.getChannelFilters().getExclude();
+                    Set<ExcludeFilters> excludeFilters = queueManager.getChannelFilters().getExclude();
                     if (!ExcludeFilters.isExcluded(channelName, excludeFilters)) { //check for exclude filters
                         logger.debug("Pulling out metrics for channel name {}", channelName);
-                        Iterator<String> itr = getMetricsToReport().keySet().iterator();
-                        List<Metric> metrics = Lists.newArrayList();
+                        Iterator<String> itr = metrics.keySet().iterator();
+                        List<Metric> responseMetrics = Lists.newArrayList();
                         while (itr.hasNext()) {
                             String metrickey = itr.next();
-                            WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+                            WMQMetricOverride wmqOverride = metrics.get(metrickey);
                             int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
                             Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, channelName, metrickey);
-                            metrics.add(metric);
+                            responseMetrics.add(metric);
                             if ("Status".equals(metrickey) && metricVal == 3) {
                                 activeChannels.add(channelName);
                             }
                         }
-						metricWriteHelper.transformAndPrintMetrics(metrics);
+						metricWriteHelper.transformAndPrintMetrics(responseMetrics);
 					} else {
                         logger.debug("Channel name {} is excluded.", channelName);
                     }

@@ -42,46 +42,46 @@ final public class QueueManagerMetricsCollector extends MetricsCollector {
 	private static final Logger logger = LoggerFactory.getLogger(QueueManagerMetricsCollector.class);
 	public final static String ARTIFACT = "Queue Manager";
 	private final MetricCreator metricCreator;
+	private final Map<String, WMQMetricOverride> metrics;
 
 	public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch, MetricCreator metricCreator) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
+		super(monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
         this.metricCreator = metricCreator;
+		this.metrics = metricsToReport;
     }
 
 	@Override
 	public void publishMetrics() throws TaskExecutionException {
 		long entryTime = System.currentTimeMillis();
 		logger.debug("publishMetrics entry time for queuemanager {} is {} milliseconds", agent.getQManagerName(), entryTime);
-		PCFMessage request;
-		PCFMessage[] responses;
 		// CMQCFC.MQCMD_INQUIRE_Q_MGR_STATUS is 161
-		request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR_STATUS);
+		PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR_STATUS);
 		// CMQCFC.MQIACF_Q_MGR_STATUS_ATTRS is 1229
 		request.addParameter(CMQCFC.MQIACF_Q_MGR_STATUS_ATTRS, new int[] { CMQCFC.MQIACF_ALL });
 		try {
 			// Note that agent.send() method is synchronized
 			logger.debug("sending PCF agent request to query queuemanager {}", agent.getQManagerName());
 			long startTime = System.currentTimeMillis();
-			responses = agent.send(request);
+			PCFMessage[] responses = agent.send(request);
 			long endTime = System.currentTimeMillis() - startTime;
 			logger.debug("PCF agent queuemanager metrics query response for {} received in {} milliseconds", agent.getQManagerName(), endTime);
 			if (responses == null || responses.length <= 0) {
 				logger.debug("Unexpected Error while PCFMessage.send(), response is either null or empty");
 				return;
 			}
-			Iterator<String> overrideItr = getMetricsToReport().keySet().iterator();
-			List<Metric> metrics = Lists.newArrayList();
+			Iterator<String> overrideItr = metrics.keySet().iterator();
+			List<Metric> responseMetrics = Lists.newArrayList();
 			while (overrideItr.hasNext()) {
 				String metrickey = overrideItr.next();
-				WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+				WMQMetricOverride wmqOverride = metrics.get(metrickey);
 				int metricVal = responses[0].getIntParameterValue(wmqOverride.getConstantValue());
 				if (logger.isDebugEnabled()) {
 					logger.debug("Metric: " + metrickey + "=" + metricVal);
 				}
 				Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, metrickey);
-				metrics.add(metric);
+				responseMetrics.add(metric);
 			}
-			metricWriteHelper.transformAndPrintMetrics(metrics);
+			metricWriteHelper.transformAndPrintMetrics(responseMetrics);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new TaskExecutionException(e);

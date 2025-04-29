@@ -34,10 +34,11 @@ import java.util.concurrent.*;
 
 public class TopicMetricsCollector extends MetricsCollector {
     private static final Logger logger = LoggerFactory.getLogger(TopicMetricsCollector.class);
-    private static final String ARTIFACT = "Topics";
+    private final Map<String, WMQMetricOverride> metrics;
 
     public TopicMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-        super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
+        super(monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
+        this.metrics = metricsToReport;
     }
 
     @Override
@@ -73,14 +74,14 @@ public class TopicMetricsCollector extends MetricsCollector {
 
     private Map<String, WMQMetricOverride> getMetricsToReport(String command) {
         Map<String, WMQMetricOverride> commandMetrics = Maps.newHashMap();
-        if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
+        if (metrics == null || metrics.isEmpty()) {
             logger.debug("There are no metrics configured for {}", command);
             return commandMetrics;
         }
-        Iterator<String> itr = getMetricsToReport().keySet().iterator();
+        Iterator<String> itr = metrics.keySet().iterator();
         while (itr.hasNext()) {
             String metricKey = itr.next();
-            WMQMetricOverride wmqOverride = getMetricsToReport().get(metricKey);
+            WMQMetricOverride wmqOverride = metrics.get(metricKey);
             if (wmqOverride.getIbmCommand().equalsIgnoreCase(command)) {
                 commandMetrics.put(metricKey, wmqOverride);
             }

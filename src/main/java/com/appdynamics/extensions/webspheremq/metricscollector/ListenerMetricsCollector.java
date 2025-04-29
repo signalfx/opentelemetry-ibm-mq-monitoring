@@ -60,18 +60,20 @@ final public class ListenerMetricsCollector extends MetricsCollector {
     public final static String ARTIFACT = "Listeners";
     private final MetricCreator metricCreator;
     private final IntAttributesBuilder attributesBuilder;
+    private final Map<String, WMQMetricOverride> metrics;
 
     public ListenerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch, MetricCreator metricCreator) {
-        super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
+        super(monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
         this.metricCreator = metricCreator;
         this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
+        this.metrics = metricsToReport;
     }
 
     @Override
     public void publishMetrics() throws TaskExecutionException {
         long entryTime = System.currentTimeMillis();
 
-        if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
+        if (metrics == null || metrics.isEmpty()) {
             logger.debug("Listener metrics to report from the config is null or empty, nothing to publish");
             return;
         }
@@ -99,16 +101,16 @@ final public class ListenerMetricsCollector extends MetricsCollector {
                     Set<ExcludeFilters> excludeFilters = this.queueManager.getListenerFilters().getExclude();
                     if (!ExcludeFilters.isExcluded(listenerName, excludeFilters)) { //check for exclude filters
                         logger.debug("Pulling out metrics for listener name {}", listenerName);
-                        Iterator<String> itr = getMetricsToReport().keySet().iterator();
-                        List<Metric> metrics = Lists.newArrayList();
+                        Iterator<String> itr = metrics.keySet().iterator();
+                        List<Metric> responseMetrics = Lists.newArrayList();
                         while (itr.hasNext()) {
                             String metrickey = itr.next();
-                            WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+                            WMQMetricOverride wmqOverride = metrics.get(metrickey);
                             int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
                             Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, listenerName, metrickey);
-                            metrics.add(metric);
+                            responseMetrics.add(metric);
                         }
-                        metricWriteHelper.transformAndPrintMetrics(metrics);
+                        metricWriteHelper.transformAndPrintMetrics(responseMetrics);
                     } else {
                         logger.debug("Listener name {} is excluded.", listenerName);
                     }
