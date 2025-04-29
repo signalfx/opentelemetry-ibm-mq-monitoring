@@ -36,6 +36,7 @@ final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Run
 
     static final String COMMAND = "MQCMD_RESET_Q_STATS";
     private final IntAttributesBuilder attributesBuilder;
+    private final Map<String, WMQMetricOverride> metrics;
 
     public ResetQStatsCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport,
                                    QueueCollectorSharedState sharedState, MetricCreator metricCreator){
@@ -43,6 +44,7 @@ final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Run
                 collector.metricWriteHelper, collector.queueManager, collector.countDownLatch, sharedState,
                 metricCreator);
         this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
+        this.metrics = metricsToReport;
     }
 
     @Override
@@ -62,7 +64,7 @@ final class ResetQStatsCmdCollector extends QueueMetricsCollector implements Run
 		 */
         long entryTime = System.currentTimeMillis();
 
-        if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
+        if (metrics == null || metrics.isEmpty()) {
             logger.debug("Queue metrics to report from the config is null or empty, nothing to publish for command {}",COMMAND);
             return;
         }
