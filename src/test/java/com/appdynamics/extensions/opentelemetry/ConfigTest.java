@@ -31,7 +31,10 @@ class ConfigTest {
 
     @BeforeEach
     public void cacheSystemProperties() {
-        systemProperties = System.getProperties();
+        systemProperties = new Properties();
+        for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
+            systemProperties.put(entry.getKey().toString(), entry.getValue().toString());
+        }
     }
 
     @Test
