@@ -12,7 +12,7 @@ jobs:
 
     services:
       mq:
-        image: ibmcom/mq:9.3.2.0-r1
+        image: ibmcom/mq:9.2.3.0-r1-amd64
         # image: icr.io/ibm-messaging/mq:latest
         ports:
           - 1414:1414
@@ -23,6 +23,7 @@ jobs:
           MQ_APP_PASSWORD: passw0rd
         options: >-
           --name mqtest
+          --platform linux/amd64
           --memory=2g
           --cpus=1
           --health-cmd="echo 'SET' | /opt/mqm/bin/runmqsc QM1"
