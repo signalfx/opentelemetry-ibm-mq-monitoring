@@ -166,10 +166,11 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 				metricsByCommand.get(cmd).put(key, wmqOverride);
 			}
 			if (metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS") != null) {
+				Map<String, WMQMetricOverride> metricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS");
 				MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, ChannelMetricsCollector.ARTIFACT);
-				MetricsCollector channelMetricsCollector =
-						new ChannelMetricsCollector(metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS"),
-							monitorContextConfig, agent, queueManager, metricWriteHelper, metricCreator);
+				IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(metricsToReport);
+				MetricsCollectorContext context = new MetricsCollectorContext(metricsToReport, attributesBuilder, queueManager, agent, metricWriteHelper);
+				MetricsPublisher channelMetricsCollector = new ChannelMetricsCollector(context, metricCreator);
 				Runnable job = new MetricsPublisherJob(channelMetricsCollector, countDownLatch);
 				monitorContextConfig.getContext().getExecutorService().execute("ChannelMetricsCollector", job);
 			}
