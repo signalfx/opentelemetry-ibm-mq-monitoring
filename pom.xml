@@ -115,6 +115,12 @@
             <systemPath>${lib.dir}/connector.jar</systemPath>
         </dependency>-->
         <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>jsr305</artifactId>
+            <version>3.0.2</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>com.ibm.mq</groupId>
             <artifactId>com.ibm.mq.allclient</artifactId>
             <version>${ibm.mq.lib.version}</version>

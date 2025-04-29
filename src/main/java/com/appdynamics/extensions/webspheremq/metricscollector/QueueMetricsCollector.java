@@ -47,7 +47,7 @@ import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
 public class QueueMetricsCollector extends MetricsCollector {
 
 	private static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
-	private final static String ARTIFACT = "Queues";
+	public final static String ARTIFACT = "Queues";
 
 	// hack to share state of queue type between collectors.
 	// The queue information is only available as response of some commands.
@@ -59,7 +59,7 @@ public class QueueMetricsCollector extends MetricsCollector {
                                  PCFMessageAgent agent, MetricWriteHelper metricWriteHelper,
                                  QueueManager queueManager, CountDownLatch countDownLatch,
                                  QueueCollectorSharedState sharedState, MetricCreator metricCreator) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
+		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
 		this.sharedState = sharedState;
         this.metricCreator = metricCreator;
     }
@@ -178,7 +178,7 @@ public class QueueMetricsCollector extends MetricsCollector {
 						if (pcfParam != null) {
 							if(pcfParam instanceof MQCFIN){
 								int metricVal = response[i].getIntParameterValue(wmqOverride.getConstantValue());
-								Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, getArtifact(), queueName, queueType, metrickey);
+								Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, queueName, queueType, metrickey);
 								metrics.add(metric);
 							}
 							else if(pcfParam instanceof MQCFIL){
@@ -188,7 +188,7 @@ public class QueueMetricsCollector extends MetricsCollector {
 									for(int val : metricVals){
 										count++;
 										Metric metric = metricCreator.createMetric( metrickey + "_" + count,
-												val, wmqOverride, getArtifact(), queueName,
+												val, wmqOverride, queueName,
 												metrickey + "_" + count);
 										metrics.add(metric);
 									}

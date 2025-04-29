@@ -79,7 +79,7 @@ public class QueueMetricsCollectorTest {
         queueMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE);
         QueueCollectorSharedState.getInstance().resetForTest();
         pathCaptor = ArgumentCaptor.forClass(List.class);
-        metricCreator = new MetricCreator(monitorContextConfig, queueManager);
+        metricCreator = new MetricCreator(monitorContextConfig, queueManager, QueueMetricsCollector.ARTIFACT);
     }
 
     @Test

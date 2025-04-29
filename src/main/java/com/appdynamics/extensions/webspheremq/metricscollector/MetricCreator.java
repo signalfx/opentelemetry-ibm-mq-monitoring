@@ -6,33 +6,46 @@ import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 
+import javax.annotation.Nullable;
+
 public final class MetricCreator {
 
     private final MonitorContextConfiguration monitorContextConfig;
     private final QueueManager queueManager;
+    @Nullable
+    private final String firstPathComponent;
 
     public MetricCreator(MonitorContextConfiguration monitorContextConfig, QueueManager queueManager) {
-        this.monitorContextConfig = monitorContextConfig;
-        this.queueManager = queueManager;
+        this(monitorContextConfig, queueManager, null);
     }
 
-    Metric createMetric(String metricName, int metricValue, WMQMetricOverride wmqOverride, String... pathelements) {
+    public MetricCreator(MonitorContextConfiguration monitorContextConfig, QueueManager queueManager, @Nullable String firstPathComponent) {
+        this.monitorContextConfig = monitorContextConfig;
+        this.queueManager = queueManager;
+        this.firstPathComponent = firstPathComponent;
+    }
+
+    Metric createMetric(String metricName, int metricValue, WMQMetricOverride wmqOverride, String... pathElements) {
         String queueManagerName = WMQUtil.getQueueManagerNameFromConfig(queueManager);
-        String metricPath = getMetricsName(queueManagerName, pathelements);
+        String metricPath = getMetricsName(queueManagerName, pathElements);
         if (wmqOverride != null && wmqOverride.getMetricProperties() != null) {
             return new Metric(metricName, String.valueOf(metricValue), metricPath, wmqOverride.getMetricProperties());
         }
         return new Metric(metricName, String.valueOf(metricValue), metricPath);
     }
 
-    private String getMetricsName(String qmNameToBeDisplayed, String... pathelements) {
+    private String getMetricsName(String qmNameToBeDisplayed, String... pathElements) {
         StringBuilder pathBuilder = new StringBuilder(monitorContextConfig.getMetricPrefix());
         pathBuilder.append("|")
                 .append(qmNameToBeDisplayed)
                 .append("|");
-        for (int i = 0; i < pathelements.length; i++) {
-            pathBuilder.append(pathelements[i]);
-            if (i != pathelements.length - 1) {
+        if(firstPathComponent != null){
+            pathBuilder.append(firstPathComponent)
+                    .append("|");
+        }
+        for (int i = 0; i < pathElements.length; i++) {
+            pathBuilder.append(pathElements[i]);
+            if (i != pathElements.length - 1) {
                 pathBuilder.append("|");
             }
         }
