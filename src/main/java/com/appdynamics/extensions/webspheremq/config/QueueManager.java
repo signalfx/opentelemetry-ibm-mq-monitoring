@@ -37,6 +37,9 @@ public class QueueManager {
 	private String encryptionKey;
 	private String replyQueuePrefix;
 	private String modelQueueName;
+	private String configurationQueueName = "SYSTEM.ADMIN.CONFIG.EVENT";
+	private long consumeConfigurationEventInterval;
+	private boolean refreshQueueManagerConfigurationEnabled;
 
 	private ResourceFilters queueFilters;
 	private ResourceFilters channelFilters;
@@ -235,5 +238,29 @@ public class QueueManager {
 
 	public void setTopicFilters(ResourceFilters topicFilters) {
 		this.topicFilters = topicFilters;
+	}
+
+	public String getConfigurationQueueName() {
+		return this.configurationQueueName;
+	}
+
+	public void setConfigurationQueueName(String configurationQueueName) {
+		this.configurationQueueName = configurationQueueName;
+	}
+
+	public long getConsumeConfigurationEventInterval() {
+		return this.consumeConfigurationEventInterval;
+	}
+
+	public void setConsumeConfigurationEventInterval(long consumeConfigurationEventInterval) {
+		this.consumeConfigurationEventInterval = consumeConfigurationEventInterval;
+	}
+
+	public boolean isRefreshQueueManagerConfigurationEnabled() {
+		return refreshQueueManagerConfigurationEnabled;
+	}
+
+	public void setRefreshQueueManagerConfigurationEnabled(boolean refreshQueueManagerConfigurationEnabled) {
+		this.refreshQueueManagerConfigurationEnabled = refreshQueueManagerConfigurationEnabled;
 	}
 }

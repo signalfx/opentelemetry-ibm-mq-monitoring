@@ -41,13 +41,12 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -62,21 +61,22 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ChannelMetricsCollectorTest {
-    private ChannelMetricsCollector classUnderTest;
+    ChannelMetricsCollector classUnderTest;
 
     @Mock
-    private AMonitorJob aMonitorJob;
+    AMonitorJob aMonitorJob;
 
     @Mock
-    private PCFMessageAgent pcfMessageAgent;
+    PCFMessageAgent pcfMessageAgent;
 
     @Mock
-    private MetricWriteHelper metricWriteHelper;
+    MetricWriteHelper metricWriteHelper;
 
-    private MonitorContextConfiguration monitorContextConfig;
-    private Map<String, WMQMetricOverride> channelMetricsToReport;
-    private QueueManager queueManager;
-    private ArgumentCaptor<List<Metric>> pathCaptor;
+    MonitorContextConfiguration monitorContextConfig;
+    Map<String, WMQMetricOverride> channelMetricsToReport;
+    QueueManager queueManager;
+    ArgumentCaptor<List<Metric>> pathCaptor;
+    MetricCreator metricCreator;
 
     @BeforeEach
     void setup() {
@@ -86,8 +86,17 @@ class ChannelMetricsCollectorTest {
         ObjectMapper mapper = new ObjectMapper();
         queueManager = mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
-        channelMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
+        Map<String, WMQMetricOverride> channelMetrics = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
+        Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
+        assertThat(channelMetrics).isNotEmpty();
+        for (Map.Entry<String, WMQMetricOverride> e : channelMetrics.entrySet()) {
+            String cmd = e.getValue().getIbmCommand() == null ? "MQCMD_INQUIRE_CHANNEL_STATUS" : e.getValue().getIbmCommand();
+            metricsByCommand.putIfAbsent(cmd, new HashMap<>());
+            metricsByCommand.get(cmd).put(e.getKey(), e.getValue());
+        }
+        channelMetricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS");
         pathCaptor = ArgumentCaptor.forClass(List.class);
+        metricCreator = new MetricCreator(monitorContextConfig, queueManager);
     }
 
     @Test
@@ -98,7 +107,7 @@ class ChannelMetricsCollectorTest {
         metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount");
 
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireChannelStatusCmd());
-        classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper);
+        classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, metricCreator);
 
         classUnderTest.publishMetrics();
 
@@ -237,7 +246,7 @@ class ChannelMetricsCollectorTest {
     void testPublishMetrics_nullResponse() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(null);
         classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, null, pcfMessageAgent,
-                queueManager, metricWriteHelper);
+                queueManager, metricWriteHelper, metricCreator);
 
         classUnderTest.publishMetrics();
 
@@ -248,7 +257,7 @@ class ChannelMetricsCollectorTest {
     void testPublishMetrics_emptyResponse() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(new PCFMessage[]{});
         classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, null, pcfMessageAgent,
-                queueManager, metricWriteHelper);
+                queueManager, metricWriteHelper, metricCreator);
 
         classUnderTest.publishMetrics();
 
@@ -260,7 +269,7 @@ class ChannelMetricsCollectorTest {
     void testPublishMetrics_pfException(Exception exceptionToThrow) throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenThrow(exceptionToThrow);
         classUnderTest = new ChannelMetricsCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper);
+                queueManager, metricWriteHelper, metricCreator);
 
         classUnderTest.publishMetrics();
 
@@ -280,11 +289,11 @@ class ChannelMetricsCollectorTest {
     @Test
     void noMetricsToReport() throws Exception {
         classUnderTest = new ChannelMetricsCollector(null, monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper);
+                queueManager, metricWriteHelper, metricCreator);
         classUnderTest.publishMetrics();
         verifyNoInteractions(metricWriteHelper);
         classUnderTest = new ChannelMetricsCollector(emptyMap(), monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper);
+                queueManager, metricWriteHelper, metricCreator);
         classUnderTest.publishMetrics();
         verifyNoInteractions(metricWriteHelper);
     }

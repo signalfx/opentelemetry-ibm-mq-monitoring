@@ -84,12 +84,12 @@ public class WMQMonitor extends ABaseMonitor {
 
 		if (sslConnection != null ) {
 			String encryptionKey = (String) configProperties.get("encryptionKey");
-			logger.debug("Encryption key from config.yml set for ssl connection is " + encryptionKey);
+			logger.debug("Encryption key from config.yml set for ssl connection is {}", encryptionKey);
 
 			String trustStorePath = sslConnection.get("trustStorePath");
 			if (!Strings.isNullOrEmpty(trustStorePath)) {
 				System.setProperty("javax.net.ssl.trustStore",trustStorePath);
-				logger.debug("System property set for javax.net.ssl.trustStore is " + trustStorePath);
+				logger.debug("System property set for javax.net.ssl.trustStore is {}", trustStorePath);
 				String trustStorePassword = getPassword(sslConnection.get("trustStorePassword"), sslConnection.get("trustStoreEncryptedPassword"), encryptionKey);
 				if (!Strings.isNullOrEmpty(trustStorePassword)) {
 					System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword);
@@ -102,7 +102,7 @@ public class WMQMonitor extends ABaseMonitor {
 			String keyStorePath = sslConnection.get("keyStorePath");
 			if (!Strings.isNullOrEmpty(keyStorePath)) {
 				System.setProperty("javax.net.ssl.keyStore", keyStorePath);
-				logger.debug("System property set for javax.net.ssl.keyStore is " + keyStorePath);
+				logger.debug("System property set for javax.net.ssl.keyStore is {}", keyStorePath);
 				String keyStorePassword = getPassword(sslConnection.get("keyStorePassword"), sslConnection.get("keyStoreEncryptedPassword"), encryptionKey);
 				if (!Strings.isNullOrEmpty(keyStorePassword)) {
 					System.setProperty("javax.net.ssl.keyStorePassword",keyStorePassword);

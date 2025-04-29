@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +48,7 @@ import java.util.concurrent.CountDownLatch;
 public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 	public static final Logger logger = LoggerFactory.getLogger(WMQMonitorTask.class);
-	private QueueManager queueManager;
+	private final QueueManager queueManager;
 	private MonitorContextConfiguration monitorContextConfig;
 	private Map<String, ?> configMap;
 	private MetricWriteHelper metricWriteHelper;
@@ -147,30 +148,85 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		return agent;
 	}
 
-	private void collectAndReportMetrics(PCFMessageAgent agent) {
+	private void collectAndReportMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
+	private void extractAndReportMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
 		Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
 
 		CountDownLatch countDownLatch = new CountDownLatch(metricsMap.size());
-		// Queue Manager metrics
-		collectQueueMgrMetrics(agent, metricsMap, countDownLatch);
-		// Channel metrics
-		collectChannelMetrics(agent, metricsMap, countDownLatch);
-		// Queue metrics
-		collectQueueMetrics(agent, metricsMap, countDownLatch);
-		// Listener metrics
-		collectListenerMetrics(agent, metricsMap, countDownLatch);
-        // Topic metrics
-		collectTopicMetrics(agent, metricsMap, countDownLatch);
 
-		try {
-			countDownLatch.await();
-		} catch (InterruptedException e) {
-			logger.error("Error while the thread {} is waiting ", Thread.currentThread().getName(), e);
+		Map<String, WMQMetricOverride> qMgrMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER);
+		MetricCreator metricCreator = new MetricCreator(monitorContextConfig, queueManager);
+		if (qMgrMetricsToReport != null) {
+			Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
+			for (String key : qMgrMetricsToReport.keySet()) {
+				WMQMetricOverride wmqOverride = qMgrMetricsToReport.get(key);
+				String cmd = wmqOverride.getIbmCommand() == null ? "MQCMD_INQUIRE_Q_MGR_STATUS" : wmqOverride.getIbmCommand();
+				metricsByCommand.putIfAbsent(cmd, new HashMap<>());
+				metricsByCommand.get(cmd).put(key, wmqOverride);
+			}
+			if (metricsByCommand.get("MQCMD_INQUIRE_Q_MGR_STATUS") != null) {
+				MetricsCollector qMgrMetricsCollector = new QueueManagerMetricsCollector(metricsByCommand.get("MQCMD_INQUIRE_Q_MGR_STATUS"), this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch, metricCreator);
+                Runnable job = new MetricsPublisherJob(qMgrMetricsCollector, countDownLatch);
+                monitorContextConfig.getContext().getExecutorService().execute("QueueManagerMetricsCollector", job);
+			}
+			if (metricsByCommand.get("MQCMD_INQUIRE_Q_MGR") != null) {
+				MetricsCollector inquireQueueMgrMetricsCollector = new InquireQueueManagerCmdCollector(metricsByCommand.get("MQCMD_INQUIRE_Q_MGR"), this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch, metricCreator);
+                Runnable job = new MetricsPublisherJob(inquireQueueMgrMetricsCollector, countDownLatch);
+                monitorContextConfig.getContext().getExecutorService().execute("InquireQueueManagerCmdCollector", job);
+			}
+		} else {
+			logger.warn("No queue manager metrics to report");
 		}
 
-    }
+		Map<String, WMQMetricOverride> channelMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
+		if (channelMetricsToReport != null) {
+			Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
+			for (String key : channelMetricsToReport.keySet()) {
+				WMQMetricOverride wmqOverride = channelMetricsToReport.get(key);
+				String cmd = wmqOverride.getIbmCommand() == null ? "MQCMD_INQUIRE_CHANNEL_STATUS" : wmqOverride.getIbmCommand();
+				metricsByCommand.putIfAbsent(cmd, new HashMap<>());
+				metricsByCommand.get(cmd).put(key, wmqOverride);
+			}
+			if (metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS") != null) {
+				MetricsCollector channelMetricsCollector =
+						new ChannelMetricsCollector(metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS"),
+							monitorContextConfig, agent, queueManager, metricWriteHelper, metricCreator);
+				Runnable job = new MetricsPublisherJob(channelMetricsCollector, countDownLatch);
+				monitorContextConfig.getContext().getExecutorService().execute("ChannelMetricsCollector", job);
+			}
+			if (metricsByCommand.get("MQCMD_INQUIRE_CHANNEL") != null) {
+				MetricsCollector inquireChannelMetricsCollector =
+						new InquireChannelCmdCollector(metricsByCommand.get("MQCMD_INQUIRE_CHANNEL"),
+							monitorContextConfig, agent, queueManager, metricWriteHelper, metricCreator);
+				Runnable job = new MetricsPublisherJob(inquireChannelMetricsCollector, countDownLatch);
+				monitorContextConfig.getContext().getExecutorService().execute("InquireChannelCmdCollector", job);
+			}
+		} else {
+			logger.warn("No channel metrics to report");
+		}
 
-	private void collectTopicMetrics(PCFMessageAgent agent, Map<String, Map<String, WMQMetricOverride>> metricsMap, CountDownLatch countDownLatch) {
+		Map<String, WMQMetricOverride> queueMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE);
+		if (queueMetricsToReport != null) {
+			QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
+			MetricsCollector queueMetricsCollector =
+					new QueueMetricsCollector(queueMetricsToReport,
+						monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, sharedState,
+							metricCreator);
+			Runnable job = new MetricsPublisherJob(queueMetricsCollector, countDownLatch);
+			monitorContextConfig.getContext().getExecutorService().execute("QueueMetricsCollector", job);
+		} else {
+			logger.warn("No queue metrics to report");
+		}
+
+		Map<String, WMQMetricOverride> listenerMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_LISTENER);
+		if (listenerMetricsToReport != null) {
+			MetricsCollector listenerMetricsCollector = new ListenerMetricsCollector(listenerMetricsToReport, this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch, metricCreator);
+			Runnable job = new MetricsPublisherJob(listenerMetricsCollector, countDownLatch);
+			monitorContextConfig.getContext().getExecutorService().execute("ListenerMetricsCollector", job);
+		} else {
+			logger.warn("No listener metrics to report");
+		}
+
 		Map<String, WMQMetricOverride> topicMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_TOPIC);
 		if (topicMetricsToReport != null) {
 			MetricsCollector topicsMetricsCollector = new TopicMetricsCollector(topicMetricsToReport, this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch);
@@ -179,52 +235,23 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		} else {
 			logger.warn("No topic metrics to report");
 		}
-	}
 
-	private void collectListenerMetrics(PCFMessageAgent agent, Map<String, Map<String, WMQMetricOverride>> metricsMap, CountDownLatch countDownLatch) {
-		Map<String, WMQMetricOverride> listenerMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_LISTENER);
-		if (listenerMetricsToReport != null) {
-			MetricsCollector listenerMetricsCollector = new ListenerMetricsCollector(listenerMetricsToReport, this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch);
-			Runnable job = new MetricsPublisherJob(listenerMetricsCollector, countDownLatch);
-			monitorContextConfig.getContext().getExecutorService().execute("ListenerMetricsCollector", job);
+		Map<String, WMQMetricOverride> configurationMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CONFIGURATION);
+		if (configurationMetricsToReport != null) {
+			ReadConfigurationEventQueueCollector configurationEventQueueCollector = new ReadConfigurationEventQueueCollector(configurationMetricsToReport, this.monitorContextConfig, agent, mqQueueManager, queueManager, metricWriteHelper);
+            Runnable job = new MetricsPublisherJob(configurationEventQueueCollector, countDownLatch);
+            monitorContextConfig.getContext().getExecutorService().execute("ReadConfigurationEventQueueCollector", job);
 		} else {
-			logger.warn("No listener metrics to report");
+			logger.warn("No configuration queue metrics to report");
 		}
-	}
 
-	private void collectQueueMetrics(PCFMessageAgent agent, Map<String, Map<String, WMQMetricOverride>> metricsMap, CountDownLatch countDownLatch) {
-		Map<String, WMQMetricOverride> queueMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE);
-		if (queueMetricsToReport != null) {
-			QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
-			MetricsCollector queueMetricsCollector = new QueueMetricsCollector(queueMetricsToReport, this.monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, sharedState);
-			Runnable job = new MetricsPublisherJob(queueMetricsCollector, countDownLatch);
-			monitorContextConfig.getContext().getExecutorService().execute("QueueMetricsCollector", job);
-		} else {
-			logger.warn("No queue metrics to report");
+		try {
+			countDownLatch.await();
+		} catch (InterruptedException e) {
+			logger.error("Error while the thread {} is waiting ", Thread.currentThread().getName(), e);
 		}
-	}
 
-	private void collectChannelMetrics(PCFMessageAgent agent, Map<String, Map<String, WMQMetricOverride>> metricsMap, CountDownLatch countDownLatch) {
-		Map<String, WMQMetricOverride> channelMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
-		if (channelMetricsToReport != null) {
-			MetricsCollector channelMetricsCollector = new ChannelMetricsCollector(channelMetricsToReport, this.monitorContextConfig, agent, queueManager, metricWriteHelper);
-			Runnable job = new MetricsPublisherJob(channelMetricsCollector, countDownLatch);
-			monitorContextConfig.getContext().getExecutorService().execute("ChannelMetricsCollector", job);
-		} else {
-			logger.warn("No channel metrics to report");
-		}
-	}
-
-	private void collectQueueMgrMetrics(PCFMessageAgent agent, Map<String, Map<String, WMQMetricOverride>> metricsMap, CountDownLatch countDownLatch) {
-		Map<String, WMQMetricOverride> qMgrMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER);
-		if (qMgrMetricsToReport != null) {
-			MetricsCollector qMgrMetricsCollector = new QueueManagerMetricsCollector(qMgrMetricsToReport, this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch);
-			Runnable job = new MetricsPublisherJob(qMgrMetricsCollector, countDownLatch);
-			monitorContextConfig.getContext().getExecutorService().execute("QueueManagerMetricsCollector", job);
-		} else {
-			logger.warn("No queue manager metrics to report");
-		}
-	}
+    }
 
 	/**
 	 * Destroy the agent and disconnect from queue manager

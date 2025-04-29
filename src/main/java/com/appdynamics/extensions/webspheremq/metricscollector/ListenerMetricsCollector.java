@@ -56,11 +56,13 @@ import java.util.concurrent.CountDownLatch;
  */
 final public class ListenerMetricsCollector extends MetricsCollector {
 
-    private static final Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
+    private  final static Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
     private final static String ARTIFACT = "Listeners";
+    private final MetricCreator metricCreator;
 
-    public ListenerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
+    public ListenerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch, MetricCreator metricCreator) {
         super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
+        this.metricCreator = metricCreator;
     }
 
     @Override
@@ -101,7 +103,7 @@ final public class ListenerMetricsCollector extends MetricsCollector {
                             String metrickey = itr.next();
                             WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
                             int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                            Metric metric = createMetric(queueManager, metrickey, metricVal, wmqOverride, getArtifact(), listenerName, metrickey);
+                            Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, getArtifact(), listenerName, metrickey);
                             metrics.add(metric);
                         }
                         metricWriteHelper.transformAndPrintMetrics(metrics);

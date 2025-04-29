@@ -18,16 +18,19 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
+import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
+import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.constants.MQConstants;
+import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
 import java.util.List;
@@ -37,13 +40,13 @@ import java.util.concurrent.CountDownLatch;
 /**
  * This class is responsible for queue metric collection.
  */
-final public class QueueManagerMetricsCollector extends MetricsCollector {
+final public class InquireQueueManagerCmdCollector extends MetricsCollector {
 
-	private static final Logger logger = LoggerFactory.getLogger(QueueManagerMetricsCollector.class);
+	private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQueueManagerCmdCollector.class);
 	private final static String ARTIFACT = "Queue Manager";
 	private final MetricCreator metricCreator;
 
-	public QueueManagerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch, MetricCreator metricCreator) {
+	public InquireQueueManagerCmdCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch, MetricCreator metricCreator) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
         this.metricCreator = metricCreator;
     }
@@ -54,10 +57,11 @@ final public class QueueManagerMetricsCollector extends MetricsCollector {
 		logger.debug("publishMetrics entry time for queuemanager {} is {} milliseconds", agent.getQManagerName(), entryTime);
 		PCFMessage request;
 		PCFMessage[] responses;
-		// CMQCFC.MQCMD_INQUIRE_Q_MGR_STATUS is 161
-		request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR_STATUS);
-		// CMQCFC.MQIACF_Q_MGR_STATUS_ATTRS is 1229
-		request.addParameter(CMQCFC.MQIACF_Q_MGR_STATUS_ATTRS, new int[] { CMQCFC.MQIACF_ALL });
+		// CMQCFC.MQCMD_INQUIRE_Q_MGR is 2
+		request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR);
+		//request.addParameter(CMQC.MQCA_Q_MGR_NAME, "*");
+		// CMQCFC.MQIACF_Q_MGR_STATUS_ATTRS is 1001
+		request.addParameter(new MQCFIL(MQConstants.MQIACF_Q_MGR_ATTRS, new int[] {MQConstants.MQIACF_ALL}));
 		try {
 			// Note that agent.send() method is synchronized
 			logger.debug("sending PCF agent request to query queuemanager {}", agent.getQManagerName());
