@@ -72,7 +72,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 		try {
 			ibmQueueManager = initMQQueueManager();
-
 			if (ibmQueueManager == null) {
 				logger.error("MQQueueManager connection could not be initiated for queueManager {} in thread {}", queueManagerTobeDisplayed, Thread.currentThread().getName());
 				return;
@@ -81,7 +80,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 			logger.debug("MQQueueManager connection initiated for queueManager {} in thread {}", queueManagerTobeDisplayed, Thread.currentThread().getName());
 			heartBeatMetricValue = BigDecimal.ONE;
 			agent = initPCFMesageAgent(ibmQueueManager);
-			collectAndReportMetrics(agent);
+			extractAndReportMetrics(ibmQueueManager, agent);
 		} catch (Exception e) {
 			logger.error("Error in run of " + Thread.currentThread().getName(), e);
 		} finally {
@@ -148,7 +147,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		return agent;
 	}
 
-	private void collectAndReportMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
 	private void extractAndReportMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
 		Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
 
