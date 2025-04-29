@@ -41,6 +41,7 @@ public class Main {
         Map<String, ?> config = YmlReader.readFromFileAsMap(new File(configFile));
 
         Config.setUpSSLConnection(config);
+
         OtlpGrpcMetricExporter exporter = Config.createOtlpGrpcMetricsExporter(config);
 
         WMQMonitor monitor = new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter));
