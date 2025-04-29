@@ -77,7 +77,7 @@ class QueueManagerMetricsCollectorTest {
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         queueMgrMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER);
         pathCaptor = ArgumentCaptor.forClass(List.class);
-        metricCreator = new MetricCreator(monitorContextConfig, queueManager);
+        metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager);
     }
 
     @Test
