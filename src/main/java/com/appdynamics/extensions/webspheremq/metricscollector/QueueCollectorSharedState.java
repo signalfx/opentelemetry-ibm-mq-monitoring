@@ -1,5 +1,6 @@
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,7 +22,7 @@ public final class QueueCollectorSharedState {
         queueNameToType.put(name, value);
     }
 
-    // Nullable
+    @Nullable
     public String getType(String name){
         return queueNameToType.get(name);
     }
