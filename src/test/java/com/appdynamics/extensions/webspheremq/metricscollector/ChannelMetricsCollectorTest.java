@@ -96,7 +96,7 @@ class ChannelMetricsCollectorTest {
         }
         channelMetricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS");
         pathCaptor = ArgumentCaptor.forClass(List.class);
-        metricCreator = new MetricCreator(monitorContextConfig, queueManager);
+        metricCreator = new MetricCreator(monitorContextConfig, queueManager, ChannelMetricsCollector.ARTIFACT);
     }
 
     @Test

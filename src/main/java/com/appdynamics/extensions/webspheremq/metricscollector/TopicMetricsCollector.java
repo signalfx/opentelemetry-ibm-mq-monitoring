@@ -37,7 +37,7 @@ public class TopicMetricsCollector extends MetricsCollector {
     private static final String ARTIFACT = "Topics";
 
     public TopicMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-        super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
+        super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
     }
 
     @Override
@@ -48,7 +48,7 @@ public class TopicMetricsCollector extends MetricsCollector {
         //  to query the current status of topics, which is essential for monitoring and managing the publish/subscribe environment in IBM MQ.
         Map<String, WMQMetricOverride> metricsForInquireTStatusCmd = getMetricsToReport(InquireTStatusCmdCollector.COMMAND);
         if (!metricsForInquireTStatusCmd.isEmpty()) {
-            MetricCreator metricCreator = new MetricCreator(monitorContextConfig, queueManager);
+            MetricCreator metricCreator = new MetricCreator(monitorContextConfig, queueManager, InquireTStatusCmdCollector.ARTIFACT);
             InquireTStatusCmdCollector metricsPublisher = new InquireTStatusCmdCollector(this, metricsForInquireTStatusCmd, metricCreator);
             MetricsPublisherJob job = new MetricsPublisherJob(metricsPublisher, countDownLatch);
             futures.add(monitorContextConfig.getContext().getExecutorService()

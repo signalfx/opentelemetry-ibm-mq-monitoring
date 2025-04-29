@@ -38,38 +38,21 @@ public abstract class MetricsCollector implements MetricsPublisher {
 	protected final MetricWriteHelper metricWriteHelper;
 	protected final QueueManager queueManager;
 	protected final CountDownLatch countDownLatch;
-	private final String artifact;
 
 	public MetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
                             MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent,
                             MetricWriteHelper metricWriteHelper, QueueManager queueManager,
-                            CountDownLatch countDownLatch, String artifact) {
+                            CountDownLatch countDownLatch) {
 		this.metricsToReport = metricsToReport;
 		this.monitorContextConfig = monitorContextConfig;
 		this.agent = agent;
 		this.metricWriteHelper = metricWriteHelper;
 		this.queueManager = queueManager;
 		this.countDownLatch = countDownLatch;
-        this.artifact = artifact;
     }
-
-
-	final public String getArtifact(){
-		return artifact;
-	}
 
 	final public Map<String, WMQMetricOverride> getMetricsToReport() {
 		return metricsToReport;
-	}
-
-	/**
-	 * Applies include and exclude filters to the artifacts (i.e queue manager, q, or channel),<br>
-	 * extracts and publishes the metrics to controller
-	 *
-	 * @throws TaskExecutionException
-	 */
-	public final void process() throws TaskExecutionException {
-		publishMetrics();
 	}
 
 	public enum FilterType {
