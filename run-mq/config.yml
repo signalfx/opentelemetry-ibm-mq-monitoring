@@ -21,7 +21,7 @@ metricPrefix: "Server|Component:atoulme|Custom Metrics|WebsphereMQ|"
 queueManagers:
   - displayName: "mq1"
     # displayName (optional). This will be your QM name that will show up in AppD metric path.
-    host: "queuemgr1-4f49.qm.us-south.mq.appdomain.cloud"
+    host: "localhost"
     port: 31136
 
     #Actual name of the queue manager
@@ -38,8 +38,8 @@ queueManagers:
 
     #for user access level, please check "Access Permissions" section on the extensions page
     #comment out the username and password in case of transportType: Bindings.
-    username: "atoulme"
-    password: "M_3GKoat0CP-Qvpt5q3jp_tskgpZFpsRI4rhT13XITFJ"
+    username: "app"
+    password: "passw0rd"
 
     #Uncomment only if encryption of passwords is wanted.
     #encryptedPassword: ""
