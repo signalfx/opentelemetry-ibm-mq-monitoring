@@ -1,0 +1,48 @@
+name: Run MQ Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+
+    services:
+      mq:
+        image: ibmcom/mq
+        ports:
+          - 1414:1414
+          - 9443:9443
+        env:
+          LICENSE: accept
+          MQ_QMGR: QM1
+          MQ_APP_PASSWORD: passw0rd
+        options: >-
+          --health-cmd "echo 'dis qmgr' | runmqsc QM1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Wait for MQ to become ready
+        run: |
+          echo "Waiting for MQ to be ready..."
+          for i in {1..30}; do
+            nc -z localhost 1414 && break
+            sleep 2
+          done
+
+      - name: Run integration tests
+        run: mvn verify
