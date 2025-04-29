@@ -66,10 +66,10 @@ class InquireChannelCmdCollectorTest {
     MetricWriteHelper metricWriteHelper;
 
     MonitorContextConfiguration monitorContextConfig;
-    Map<String, WMQMetricOverride> channelMetricsToReport;
-    QueueManager queueManager;
+
     ArgumentCaptor<List> pathCaptor;
     MetricCreator metricCreator;
+    MetricsCollectorContext context;
 
     @BeforeEach
     public void setup() {
@@ -77,7 +77,7 @@ class InquireChannelCmdCollectorTest {
         monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
         Map<String, ?> configMap = monitorContextConfig.getConfigYml();
         ObjectMapper mapper = new ObjectMapper();
-        queueManager = mapper.convertValue(((List)configMap.get("queueManagers")).get(0), QueueManager.class);
+        QueueManager queueManager = mapper.convertValue(((List)configMap.get("queueManagers")).get(0), QueueManager.class);
         Map<String, Map<String, WMQMetricOverride>> metricsMap = WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
         Map<String, WMQMetricOverride> channelMetrics = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
         Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
@@ -87,16 +87,17 @@ class InquireChannelCmdCollectorTest {
             metricsByCommand.putIfAbsent(cmd, new HashMap<>());
             metricsByCommand.get(cmd).put(key, wmqOverride);
         }
-        channelMetricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL");
+        Map<String, WMQMetricOverride> channelMetricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL");
         pathCaptor = ArgumentCaptor.forClass(List.class);
         metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, InquireChannelCmdCollector.ARTIFACT);
+        IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(channelMetricsToReport);
+        context = new MetricsCollectorContext(channelMetricsToReport, attributesBuilder, queueManager, pcfMessageAgent, metricWriteHelper);
     }
 
     @Test
     public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireChannelCmd());
-        classUnderTest = new InquireChannelCmdCollector(channelMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper, metricCreator);
+        classUnderTest = new InquireChannelCmdCollector(context, metricCreator);
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();
