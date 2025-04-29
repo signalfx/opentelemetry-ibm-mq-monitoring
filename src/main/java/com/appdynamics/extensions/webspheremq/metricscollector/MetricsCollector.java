@@ -18,12 +18,9 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 
 import java.util.Iterator;
 import java.util.Map;
