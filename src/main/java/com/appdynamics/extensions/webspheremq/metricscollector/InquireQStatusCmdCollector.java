@@ -29,6 +29,30 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * The InquireQStatusCmdCollector class is responsible for collecting and publishing
+ * queue metrics using the IBM MQ command `MQCMD_INQUIRE_Q_STATUS`. It extends the
+ * QueueMetricsCollector class and implements the Runnable interface, enabling
+ * execution within a separate thread.
+ *
+ * This class interacts with PCF (Programmable Command Formats) messages to
+ * query queue metrics based on the configuration provided. It retrieves status information
+ * about a queue, such as:
+ * 	•	The number of messages on the queue
+ * 	•	Open handles (how many apps have it open)
+ * 	•	Whether the queue is in use for input/output
+ * 	•	Last get/put timestamps
+ * 	•	And other real-time statistics
+ *
+ * Thread Safety:
+ * This class is thread-safe, as it operates independently with state shared only
+ * through immutable or synchronized structures where necessary.
+ *
+ * Usage:
+ * - Instantiate this class by providing an existing QueueMetricsCollector instance,
+ *   a map of metrics to report, and shared state.
+ * - Invoke the run method to execute the queue metrics collection process.
+ */
 final class InquireQStatusCmdCollector extends QueueMetricsCollector implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);

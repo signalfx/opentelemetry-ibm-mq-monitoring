@@ -33,7 +33,27 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
-
+/**
+ * ListenerMetricsCollector is a specialized implementation of the MetricsCollector that is responsible
+ * for collecting and publishing metrics related to IBM MQ Listeners.
+ *
+ * This class interacts with PCFMessageAgent to query metrics for specific listeners, applies "include:"
+ * and "exclude:" listenerFilters defined in config yaml, and uses MetricWriteHelper to publish the collected metrics
+ * in the required format.
+ *
+ * Key functionalities include:
+ *  • query using PCF Command: MQCMD_INQUIRE_LISTENER_STATUS to get the status of one or more listeners on a queue manager.
+ *  • retrieve tcp/ip listeners runtime information such as:
+ *    - listener is running or stopped
+ *    - port number and transport type
+ *    - last error codes
+ *    - associated command server
+ *  •
+ *
+ * It utilizes WMQMetricOverride to map metrics from the configuration to their IBM MQ constants.
+ *
+ *
+ */
 final public class ListenerMetricsCollector extends MetricsCollector {
 
     private  final static Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);

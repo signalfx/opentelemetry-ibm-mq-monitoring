@@ -54,7 +54,9 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 	private MetricWriteHelper metricWriteHelper;
 	private BigDecimal heartBeatMetricValue = BigDecimal.ZERO;
 
-	public WMQMonitorTask(TasksExecutionServiceProvider tasksExecutionServiceProvider, MonitorContextConfiguration monitorContextConfig, QueueManager queueManager) {
+	public WMQMonitorTask(TasksExecutionServiceProvider tasksExecutionServiceProvider,
+						  MonitorContextConfiguration monitorContextConfig,
+						  QueueManager queueManager) {
 		this.monitorContextConfig = monitorContextConfig;
 		this.queueManager = queueManager;
 		this.configMap = monitorContextConfig.getConfigYml();
@@ -63,30 +65,41 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 	public void run() {
 		String queueManagerTobeDisplayed = WMQUtil.getQueueManagerNameFromConfig(queueManager);
-		logger.debug("WMQMonitor thread for queueManager " + queueManagerTobeDisplayed + " started.");
+		logger.debug("WMQMonitor thread for queueManager {} started.", queueManagerTobeDisplayed);
 		long startTime = System.currentTimeMillis();
 		MQQueueManager ibmQueueManager = null;
 		PCFMessageAgent agent = null;
+
 		try {
 			ibmQueueManager = initMQQueueManager();
-			if (ibmQueueManager != null) {
-				logger.debug("MQQueueManager connection initiated for queueManager {} in thread {}", queueManagerTobeDisplayed, Thread.currentThread().getName());
-				heartBeatMetricValue = BigDecimal.ONE;
-				agent = initPCFMesageAgent(ibmQueueManager);
-				extractAndReportMetrics(ibmQueueManager, agent);
-			} else {
-				logger.error("MQQueueManager connection could not be initiated for queueManager {} in thread {} ", queueManagerTobeDisplayed, Thread.currentThread().getName());
+			if (ibmQueueManager == null) {
+				logger.error("MQQueueManager connection could not be initiated for queueManager {} in thread {}", queueManagerTobeDisplayed, Thread.currentThread().getName());
+				return;
 			}
+
+			logger.debug("MQQueueManager connection initiated for queueManager {} in thread {}", queueManagerTobeDisplayed, Thread.currentThread().getName());
+			heartBeatMetricValue = BigDecimal.ONE;
+			agent = initPCFMesageAgent(ibmQueueManager);
+			extractAndReportMetrics(ibmQueueManager, agent);
 		} catch (Exception e) {
 			logger.error("Error in run of " + Thread.currentThread().getName(), e);
 		} finally {
 			cleanUp(ibmQueueManager, agent);
-			metricWriteHelper.printMetric(StringUtils.concatMetricPath(monitorContextConfig.getMetricPrefix(), queueManagerTobeDisplayed, "HeartBeat"), heartBeatMetricValue, "AVG.AVG.IND");
+			metricWriteHelper.printMetric(
+					StringUtils.concatMetricPath(monitorContextConfig.getMetricPrefix(), queueManagerTobeDisplayed, "HeartBeat"),
+					heartBeatMetricValue,
+					"AVG.AVG.IND"
+			);
 			long endTime = System.currentTimeMillis() - startTime;
-			logger.debug("WMQMonitor thread for queueManager " + queueManagerTobeDisplayed + " ended. Time taken = " + endTime + " ms");
+			logger.debug("WMQMonitor thread for queueManager {} ended. Time taken = {} ms", queueManagerTobeDisplayed, endTime);
 		}
 	}
 
+	/**
+	 * Initialize and construct an IBM MQQueueManager
+	 * @return
+	 * @throws TaskExecutionException
+	 */
 	private MQQueueManager initMQQueueManager() throws TaskExecutionException {
 		MQQueueManager ibmQueueManager = null;
 		// encryptionKey is global but encryptedPassword is queueManager specific
@@ -256,7 +269,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		}
 
 		// Disconnect queue manager
-
 		if (ibmQueueManager != null) {
 			try {
 				ibmQueueManager.disconnect();
@@ -268,7 +280,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 	}
 
 	public void onTaskComplete() {
-		logger.info("WebSphereMQ monitor thread completed for queueManager:" + WMQUtil.getQueueManagerNameFromConfig(queueManager));
+		logger.info("WebSphereMQ monitor thread completed for queueManager: {}", WMQUtil.getQueueManagerNameFromConfig(queueManager));
 	}
 
 }
