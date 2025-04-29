@@ -25,7 +25,7 @@ import java.util.Set;
 public class ExcludeFilters {
 
 	private String type;
-	private Set<String> values = new HashSet<String>();
+	private Set<String> values = new HashSet<>();
 
 	public String getType() {
 		return type;

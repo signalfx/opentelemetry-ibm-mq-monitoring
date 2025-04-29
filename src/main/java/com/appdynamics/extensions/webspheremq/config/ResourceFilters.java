@@ -20,8 +20,8 @@ import java.util.Set;
 
 public class ResourceFilters {
 
-    private Set<String> include = new HashSet<String>();
-    private Set<ExcludeFilters> exclude = new HashSet<ExcludeFilters>();
+    private Set<String> include = new HashSet<>();
+    private Set<ExcludeFilters> exclude = new HashSet<>();
 
     public Set<String> getInclude() {
         return include;
