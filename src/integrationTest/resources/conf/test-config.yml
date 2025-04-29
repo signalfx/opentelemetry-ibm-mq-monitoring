@@ -5,7 +5,7 @@ numberOfThreads: 20
 
 #This will create it in specific Tier aka Component. Replace <COMPONENT_ID>. Please make sure to have a trailing |.
 #To find out the COMPONENT_ID, please see the screen shot here https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
-metricPrefix: "Server|Component:<COMPONENT_ID>|Custom Metrics|WebsphereMQ|"
+metricPrefix: "Server|Component:IT|Custom Metrics|WebsphereMQ|"
 #For SIM
 #metricPrefix: "Custom Metrics|WebsphereMQ|"
 
@@ -19,7 +19,7 @@ metricPrefix: "Server|Component:<COMPONENT_ID>|Custom Metrics|WebsphereMQ|"
 #encryptionKey: ""
 
 queueManagers:
-  - displayName: ""
+  - displayName: "mqIT"
     # displayName (optional). This will be your QM name that will show up in AppD metric path.
     host: "localhost"
     port: 1414
@@ -30,16 +30,17 @@ queueManagers:
     #The transport type for the queue manager connection, the default is "Bindings" for a binding type connection
     #For bindings type, connection WMQ extension (i.e machine agent) need to be on the same machine on which WebbsphereMQ server is running
     #For client type, connection change it to "Client".
-    transportType: "Bindings"
+    transportType: "Client"
 
     #Channel name of the queue manager, channel should be server-conn type.
     #This field is not required in case of transportType: Bindings
-    #channelName: "SYSTEM.ADMIN.SVRCONN"
+    channelName: DEV.APP.SVRCONN
+    #"SYSTEM.ADMIN.SVRCONN"
 
     #for user access level, please check "Access Permissions" section on the extensions page
     #comment out the username and password in case of transportType: Bindings.
-    #username: ""
-    #password: ""
+    username: "app"
+    password: "passw0rd"
 
     #Uncomment only if encryption of passwords is wanted.
     #encryptedPassword: ""
