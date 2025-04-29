@@ -30,7 +30,7 @@ class TestWMQMonitor extends WMQMonitor {
     }
 
     /**
-     * Executes a test run for monitoring WebSphere MQ queue managers based on the provided configuration "tesetConfigFile".
+     * Executes a test run for monitoring WebSphere MQ queue managers based on the provided configuration "testConfigFile".
      * <p>
      * The method retrieves "queueManagers" from the yml configuration file and uses a custom MetricWriteHelper if provided, initializes a TasksExecutionServiceProvider,
      * and executes the WMQMonitorTask
