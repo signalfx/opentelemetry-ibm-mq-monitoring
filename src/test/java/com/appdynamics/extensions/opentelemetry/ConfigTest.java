@@ -25,7 +25,7 @@ import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ConfigTest {
+class ConfigTest {
 
     private Properties systemProperties;
 
