@@ -1,29 +1,24 @@
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
-import org.checkerframework.checker.nullness.qual.Nullable;
-
-import javax.annotation.Nullable;
-
 import javax.annotation.Nullable;
 
 public final class MetricCreator {
 
-    private final MonitorContextConfiguration monitorContextConfig;
+    private final String metricPrefix;
     private final QueueManager queueManager;
     @Nullable
     private final String firstPathComponent;
 
-    public MetricCreator(MonitorContextConfiguration monitorContextConfig, QueueManager queueManager) {
-        this(monitorContextConfig, queueManager, null);
+    public MetricCreator(String metricPrefix, QueueManager queueManager) {
+        this(metricPrefix, queueManager, null);
     }
 
-    public MetricCreator(MonitorContextConfiguration monitorContextConfig, QueueManager queueManager, @Nullable String firstPathComponent) {
-        this.monitorContextConfig = monitorContextConfig;
+    public MetricCreator(String metricPrefix, QueueManager queueManager, @Nullable String firstPathComponent) {
+        this.metricPrefix = metricPrefix;
         this.queueManager = queueManager;
         this.firstPathComponent = firstPathComponent;
     }
@@ -38,7 +33,7 @@ public final class MetricCreator {
     }
 
     private String getMetricsName(String qmNameToBeDisplayed, String... pathElements) {
-        StringBuilder pathBuilder = new StringBuilder(monitorContextConfig.getMetricPrefix());
+        StringBuilder pathBuilder = new StringBuilder(metricPrefix);
         pathBuilder.append("|")
                 .append(qmNameToBeDisplayed)
                 .append("|");
