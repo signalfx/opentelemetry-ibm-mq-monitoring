@@ -37,9 +37,11 @@ public class WMQContext {
 
 	public static final Logger logger = LoggerFactory.getLogger(WMQContext.class);
 	private final QueueManager queueManager;
+	private final String encryptionKey;
 
-	public WMQContext(QueueManager queueManager) {
+	public WMQContext(QueueManager queueManager, String encryptionKey) {
 		this.queueManager = queueManager;
+		this.encryptionKey = encryptionKey;
 		validateArgs();
 	}
 
@@ -123,12 +125,11 @@ public class WMQContext {
 		if (!Strings.isNullOrEmpty(password)) {
 			return password;
 		}
-		String encryptionKey = queueManager.getEncryptionKey();
 		String encryptedPassword = queueManager.getEncryptedPassword();
-		if (!Strings.isNullOrEmpty(encryptionKey) && !Strings.isNullOrEmpty(encryptedPassword)) {
+		if (!Strings.isNullOrEmpty(this.encryptionKey) && !Strings.isNullOrEmpty(encryptedPassword)) {
 			java.util.Map<String, String> cryptoMap = Maps.newHashMap();
 			cryptoMap.put(com.appdynamics.extensions.Constants.ENCRYPTED_PASSWORD, encryptedPassword);
-			cryptoMap.put(com.appdynamics.extensions.Constants.ENCRYPTION_KEY, encryptionKey);
+			cryptoMap.put(com.appdynamics.extensions.Constants.ENCRYPTION_KEY, this.encryptionKey);
 			return CryptoUtils.getPassword(cryptoMap);
 		}
 		return null;
