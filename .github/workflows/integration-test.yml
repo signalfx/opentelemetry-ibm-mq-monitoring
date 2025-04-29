@@ -24,7 +24,7 @@ jobs:
           --name mqtest
           --health-cmd="echo 'SET' | /opt/mqm/bin/runmqsc QM1"
           --health-interval=10s
-          --health-timeout=10s
+          --health-timeout=20s
           --health-retries=5
 
     steps:
@@ -45,7 +45,7 @@ jobs:
               break
             fi
             echo "Waiting for MQ to be healthy..."
-            sleep 5
+            sleep 10
           done
 
       - name: Run integration tests
