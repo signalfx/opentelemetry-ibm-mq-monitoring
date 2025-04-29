@@ -54,7 +54,7 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, MetricCreator metricCreator) {
 		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, null);
         this.metricCreator = metricCreator;
-		this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
+		this.attributesBuilder = new IntAttributesBuilder(metricsToReport == null ? Collections.emptyList() : metricsToReport.values());
 
     }
 

@@ -241,6 +241,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 		Map<String, WMQMetricOverride> configurationMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CONFIGURATION);
 		if (configurationMetricsToReport != null) {
+			MetricCreator metricCreator = new MetricCreator(monitorContextConfig, queueManager);
 			ReadConfigurationEventQueueCollector configurationEventQueueCollector = new ReadConfigurationEventQueueCollector(configurationMetricsToReport, this.monitorContextConfig, agent, mqQueueManager, queueManager, metricWriteHelper, metricCreator);
             Runnable job = new MetricsPublisherJob(configurationEventQueueCollector, countDownLatch);
             monitorContextConfig.getContext().getExecutorService().execute("ReadConfigurationEventQueueCollector", job);
