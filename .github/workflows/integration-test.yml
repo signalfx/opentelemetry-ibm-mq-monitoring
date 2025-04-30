@@ -48,8 +48,7 @@ jobs:
 
       - name: Run Integration Tests
         run: |
-          echo "Run your tests here"
-          # For example:
+          echo "Running -P"
           # ./gradlew integrationTest or mvn verify
 
       - name: Set up JDK
