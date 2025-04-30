@@ -1,0 +1,37 @@
+name: Build and Test IBM MQ
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4  # Fetches repo (including Dockerfile-it)
+
+      - name: Create Docker volume
+        run: docker volume create mq-data
+
+      - name: Build Docker image
+        run: docker build -t ibm-mq-local -f docker/Dockerfile-it .  # Builds using the Dockerfile-it
+
+      - name: Start container for testing
+        run: |
+          docker run -d --name mq-test -v mqdata:/mnt/mqm -p 1414:1414 ibm-mq-local
+          sleep 15  # Wait for MQ to initialize
+
+      - name: Verify MQ is running
+        run: |
+          docker exec mq-test dspmq  # Check queue manager status
+          docker exec mq-test dspmqver  # Check MQ version
+
+      - name: Cleanup
+        if: always()  # Runs even if tests fail
+        run: |
+          docker stop mq-test || true
+          docker rm mq-test || true

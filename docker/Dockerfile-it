@@ -1,0 +1,15 @@
+# Use official IBM MQ image to build for Integration Test (it)
+FROM icr.io/ibm-messaging/mq:latest
+
+# Copy custom configs (if any)
+COPY config.mqsc /etc/mqm/
+
+# Set env vars (customize as needed)
+ENV MQ_QMGR_NAME=QM1
+ENV MQ_ADMIN_PASSWORD=passw0rd
+
+# Expose ports (1414=MQ, 9443=Console)
+EXPOSE 1414 9443
+
+# Apply MQ config (if config.mqsc exists)
+RUN if [ -f /etc/mqm/config.mqsc ]; then runmqsc QM1 < /etc/mqm/config.mqsc; fi
