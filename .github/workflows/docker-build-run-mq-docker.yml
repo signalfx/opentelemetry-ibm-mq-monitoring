@@ -23,11 +23,13 @@ jobs:
       - name: Start container for testing
         run: |
           docker run -d --name mq-test -v mqdata:/mnt/mqm -e LICENSE=accept -e MQ_QMGR_NAME=QM1 -p 1414:1414 ibm-mq-local
-          sleep 15  # Wait for MQ to initialize
+          sleep 45  # Wait for MQ to initialize
 
       - name: Verify MQ is running
         run: |
-          docker exec mq-test dspmq  # Check queue manager status
+          docker ps -a
+          docker logs $(docker ps -a | grep mq-test | awk '{print $1}')
+          docker exec mq-test dspmq     # Check queue manager status
           docker exec mq-test dspmqver  # Check MQ version
 
       - name: Cleanup
