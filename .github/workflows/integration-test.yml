@@ -1,0 +1,53 @@
+name: Run MQ Integration Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      ibm-mq:
+        image: icr.io/ibm-messaging/mq:9.3.4.0-r1-amd64
+        ports:
+          - 1414:1414
+          - 9443:9443
+        env:
+          LICENSE: accept
+          MQ_QMGR_NAME: QM1
+          MQ_ADMIN_PASSWORD: passw0rd
+          MQ_ENABLE_METRICS: true
+        options: >-
+          --name ibm-mq-test
+          --health-cmd "echo > /dev/tcp/localhost/1414"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Wait for MQ to be ready
+        run: |
+          echo "Waiting for MQ to start..."
+          for i in {1..30}; do
+            docker exec ibm-mq-test dspmq | grep -q "Running" && break
+            sleep 5
+          done
+          docker exec ibm-mq-test dspmq
+
+      - name: Run Integration Tests
+        run: |
+          echo "Running integration tests"
+          ./mvnw verify
+
