@@ -52,9 +52,10 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 	private MonitorContextConfiguration monitorContextConfig;
 	private Map<String, ?> configMap;
 	private MetricWriteHelper metricWriteHelper;
-	private BigDecimal heartBeatMetricValue = BigDecimal.ZERO;
 
-	public WMQMonitorTask(TasksExecutionServiceProvider tasksExecutionServiceProvider, MonitorContextConfiguration monitorContextConfig, QueueManager queueManager) {
+	public WMQMonitorTask(TasksExecutionServiceProvider tasksExecutionServiceProvider,
+						  MonitorContextConfiguration monitorContextConfig,
+						  QueueManager queueManager) {
 		this.monitorContextConfig = monitorContextConfig;
 		this.queueManager = queueManager;
 		this.configMap = monitorContextConfig.getConfigYml();
@@ -63,47 +64,38 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 	public void run() {
 		String queueManagerTobeDisplayed = WMQUtil.getQueueManagerNameFromConfig(queueManager);
-		logger.debug("WMQMonitor thread for queueManager " + queueManagerTobeDisplayed + " started.");
+		logger.debug("WMQMonitor thread for queueManager {} started.", queueManagerTobeDisplayed);
 		long startTime = System.currentTimeMillis();
 		MQQueueManager ibmQueueManager = null;
 		PCFMessageAgent agent = null;
+		BigDecimal heartBeatMetricValue = BigDecimal.ZERO;
+		// encryptionKey is a global setting, which we need to inject to allow decrypting the queue manager password.
+		String encryptionKey = (String) configMap.get("encryptionKey");
 		try {
-			ibmQueueManager = initMQQueueManager();
-			if (ibmQueueManager != null) {
-				logger.debug("MQQueueManager connection initiated for queueManager {} in thread {}", queueManagerTobeDisplayed, Thread.currentThread().getName());
-				heartBeatMetricValue = BigDecimal.ONE;
-				agent = initPCFMesageAgent(ibmQueueManager);
-				extractAndReportMetrics(ibmQueueManager, agent);
-			} else {
-				logger.error("MQQueueManager connection could not be initiated for queueManager {} in thread {} ", queueManagerTobeDisplayed, Thread.currentThread().getName());
+			WMQContext auth = new WMQContext(queueManager, encryptionKey);
+			Hashtable env = auth.getMQEnvironment();
+			try {
+                ibmQueueManager = new MQQueueManager(queueManager.getName(), env);
+			} catch (MQException mqe) {
+                logger.error(mqe.getMessage(), mqe);
+                throw new TaskExecutionException(mqe.getMessage());
 			}
+			logger.debug("MQQueueManager connection initiated for queueManager {} in thread {}", queueManagerTobeDisplayed, Thread.currentThread().getName());
+			heartBeatMetricValue = BigDecimal.ONE;
+			agent = initPCFMesageAgent(ibmQueueManager);
+			extractAndReportMetrics(ibmQueueManager, agent);
 		} catch (Exception e) {
 			logger.error("Error in run of " + Thread.currentThread().getName(), e);
 		} finally {
 			cleanUp(ibmQueueManager, agent);
-			metricWriteHelper.printMetric(StringUtils.concatMetricPath(monitorContextConfig.getMetricPrefix(), queueManagerTobeDisplayed, "HeartBeat"), heartBeatMetricValue, "AVG.AVG.IND");
+			metricWriteHelper.printMetric(
+					StringUtils.concatMetricPath(monitorContextConfig.getMetricPrefix(), queueManagerTobeDisplayed, "HeartBeat"),
+					heartBeatMetricValue,
+					"AVG.AVG.IND"
+			);
 			long endTime = System.currentTimeMillis() - startTime;
-			logger.debug("WMQMonitor thread for queueManager " + queueManagerTobeDisplayed + " ended. Time taken = " + endTime + " ms");
+			logger.debug("WMQMonitor thread for queueManager {} ended. Time taken = {} ms", queueManagerTobeDisplayed, endTime);
 		}
-	}
-
-	private MQQueueManager initMQQueueManager() throws TaskExecutionException {
-		MQQueueManager ibmQueueManager = null;
-		// encryptionKey is global but encryptedPassword is queueManager specific
-		queueManager.setEncryptionKey((String) configMap.get("encryptionKey"));
-		WMQContext auth = new WMQContext(queueManager);
-		Hashtable env = auth.getMQEnvironment();
-		try {
-			if (env != null) {
-				ibmQueueManager = new MQQueueManager(queueManager.getName(), env);
-			} else {
-				ibmQueueManager = new MQQueueManager(queueManager.getName());
-			}
-		} catch (MQException mqe) {
-			logger.error(mqe.getMessage(), mqe);
-			throw new TaskExecutionException(mqe.getMessage());
-		}
-		return ibmQueueManager;
 	}
 
 	private PCFMessageAgent initPCFMesageAgent(MQQueueManager ibmQueueManager) {
@@ -140,7 +132,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		CountDownLatch countDownLatch = new CountDownLatch(metricsMap.size());
 
 		Map<String, WMQMetricOverride> qMgrMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER);
-		MetricCreator metricCreator = new MetricCreator(monitorContextConfig, queueManager);
 		if (qMgrMetricsToReport != null) {
 			Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
 			for (String key : qMgrMetricsToReport.keySet()) {
@@ -150,11 +141,13 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 				metricsByCommand.get(cmd).put(key, wmqOverride);
 			}
 			if (metricsByCommand.get("MQCMD_INQUIRE_Q_MGR_STATUS") != null) {
+				MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager);
 				MetricsCollector qMgrMetricsCollector = new QueueManagerMetricsCollector(metricsByCommand.get("MQCMD_INQUIRE_Q_MGR_STATUS"), this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch, metricCreator);
                 Runnable job = new MetricsPublisherJob(qMgrMetricsCollector, countDownLatch);
                 monitorContextConfig.getContext().getExecutorService().execute("QueueManagerMetricsCollector", job);
 			}
 			if (metricsByCommand.get("MQCMD_INQUIRE_Q_MGR") != null) {
+				MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, InquireQueueManagerCmdCollector.ARTIFACT);
 				MetricsCollector inquireQueueMgrMetricsCollector = new InquireQueueManagerCmdCollector(metricsByCommand.get("MQCMD_INQUIRE_Q_MGR"), this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch, metricCreator);
                 Runnable job = new MetricsPublisherJob(inquireQueueMgrMetricsCollector, countDownLatch);
                 monitorContextConfig.getContext().getExecutorService().execute("InquireQueueManagerCmdCollector", job);
@@ -173,13 +166,16 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 				metricsByCommand.get(cmd).put(key, wmqOverride);
 			}
 			if (metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS") != null) {
-				MetricsCollector channelMetricsCollector =
-						new ChannelMetricsCollector(metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS"),
-							monitorContextConfig, agent, queueManager, metricWriteHelper, metricCreator);
+				Map<String, WMQMetricOverride> metricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS");
+				MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, ChannelMetricsCollector.ARTIFACT);
+				IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(metricsToReport);
+				MetricsCollectorContext context = new MetricsCollectorContext(metricsToReport, attributesBuilder, queueManager, agent, metricWriteHelper);
+				MetricsPublisher channelMetricsCollector = new ChannelMetricsCollector(context, metricCreator);
 				Runnable job = new MetricsPublisherJob(channelMetricsCollector, countDownLatch);
 				monitorContextConfig.getContext().getExecutorService().execute("ChannelMetricsCollector", job);
 			}
 			if (metricsByCommand.get("MQCMD_INQUIRE_CHANNEL") != null) {
+				MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, InquireChannelCmdCollector.ARTIFACT);
 				MetricsCollector inquireChannelMetricsCollector =
 						new InquireChannelCmdCollector(metricsByCommand.get("MQCMD_INQUIRE_CHANNEL"),
 							monitorContextConfig, agent, queueManager, metricWriteHelper, metricCreator);
@@ -193,6 +189,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		Map<String, WMQMetricOverride> queueMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE);
 		if (queueMetricsToReport != null) {
 			QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
+			MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, QueueMetricsCollector.ARTIFACT);
 			MetricsCollector queueMetricsCollector =
 					new QueueMetricsCollector(queueMetricsToReport,
 						monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, sharedState,
@@ -205,6 +202,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 		Map<String, WMQMetricOverride> listenerMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_LISTENER);
 		if (listenerMetricsToReport != null) {
+			MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, ListenerMetricsCollector.ARTIFACT);
 			MetricsCollector listenerMetricsCollector = new ListenerMetricsCollector(listenerMetricsToReport, this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch, metricCreator);
 			Runnable job = new MetricsPublisherJob(listenerMetricsCollector, countDownLatch);
 			monitorContextConfig.getContext().getExecutorService().execute("ListenerMetricsCollector", job);
@@ -223,7 +221,8 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 		Map<String, WMQMetricOverride> configurationMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_CONFIGURATION);
 		if (configurationMetricsToReport != null) {
-			ReadConfigurationEventQueueCollector configurationEventQueueCollector = new ReadConfigurationEventQueueCollector(configurationMetricsToReport, this.monitorContextConfig, agent, mqQueueManager, queueManager, metricWriteHelper);
+			MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager);
+			ReadConfigurationEventQueueCollector configurationEventQueueCollector = new ReadConfigurationEventQueueCollector(configurationMetricsToReport, this.monitorContextConfig, agent, mqQueueManager, queueManager, metricWriteHelper, metricCreator);
             Runnable job = new MetricsPublisherJob(configurationEventQueueCollector, countDownLatch);
             monitorContextConfig.getContext().getExecutorService().execute("ReadConfigurationEventQueueCollector", job);
 		} else {
@@ -256,7 +255,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		}
 
 		// Disconnect queue manager
-
 		if (ibmQueueManager != null) {
 			try {
 				ibmQueueManager.disconnect();
@@ -268,7 +266,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 	}
 
 	public void onTaskComplete() {
-		logger.info("WebSphereMQ monitor thread completed for queueManager:" + WMQUtil.getQueueManagerNameFromConfig(queueManager));
+		logger.info("WebSphereMQ monitor thread completed for queueManager: {}", WMQUtil.getQueueManagerNameFromConfig(queueManager));
 	}
 
 }

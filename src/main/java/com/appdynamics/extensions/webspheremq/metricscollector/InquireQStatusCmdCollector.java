@@ -29,16 +29,44 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * The InquireQStatusCmdCollector class is responsible for collecting and publishing
+ * queue metrics using the IBM MQ command `MQCMD_INQUIRE_Q_STATUS`. It extends the
+ * QueueMetricsCollector class and implements the Runnable interface, enabling
+ * execution within a separate thread.
+ * <p>
+ * This class interacts with PCF (Programmable Command Formats) messages to
+ * query queue metrics based on the configuration provided. It retrieves status information
+ * about a queue, such as:
+ * 	•	The number of messages on the queue
+ * 	•	Open handles (how many apps have it open)
+ * 	•	Whether the queue is in use for input/output
+ * 	•	Last get/put timestamps
+ * 	•	And other real-time statistics
+ * <p>
+ * Thread Safety:
+ * This class is thread-safe, as it operates independently with state shared only
+ * through immutable or synchronized structures where necessary.
+ * <p>
+ * Usage:
+ * - Instantiate this class by providing an existing QueueMetricsCollector instance,
+ *   a map of metrics to report, and shared state.
+ * - Invoke the run method to execute the queue metrics collection process.
+ */
 final class InquireQStatusCmdCollector extends QueueMetricsCollector implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);
 
     static final String COMMAND = "MQCMD_INQUIRE_Q_STATUS";
+    private final IntAttributesBuilder attributesBuilder;
+    private final Map<String, WMQMetricOverride> metrics;
 
     public InquireQStatusCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport,
                                       QueueCollectorSharedState sharedState, MetricCreator metricCreator){
         super(metricsToReport, collector.monitorContextConfig, collector.agent, collector.metricWriteHelper,
                 collector.queueManager, collector.countDownLatch, sharedState, metricCreator);
+        this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
+        this.metrics = metricsToReport;
     }
 
     @Override
@@ -55,7 +83,7 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
         logger.info("Collecting metrics for command {}", COMMAND);
         long entryTime = System.currentTimeMillis();
 
-        if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
+        if (metrics == null || metrics.isEmpty()) {
             logger.debug("Queue metrics to report from the config is null or empty, nothing to publish for command {}", COMMAND);
             return;
         }
@@ -63,7 +91,7 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
         //
         // attrs = { CMQC.MQCA_Q_NAME, MQIACF_OLDEST_MSG_AGE, MQIACF_Q_TIME_INDICATOR };
         //
-        int[] attrs = getIntAttributesArray(CMQC.MQCA_Q_NAME);
+        int[] attrs = attributesBuilder.buildIntAttributesArray(CMQC.MQCA_Q_NAME);
         if (logger.isDebugEnabled()) {
             logger.debug("Attributes being sent along PCF agent request to query queue metrics: {} for command {}", Arrays.toString(attrs), COMMAND);
         }

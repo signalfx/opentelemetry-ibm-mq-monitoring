@@ -44,12 +44,14 @@ import java.util.Set;
 public class InquireChannelCmdCollector extends MetricsCollector {
 
 	public static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireChannelCmdCollector.class);
-	private static final String ARTIFACT = "Channels";
+	public static final String ARTIFACT = "Channels";
+	private final Map<String, WMQMetricOverride> metrics;
 	private final MetricCreator metricCreator;
 
 	public InquireChannelCmdCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, MetricCreator metricCreator) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, null, ARTIFACT);
+		super(monitorContextConfig, agent, metricWriteHelper, queueManager, null);
         this.metricCreator = metricCreator;
+		this.metrics = metricsToReport;
     }
 
 
@@ -57,7 +59,7 @@ public class InquireChannelCmdCollector extends MetricsCollector {
 	public void publishMetrics() throws TaskExecutionException {
 		long entryTime = System.currentTimeMillis();
 
-		if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
+		if (metrics == null || metrics.isEmpty()) {
 			logger.debug("Channel metrics to report from the config is null or empty, nothing to publish");
 			return;
 		}
@@ -83,20 +85,20 @@ public class InquireChannelCmdCollector extends MetricsCollector {
                     Set<ExcludeFilters> excludeFilters = this.queueManager.getChannelFilters().getExclude();
                     if (!ExcludeFilters.isExcluded(channelName, excludeFilters)) { //check for exclude filters
                         logger.debug("Pulling out metrics for channel name {}", channelName);
-                        Iterator<String> itr = getMetricsToReport().keySet().iterator();
-                        List<Metric> metrics = Lists.newArrayList();
+                        Iterator<String> itr = metrics.keySet().iterator();
+                        List<Metric> responseMetrics = Lists.newArrayList();
                         while (itr.hasNext()) {
                             String metrickey = itr.next();
-                            WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+                            WMQMetricOverride wmqOverride = metrics.get(metrickey);
 							if (pcfMessage.getParameter(wmqOverride.getConstantValue()) == null) {
 								logger.debug("Missing property {} on {}", metrickey, channelName);
 								continue;
 							}
                             int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                            Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, getArtifact(), channelName, metrickey);
-                            metrics.add(metric);
+                            Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, channelName, metrickey);
+                            responseMetrics.add(metric);
                         }
-						metricWriteHelper.transformAndPrintMetrics(metrics);
+						metricWriteHelper.transformAndPrintMetrics(responseMetrics);
                     } else {
                         logger.debug("Channel name {} is excluded.", channelName);
                     }

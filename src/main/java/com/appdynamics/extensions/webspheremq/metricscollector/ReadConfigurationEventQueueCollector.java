@@ -54,8 +54,9 @@ public class ReadConfigurationEventQueueCollector implements MetricsPublisher {
 	private final MQQueueManager mqQueueManager;
 	private final Map<String, WMQMetricOverride> metricsToReport;
 	private final long bootTime;
+    private final MetricCreator metricCreator;
 
-	public ReadConfigurationEventQueueCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, MQQueueManager mqQueueManager, QueueManager queueManager, MetricWriteHelper metricWriteHelper) {
+    public ReadConfigurationEventQueueCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, MQQueueManager mqQueueManager, QueueManager queueManager, MetricWriteHelper metricWriteHelper, MetricCreator metricCreator) {
 		this.metricsToReport = metricsToReport;
 		this.monitorContextConfig = monitorContextConfig;
 		this.agent = agent;
@@ -63,6 +64,7 @@ public class ReadConfigurationEventQueueCollector implements MetricsPublisher {
 		this.queueManager = queueManager;
 		this.metricWriteHelper = metricWriteHelper;
 		this.bootTime = System.currentTimeMillis();
+        this.metricCreator = metricCreator;
 	}
 
 	private PCFMessage findLastUpdate(long entryTime, String configurationQueueName) throws Exception {
@@ -146,8 +148,7 @@ public class ReadConfigurationEventQueueCollector implements MetricsPublisher {
 					WMQMetricOverride wmqOverride = metricsToReport.get(metrickey);
 					if (candidate.getParameter(wmqOverride.getConstantValue()) != null) {
 						int metricValue = candidate.getIntParameterValue(wmqOverride.getConstantValue());
-						String metricPath = getMetricsName(WMQUtil.getQueueManagerNameFromConfig(queueManager), metrickey);
-						Metric m = new Metric(metrickey, String.valueOf(metricValue), metricPath, wmqOverride.getMetricProperties());
+						Metric m = metricCreator.createMetric(metrickey, metricValue, wmqOverride, metrickey);
 						metrics.add(m);
 					}
 				}

@@ -60,5 +60,10 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Async"/>
         </Logger>
+
+        <Logger name="com.singularity" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="Async"/>
+        </Logger>
     </Loggers>
 </Configuration>

@@ -18,15 +18,9 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
-import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 
-import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -35,62 +29,23 @@ import java.util.concurrent.CountDownLatch;
  */
 public abstract class MetricsCollector implements MetricsPublisher {
 
-	private final Map<String, WMQMetricOverride> metricsToReport;
 	protected final MonitorContextConfiguration monitorContextConfig;
 	protected final PCFMessageAgent agent;
 	protected final MetricWriteHelper metricWriteHelper;
 	protected final QueueManager queueManager;
 	protected final CountDownLatch countDownLatch;
-	private final String artifact;
 
-	public MetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
-                            MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent,
-                            MetricWriteHelper metricWriteHelper, QueueManager queueManager,
-                            CountDownLatch countDownLatch, String artifact) {
-		this.metricsToReport = metricsToReport;
+	public MetricsCollector(MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent,
+							MetricWriteHelper metricWriteHelper, QueueManager queueManager,
+							CountDownLatch countDownLatch) {
 		this.monitorContextConfig = monitorContextConfig;
 		this.agent = agent;
 		this.metricWriteHelper = metricWriteHelper;
 		this.queueManager = queueManager;
 		this.countDownLatch = countDownLatch;
-        this.artifact = artifact;
     }
-
-
-	final public String getArtifact(){
-		return artifact;
-	}
-
-	final public Map<String, WMQMetricOverride> getMetricsToReport() {
-		return metricsToReport;
-	}
-
-	/**
-	 * Applies include and exclude filters to the artifacts (i.e queue manager, q, or channel),<br>
-	 * extracts and publishes the metrics to controller
-	 *
-	 * @throws TaskExecutionException
-	 */
-	public final void process() throws TaskExecutionException {
-		publishMetrics();
-	}
 
 	public enum FilterType {
 		STARTSWITH, EQUALS, ENDSWITH, CONTAINS, NONE
     }
-
-	protected int[] getIntAttributesArray(int... inputAttrs) {
-		int[] attrs = new int[inputAttrs.length+getMetricsToReport().size()];
-		// fill input attrs
-        System.arraycopy(inputAttrs, 0, attrs, 0, inputAttrs.length);
-		//fill attrs from metrics to report.
-		Iterator<String> overrideItr = getMetricsToReport().keySet().iterator();
-		for (int count = inputAttrs.length; overrideItr.hasNext() && count < attrs.length; count++) {
-			String metrickey = overrideItr.next();
-			WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
-			attrs[count] = wmqOverride.getConstantValue();
-		}
-		return attrs;
-
-	}
 }

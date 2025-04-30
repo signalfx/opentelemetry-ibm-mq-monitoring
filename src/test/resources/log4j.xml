@@ -24,11 +24,15 @@
         </layout>
     </appender>
 
-    <logger name="com.singularity" additivity="false">
+    <logger name="com.splunk" additivity="false">
         <level value="debug"/>
         <appender-ref ref="ConsoleAppender"/>
     </logger>
 
+    <logger name="com.singularity" additivity="false">
+        <level value="debug"/>
+        <appender-ref ref="ConsoleAppender"/>
+    </logger>
 
     <logger name="com.appdynamics" additivity="false">
         <level value="debug"/>

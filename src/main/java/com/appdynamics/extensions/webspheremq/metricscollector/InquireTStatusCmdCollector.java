@@ -40,16 +40,18 @@ import java.util.Set;
 final class InquireTStatusCmdCollector extends MetricsCollector {
 
     private static final Logger logger = LoggerFactory.getLogger(InquireTStatusCmdCollector.class);
-    private static final String ARTIFACT = "Topics";
+    static final String ARTIFACT = "Topics";
     private final MetricCreator metricCreator;
 
     static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";
+    private final Map<String, WMQMetricOverride> metrics;
 
     public InquireTStatusCmdCollector(TopicMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport, MetricCreator metricCreator) {
-        super(metricsToReport, collector.monitorContextConfig, collector.agent,
+        super(collector.monitorContextConfig, collector.agent,
                 collector.metricWriteHelper, collector.queueManager,
-                collector.countDownLatch, ARTIFACT);
+                collector.countDownLatch);
         this.metricCreator = metricCreator;
+        this.metrics = metricsToReport;
     }
 
     @Override
@@ -57,7 +59,7 @@ final class InquireTStatusCmdCollector extends MetricsCollector {
         logger.info("Collecting metrics for command {}", COMMAND);
         long entryTime = System.currentTimeMillis();
 
-        if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
+        if (metrics == null || metrics.isEmpty()) {
             logger.debug("Topic metrics to report from the config is null or empty, nothing to publish for command {}", COMMAND);
             return;
         }
@@ -98,29 +100,30 @@ final class InquireTStatusCmdCollector extends MetricsCollector {
             logger.debug("Unexpected Error while PCFMessage.send() for command {}, response is either null or empty", command);
             return;
         }
+
         for (PCFMessage pcfMessage : response) {
             String topicString = pcfMessage.getStringParameterValue(CMQC.MQCA_TOPIC_STRING).trim();
             Set<ExcludeFilters> excludeFilters = this.queueManager.getTopicFilters().getExclude();
             if (!ExcludeFilters.isExcluded(topicString, excludeFilters)) { //check for exclude filters
                 logger.debug("Pulling out metrics for topic name {} for command {}", topicString, command);
-                Iterator<String> itr = getMetricsToReport().keySet().iterator();
-                List<Metric> metrics = Lists.newArrayList();
+                Iterator<String> itr = metrics.keySet().iterator();
+                List<Metric> responseMetrics = Lists.newArrayList();
                 while (itr.hasNext()) {
                     String metrickey = itr.next();
-                    WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+                    WMQMetricOverride wmqOverride = metrics.get(metrickey);
                     try {
                         PCFParameter pcfParam = pcfMessage.getParameter(wmqOverride.getConstantValue());
                         if (pcfParam instanceof MQCFIN) {
                             int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                            Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, getArtifact(), topicString, metrickey);
-                            metrics.add(metric);
+                            Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, topicString, metrickey);
+                            responseMetrics.add(metric);
                         }
                     } catch (PCFException pcfe) {
                         logger.error("PCFException caught while collecting metric for Topic: {} for metric: {} in command {}", topicString, wmqOverride.getIbmCommand(), command, pcfe);
                     }
 
                 }
-                metricWriteHelper.transformAndPrintMetrics(metrics);
+                metricWriteHelper.transformAndPrintMetrics(responseMetrics);
             } else {
                 logger.debug("Topic name {} is excluded.", topicString);
             }

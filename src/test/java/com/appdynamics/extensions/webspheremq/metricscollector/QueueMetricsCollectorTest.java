@@ -79,7 +79,7 @@ public class QueueMetricsCollectorTest {
         queueMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE);
         QueueCollectorSharedState.getInstance().resetForTest();
         pathCaptor = ArgumentCaptor.forClass(List.class);
-        metricCreator = new MetricCreator(monitorContextConfig, queueManager);
+        metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, QueueMetricsCollector.ARTIFACT);
     }
 
     @Test
@@ -335,8 +335,7 @@ public class QueueMetricsCollectorTest {
         response3.addParameter(CMQC.MQIA_OPEN_OUTPUT_COUNT, 3);
         response3.addParameter(CMQC.MQIA_USAGE, CMQC.MQUS_TRANSMISSION);
 
-        PCFMessage [] messages = { response1, response2, response3 };
-        return messages;
+        return new PCFMessage[]{ response1, response2, response3 };
     }
 
     /*

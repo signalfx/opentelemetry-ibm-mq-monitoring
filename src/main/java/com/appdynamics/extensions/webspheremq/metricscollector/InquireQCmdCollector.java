@@ -32,14 +32,17 @@ import java.util.Set;
 final class InquireQCmdCollector extends QueueMetricsCollector implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(InquireQCmdCollector.class);
-
     static final String COMMAND = "MQCMD_INQUIRE_Q";
+
+    private final IntAttributesBuilder attributesBuilder;
+
 
     public InquireQCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport,
                                 QueueCollectorSharedState sharedState, MetricCreator metricCreator){
         super(metricsToReport, collector.monitorContextConfig, collector.agent,
                 collector.metricWriteHelper, collector.queueManager, collector.countDownLatch, sharedState,
                 metricCreator);
+        this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
     }
 
     @Override
@@ -59,7 +62,7 @@ final class InquireQCmdCollector extends QueueMetricsCollector implements Runnab
 		 */
         long entryTime = System.currentTimeMillis();
 
-        int[] attrs = getIntAttributesArray(CMQC.MQCA_Q_NAME, CMQC.MQIA_USAGE, CMQC.MQIA_Q_TYPE);
+        int[] attrs = attributesBuilder.buildIntAttributesArray(CMQC.MQCA_Q_NAME, CMQC.MQIA_USAGE, CMQC.MQIA_Q_TYPE);
         logger.debug("Attributes being sent along PCF agent request to query queue metrics: {} for command {}",Arrays.toString(attrs),COMMAND);
 
         Set<String> queueGenericNames = this.queueManager.getQueueFilters().getInclude();

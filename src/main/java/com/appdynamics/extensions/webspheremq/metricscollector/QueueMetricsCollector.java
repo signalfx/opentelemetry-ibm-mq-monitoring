@@ -47,21 +47,23 @@ import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
 public class QueueMetricsCollector extends MetricsCollector {
 
 	private static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
-	private final static String ARTIFACT = "Queues";
+	public final static String ARTIFACT = "Queues";
 
 	// hack to share state of queue type between collectors.
 	// The queue information is only available as response of some commands.
 	private final QueueCollectorSharedState sharedState;
 	private final MetricCreator metricCreator;
+	private final Map<String, WMQMetricOverride> metrics;
 
 	public QueueMetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
                                  MonitorContextConfiguration monitorContextConfig,
                                  PCFMessageAgent agent, MetricWriteHelper metricWriteHelper,
                                  QueueManager queueManager, CountDownLatch countDownLatch,
                                  QueueCollectorSharedState sharedState, MetricCreator metricCreator) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
+		super(monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
 		this.sharedState = sharedState;
         this.metricCreator = metricCreator;
+		this.metrics = metricsToReport;
     }
 
 	@Override
@@ -99,16 +101,17 @@ public class QueueMetricsCollector extends MetricsCollector {
 
 	private Map<String, WMQMetricOverride> getMetricsToReport(String command) {
 		Map<String, WMQMetricOverride> commandMetrics = Maps.newHashMap();
-		if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
+		if (metrics == null || metrics.isEmpty()) {
 			logger.debug("There are no metrics configured for {}",command);
 			return commandMetrics;
 		}
-        for (String metrickey : getMetricsToReport().keySet()) {
-            WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
-            if (wmqOverride.getIbmCommand().equalsIgnoreCase(command)) {
-                commandMetrics.put(metrickey, wmqOverride);
-            }
-        }
+		for (Map.Entry<String, WMQMetricOverride> entry : metrics.entrySet()) {
+			String key = entry.getKey();
+			WMQMetricOverride wmqOverride = entry.getValue();
+			if (wmqOverride.getIbmCommand().equalsIgnoreCase(command)) {
+				commandMetrics.put(key, wmqOverride);
+			}
+		}
 		return commandMetrics;
 	}
 
@@ -168,18 +171,18 @@ public class QueueMetricsCollector extends MetricsCollector {
 			Set<ExcludeFilters> excludeFilters = queueManager.getQueueFilters().getExclude();
 			if(!ExcludeFilters.isExcluded(queueName,excludeFilters)) { //check for exclude filters
 				logger.debug("Pulling out metrics for queue name {} for command {}",queueName,command);
-				Iterator<String> itr = getMetricsToReport().keySet().iterator();
-				List<Metric> metrics = Lists.newArrayList();
+				Iterator<String> itr = metrics.keySet().iterator();
+				List<Metric> responseMetrics = Lists.newArrayList();
 				while (itr.hasNext()) {
 					String metrickey = itr.next();
-					WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+					WMQMetricOverride wmqOverride = metrics.get(metrickey);
 					try{
 						PCFParameter pcfParam = response[i].getParameter(wmqOverride.getConstantValue());
 						if (pcfParam != null) {
 							if(pcfParam instanceof MQCFIN){
 								int metricVal = response[i].getIntParameterValue(wmqOverride.getConstantValue());
-								Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, getArtifact(), queueName, queueType, metrickey);
-								metrics.add(metric);
+								Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, queueName, queueType, metrickey);
+								responseMetrics.add(metric);
 							}
 							else if(pcfParam instanceof MQCFIL){
 								int[] metricVals = response[i].getIntListParameterValue(wmqOverride.getConstantValue());
@@ -188,9 +191,9 @@ public class QueueMetricsCollector extends MetricsCollector {
 									for(int val : metricVals){
 										count++;
 										Metric metric = metricCreator.createMetric( metrickey + "_" + count,
-												val, wmqOverride, getArtifact(), queueName,
+												val, wmqOverride, queueName,
 												metrickey + "_" + count);
-										metrics.add(metric);
+										responseMetrics.add(metric);
 									}
 								}
 							}
@@ -203,7 +206,7 @@ public class QueueMetricsCollector extends MetricsCollector {
 					}
 
 				}
-				metricWriteHelper.transformAndPrintMetrics(metrics);
+				metricWriteHelper.transformAndPrintMetrics(responseMetrics);
 			}
 			else{
 				logger.debug("Queue name {} is excluded.",queueName);

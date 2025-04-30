@@ -89,7 +89,7 @@ class InquireChannelCmdCollectorTest {
         }
         channelMetricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL");
         pathCaptor = ArgumentCaptor.forClass(List.class);
-        metricCreator = new MetricCreator(monitorContextConfig, queueManager);
+        metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, InquireChannelCmdCollector.ARTIFACT);
     }
 
     @Test

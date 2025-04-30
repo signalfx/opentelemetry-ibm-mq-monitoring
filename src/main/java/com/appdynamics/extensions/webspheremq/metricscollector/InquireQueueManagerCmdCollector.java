@@ -23,7 +23,6 @@ import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
-import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
@@ -43,12 +42,14 @@ import java.util.concurrent.CountDownLatch;
 final public class InquireQueueManagerCmdCollector extends MetricsCollector {
 
 	private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQueueManagerCmdCollector.class);
-	private final static String ARTIFACT = "Queue Manager";
+	public final static String ARTIFACT = "Queue Manager";
 	private final MetricCreator metricCreator;
+	private final Map<String, WMQMetricOverride> metrics;
 
 	public InquireQueueManagerCmdCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch, MetricCreator metricCreator) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, ARTIFACT);
+		super(monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
         this.metricCreator = metricCreator;
+		this.metrics = metricsToReport;
     }
 
 	@Override
@@ -73,19 +74,19 @@ final public class InquireQueueManagerCmdCollector extends MetricsCollector {
 				logger.debug("Unexpected Error while PCFMessage.send(), response is either null or empty");
 				return;
 			}
-			Iterator<String> overrideItr = getMetricsToReport().keySet().iterator();
-			List<Metric> metrics = Lists.newArrayList();
+			Iterator<String> overrideItr = metrics.keySet().iterator();
+			List<Metric> responseMetrics = Lists.newArrayList();
 			while (overrideItr.hasNext()) {
 				String metrickey = overrideItr.next();
-				WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
+				WMQMetricOverride wmqOverride = metrics.get(metrickey);
 				int metricVal = responses[0].getIntParameterValue(wmqOverride.getConstantValue());
 				if (logger.isDebugEnabled()) {
 					logger.debug("Metric: " + metrickey + "=" + metricVal);
 				}
 				Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, metrickey);
-				metrics.add(metric);
+				responseMetrics.add(metric);
 			}
-			metricWriteHelper.transformAndPrintMetrics(metrics);
+			metricWriteHelper.transformAndPrintMetrics(responseMetrics);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new TaskExecutionException(e);

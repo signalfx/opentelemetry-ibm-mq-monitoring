@@ -16,19 +16,13 @@
 
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
-import com.appdynamics.extensions.webspheremq.config.QueueManager;
-import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,35 +35,36 @@ import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
 /**
  * This class is responsible for channel metric collection.
  */
-public final class ChannelMetricsCollector extends MetricsCollector {
+public final class ChannelMetricsCollector implements MetricsPublisher {
 
 	public static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
-	private static final String ARTIFACT = "Channels";
+	public static final String ARTIFACT = "Channels";
 	private final MetricCreator metricCreator;
+	private final MetricsCollectorContext context;
 
 	/*
 	 * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
 	 */
-	public ChannelMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, MetricCreator metricCreator) {
-		super(metricsToReport, monitorContextConfig, agent, metricWriteHelper, queueManager, null, ARTIFACT);
-        this.metricCreator = metricCreator;
+	public ChannelMetricsCollector(MetricsCollectorContext context, MetricCreator metricCreator) {
+        this.context = context;
+		this.metricCreator = metricCreator;
     }
 
 	@Override
 	public void publishMetrics() throws TaskExecutionException {
 		long entryTime = System.currentTimeMillis();
 
-		if (getMetricsToReport() == null || getMetricsToReport().isEmpty()) {
+		if (context.hasNoMetricsToReport()) {
 			logger.debug("Channel metrics to report from the config is null or empty, nothing to publish");
 			return;
 		}
 
-		int[] attrs = getIntAttributesArray(CMQCFC.MQCACH_CHANNEL_NAME, CMQCFC.MQCACH_CONNECTION_NAME);
+		int[] attrs = context.buildIntAttributesArray(CMQCFC.MQCACH_CHANNEL_NAME, CMQCFC.MQCACH_CONNECTION_NAME);
 		if (logger.isDebugEnabled()) {
             logger.debug("Attributes being sent along PCF agent request to query channel metrics: {}", Arrays.toString(attrs));
 		}
 
-		Set<String> channelGenericNames = this.queueManager.getChannelFilters().getInclude();
+		Set<String> channelGenericNames = context.getChannelIncludeFilterNames();
 
 		//
  		// The MQCMD_INQUIRE_CHANNEL_STATUS command queries the current operational status of channels.
@@ -84,7 +79,7 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 			try {
 				logger.debug("sending PCF agent request to query metrics for generic channel {}", channelGenericName);
 				long startTime = System.currentTimeMillis();
-				PCFMessage[] response = agent.send(request);
+				PCFMessage[] response = context.send(request);
 				long endTime = System.currentTimeMillis() - startTime;
 				logger.debug("PCF agent queue metrics query response for generic queue {} received in {} milliseconds", channelGenericName, endTime);
 				if (response == null || response.length <= 0) {
@@ -93,22 +88,19 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 				}
                 for (PCFMessage pcfMessage : response) {
                     String channelName = pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
-                    Set<ExcludeFilters> excludeFilters = this.queueManager.getChannelFilters().getExclude();
+                    Set<ExcludeFilters> excludeFilters = context.getChannelExcludeFilterNames();
                     if (!ExcludeFilters.isExcluded(channelName, excludeFilters)) { //check for exclude filters
                         logger.debug("Pulling out metrics for channel name {}", channelName);
-                        Iterator<String> itr = getMetricsToReport().keySet().iterator();
-                        List<Metric> metrics = Lists.newArrayList();
-                        while (itr.hasNext()) {
-                            String metrickey = itr.next();
-                            WMQMetricOverride wmqOverride = getMetricsToReport().get(metrickey);
-                            int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                            Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, getArtifact(), channelName, metrickey);
-                            metrics.add(metric);
-                            if ("Status".equals(metrickey) && metricVal == 3) {
-                                activeChannels.add(channelName);
-                            }
-                        }
-						metricWriteHelper.transformAndPrintMetrics(metrics);
+						List<Metric> responseMetrics = Lists.newArrayList();
+						context.forEachMetric((metrickey,wmqOverride) -> {
+							int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
+							Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, channelName, metrickey);
+							responseMetrics.add(metric);
+							if ("Status".equals(metrickey) && metricVal == 3) {
+								activeChannels.add(channelName);
+							}
+						});
+						context.transformAndPrintMetrics(responseMetrics);
 					} else {
                         logger.debug("Channel name {} is excluded.", channelName);
                     }
@@ -128,9 +120,9 @@ public final class ChannelMetricsCollector extends MetricsCollector {
 			}
 		}
 
-		logger.info("Active Channels in queueManager {} are {}", WMQUtil.getQueueManagerNameFromConfig(queueManager), activeChannels);
-		Metric activeChannelsCountMetric = metricCreator.createMetric("ActiveChannelsCount", activeChannels.size(), null, getArtifact(), "ActiveChannelsCount");
-		metricWriteHelper.transformAndPrintMetrics(Collections.singletonList(activeChannelsCountMetric));
+		logger.info("Active Channels in queueManager {} are {}", context.getQueueManagerName(), activeChannels);
+		Metric activeChannelsCountMetric = metricCreator.createMetric("ActiveChannelsCount", activeChannels.size(), null, "ActiveChannelsCount");
+		context.transformAndPrintMetric(activeChannelsCountMetric);
 
 		long exitTime = System.currentTimeMillis() - entryTime;
 		logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
