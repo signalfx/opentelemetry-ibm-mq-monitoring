@@ -2,7 +2,7 @@
 FROM icr.io/ibm-messaging/mq:latest
 
 # Copy custom configs (if any)
-COPY config.mqsc /etc/mqm/
+COPY docker/config.mqsc /etc/mqm/
 
 # Set env vars (customize as needed)
 ENV MQ_QMGR_NAME=QM1
