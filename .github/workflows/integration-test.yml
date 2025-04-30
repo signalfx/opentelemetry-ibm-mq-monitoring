@@ -2,72 +2,58 @@ name: Run MQ Integration Tests
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
-    branches: [main]
+    branches: [ main ]
 
 jobs:
-  integration-test:
+  test:
     runs-on: ubuntu-latest
-
     services:
-      mq:
-        image: ibmcom/mq:9.3.4.0
-        # image: icr.io/ibm-messaging/mq:latest
+      ibm-mq:
+        image: icr.io/ibm-messaging/mq:9.3.4.0-r1-amd64
         ports:
           - 1414:1414
           - 9443:9443
         env:
           LICENSE: accept
-          MQ_QMGR: QM1
           MQ_QMGR_NAME: QM1
-          MQ_APP_PASSWORD: passw0rd
+          MQ_ADMIN_PASSWORD: passw0rd
+          MQ_ENABLE_METRICS: true
         options: >-
-          --name mqtest
-          --platform linux/amd64
-          --env LICENSE=accept
-          --env MQ_QMGR_NAME=QM1
-          --env MQ_APP_PASSWORD=passw0rd
-          --env MQ_APP_USER=app
-          --env MQ_ENABLE_METRICS=true
-          --health-cmd="echo 'SET' | /opt/mqm/bin/runmqsc QM1"
+          --name ibm-mq-test
+          --health-cmd "echo > /dev/tcp/localhost/1414"
           --health-interval=10s
-          --health-timeout=20s
+          --health-timeout=5s
           --health-retries=5
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '11'
 
-      - name: Wait for MQ to be Healthy
+      - name: Wait for MQ to be ready
         run: |
-          echo "Waiting for MQ container to be healthy..."
+          echo "Waiting for MQ to start..."
           for i in {1..30}; do
-            STATUS=$(docker inspect -f '{{.State.Health.Status}}' mqtest)
-            echo "Current status: $STATUS"
-            if [ "$STATUS" == "healthy" ]; then
-              echo "MQ is healthy."
-              break
-            fi
+            docker exec ibm-mq-test dspmq | grep -q "Running" && break
             sleep 5
           done
+          docker exec ibm-mq-test dspmq
 
-#      - name: Wait for MQ to become healthy
-#        run: |
-#          for i in {1..30}; do
-#            if docker inspect --format='{{.State.Health.Status}}' mqtest | grep -q "healthy"; then
-#              echo "MQ is healthy!"
-#              break
-#            fi
-#            echo "Waiting for MQ to be healthy..."
-#            sleep 10
-#          done
+      - name: Run Integration Tests
+        run: |
+          echo "Run your tests here"
+          # For example:
+          # ./gradlew integrationTest or mvn verify
 
-      - name: Run integration tests
-        run: mvn verify
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '11'
