@@ -48,11 +48,6 @@ jobs:
 
       - name: Run Integration Tests
         run: |
-          echo "Running -P"
-          # ./gradlew integrationTest or mvn verify
+          echo "Running integration tests"
+          ./mvnw verify
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '11'
