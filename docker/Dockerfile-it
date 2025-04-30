@@ -7,6 +7,7 @@ COPY docker/config.mqsc /etc/mqm/
 # Set env vars (customize as needed)
 ENV LICENSE=accept
 ENV MQ_QMGR_NAME=QM1
+ENV MQ_ADMIN_PASSWORD=admin
 ENV MQ_ADMIN_PASSWORD=passw0rd
 
 # Expose ports (1414=MQ, 9443=Console)
@@ -16,4 +17,6 @@ EXPOSE 1414 9443
 RUN crtmqm QM1
 RUN strmqm QM1
 RUN dspmq
+RUN echo "Inspecting /etc/mqm" && ls -alh /etc/mqm
+
 # RUN if [ -f /etc/mqm/config.mqsc ]; then runmqsc QM1 < /etc/mqm/config.mqsc; fi
