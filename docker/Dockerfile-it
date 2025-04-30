@@ -5,6 +5,7 @@ FROM icr.io/ibm-messaging/mq:latest
 COPY docker/config.mqsc /etc/mqm/
 
 # Set env vars (customize as needed)
+ENV LICENSE=accept
 ENV MQ_QMGR_NAME=QM1
 ENV MQ_ADMIN_PASSWORD=passw0rd
 
@@ -12,4 +13,7 @@ ENV MQ_ADMIN_PASSWORD=passw0rd
 EXPOSE 1414 9443
 
 # Apply MQ config (if config.mqsc exists)
-RUN if [ -f /etc/mqm/config.mqsc ]; then runmqsc QM1 < /etc/mqm/config.mqsc; fi
+RUN crtmqm QM1
+RUN strmqm QM1
+RUN dspmq
+# RUN if [ -f /etc/mqm/config.mqsc ]; then runmqsc QM1 < /etc/mqm/config.mqsc; fi
