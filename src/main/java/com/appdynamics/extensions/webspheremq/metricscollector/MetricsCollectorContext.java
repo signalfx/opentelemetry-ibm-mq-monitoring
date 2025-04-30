@@ -51,8 +51,16 @@ public final class MetricsCollectorContext {
         return queueManager.getChannelFilters().getInclude();
     }
 
+    public Set<String> getTopicIncludeFilterNames() {
+        return queueManager.getTopicFilters().getInclude();
+    }
+
     public Set<ExcludeFilters> getChannelExcludeFilterNames() {
         return queueManager.getChannelFilters().getExclude();
+    }
+
+    public Set<ExcludeFilters> getTopicExcludeFilterNames() {
+        return queueManager.getTopicFilters().getExclude();
     }
 
     public PCFMessage[] send(PCFMessage request) throws IOException, MQDataException {
