@@ -52,6 +52,7 @@ import java.util.stream.Stream;
 
 import static com.appdynamics.extensions.webspheremq.metricscollector.MetricAssert.assertThatMetric;
 import static com.appdynamics.extensions.webspheremq.metricscollector.MetricPropertiesAssert.metricPropertiesMatching;
+import static com.appdynamics.extensions.webspheremq.metricscollector.MetricPropertiesAssert.standardPropsForAlias;
 import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
 import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -167,14 +168,6 @@ class ChannelMetricsCollectorTest {
                 .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|DEV." + component + ".SVRCONN|ByteReceived")
                 .hasValue("5772")
                 .withPropertiesMatching(standardPropsForAlias("Byte Received"));
-    }
-
-    Function<MetricProperties, MetricPropertiesAssert> standardPropsForAlias(String alias) {
-        return mp -> metricPropertiesMatching(mp)
-                .alias(alias)
-                .multiplier(BigDecimal.ONE)
-                .aggregationType("AVERAGE").timeRollup("AVERAGE").clusterRollUp("INDIVIDUAL")
-                .delta(false);
     }
 
     /*

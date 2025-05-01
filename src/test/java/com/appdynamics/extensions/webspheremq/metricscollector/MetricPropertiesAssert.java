@@ -3,6 +3,7 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 import com.appdynamics.extensions.metrics.MetricProperties;
 
 import java.math.BigDecimal;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,4 +43,13 @@ public class MetricPropertiesAssert {
         assertThat(metricProperties.getDelta()).isEqualTo(delta);
         return this;
     }
+
+    public static Function<MetricProperties, MetricPropertiesAssert> standardPropsForAlias(String alias) {
+        return mp -> metricPropertiesMatching(mp)
+                .alias(alias)
+                .multiplier(BigDecimal.ONE)
+                .aggregationType("AVERAGE").timeRollup("AVERAGE").clusterRollUp("INDIVIDUAL")
+                .delta(false);
+    }
+
 }
