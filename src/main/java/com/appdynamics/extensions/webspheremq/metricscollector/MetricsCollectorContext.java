@@ -60,10 +60,6 @@ public final class MetricsCollectorContext {
     }
 
     Set<ExcludeFilters> getChannelExcludeFilters() {
-        return queueManager.getTopicFilters().getInclude();
-    }
-
-    public Set<ExcludeFilters> getChannelExcludeFilterNames() {
         return queueManager.getChannelFilters().getExclude();
     }
 
@@ -84,11 +80,6 @@ public final class MetricsCollectorContext {
     }
 
     PCFMessage[] send(PCFMessage request) throws IOException, MQDataException {
-    public Set<ExcludeFilters> getTopicExcludeFilterNames() {
-        return queueManager.getTopicFilters().getExclude();
-    }
-
-    public PCFMessage[] send(PCFMessage request) throws IOException, MQDataException {
         return agent.send(request);
     }
 
