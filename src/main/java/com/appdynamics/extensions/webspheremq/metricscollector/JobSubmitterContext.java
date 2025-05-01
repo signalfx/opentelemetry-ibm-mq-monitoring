@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
  * to bundle together collaborators and to encapsulate some common repeated
  * functionality.
  */
-public class JobSubmitterContext {
+final public class JobSubmitterContext {
 
     private final MonitorContextConfiguration monitorContextConfig;
     private final CountDownLatch countDownLatch;
