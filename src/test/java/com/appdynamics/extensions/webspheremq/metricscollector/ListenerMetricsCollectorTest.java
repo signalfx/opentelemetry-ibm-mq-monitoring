@@ -26,7 +26,6 @@ import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
@@ -40,8 +39,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 
+import static com.appdynamics.extensions.webspheremq.metricscollector.MetricAssert.assertThatMetric;
+import static com.appdynamics.extensions.webspheremq.metricscollector.MetricPropertiesAssert.standardPropsForAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -77,37 +77,30 @@ class ListenerMetricsCollectorTest {
     }
 
     @Test
-    public void testpublishMetrics() throws Exception {
-        CountDownLatch latch = mock(CountDownLatch.class);
+    public void testPublishMetrics() throws Exception {
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireListenerStatusCmd());
-        classUnderTest = new ListenerMetricsCollector(listenerMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper, latch, metricCreator);
+        IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(listenerMetricsToReport);
+        MetricsCollectorContext context = new MetricsCollectorContext(listenerMetricsToReport, attributesBuilder, queueManager, pcfMessageAgent, metricWriteHelper);
+        classUnderTest = new ListenerMetricsCollector(context, metricCreator);
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
-        List<String> metricPathsList = Lists.newArrayList();
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Listeners|DEV.DEFAULT.LISTENER.TCP|Status");
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Listeners|DEV.LISTENER.TCP|Status");
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Listeners|SYSTEM.DEFAULT.LISTENER.TCP|Status");
 
         List<List<Metric>> allValues = pathCaptor.getAllValues();
         assertThat(allValues).hasSize(2);
         assertThat(allValues.get(0)).hasSize(1);
         assertThat(allValues.get(1)).hasSize(1);
-        for (List<Metric> metricList : allValues) {
-            /* TODO: Note -- the list could be the right size but the data inside completely borked
-               and this poorly written test would still pass. Please fix some day. */
-            for (Metric metric : metricList) {
-                if (metricPathsList.contains(metric.getMetricPath())) {
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Listeners|DEV.DEFAULT.LISTENER.TCP|Status")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("2");
-                        assertThat(metric.getMetricValue()).isNotEqualTo("10");
-                    }
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Listeners|DEV.LISTENER.TCP|Status")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("3");
-                    }
-                }
-            }
-        }
+
+        assertThatMetric(allValues.get(0).get(0))
+                .hasName("Status")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Listeners|DEV.DEFAULT.LISTENER.TCP|Status")
+                .hasValue("2")
+                .withPropertiesMatching(standardPropsForAlias("Status"));
+
+        assertThatMetric(allValues.get(1).get(0))
+                .hasName("Status")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Listeners|DEV.LISTENER.TCP|Status")
+                .hasValue("3")
+                .withPropertiesMatching(standardPropsForAlias("Status"));
     }
 
     /*

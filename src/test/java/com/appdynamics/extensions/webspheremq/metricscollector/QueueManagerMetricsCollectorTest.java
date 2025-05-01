@@ -66,6 +66,7 @@ class QueueManagerMetricsCollectorTest {
     QueueManager queueManager;
     ArgumentCaptor<List> pathCaptor;
     MetricCreator metricCreator;
+    MetricsCollectorContext context;
 
     @BeforeEach
     public void setup() {
@@ -78,14 +79,14 @@ class QueueManagerMetricsCollectorTest {
         queueMgrMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER);
         pathCaptor = ArgumentCaptor.forClass(List.class);
         metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager);
+        context = new MetricsCollectorContext(queueMgrMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
     }
 
     @Test
     public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
         CountDownLatch latch = mock(CountDownLatch.class);
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireQMgrStatusCmd());
-        classUnderTest = new QueueManagerMetricsCollector(queueMgrMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper, latch, metricCreator);
+        classUnderTest = new QueueManagerMetricsCollector(context, metricCreator);
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();
@@ -156,8 +157,7 @@ class QueueManagerMetricsCollectorTest {
     public void testDisplayName() throws Exception {
         CountDownLatch latch = mock(CountDownLatch.class);
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireQMgrStatusCmd());
-        classUnderTest = new QueueManagerMetricsCollector(queueMgrMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper, latch, metricCreator);
+        classUnderTest = new QueueManagerMetricsCollector(context, metricCreator);
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();

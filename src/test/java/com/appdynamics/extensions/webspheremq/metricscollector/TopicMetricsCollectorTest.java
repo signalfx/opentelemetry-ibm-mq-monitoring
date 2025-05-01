@@ -20,6 +20,7 @@ import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
+import com.appdynamics.extensions.metrics.MetricProperties;
 import com.appdynamics.extensions.util.PathResolver;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
@@ -40,10 +41,15 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.function.Function;
 
+import static com.appdynamics.extensions.webspheremq.metricscollector.MetricAssert.assertThatMetric;
+import static com.appdynamics.extensions.webspheremq.metricscollector.MetricPropertiesAssert.metricPropertiesMatching;
+import static com.appdynamics.extensions.webspheremq.metricscollector.MetricPropertiesAssert.standardPropsForAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -78,9 +84,13 @@ public class TopicMetricsCollectorTest {
     }
 
     @Test
-    void testpublishMetrics() throws Exception {
+    void testPublishMetrics() throws Exception {
+        MetricsCollectorContext collectorContext = new MetricsCollectorContext(topicMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
+        JobSubmitterContext jobContext = new JobSubmitterContext(monitorContextConfig, mock(CountDownLatch.class), collectorContext);
+        classUnderTest = new TopicMetricsCollector(topicMetricsToReport, jobContext);
+
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireTopicStatusCmd());
-        classUnderTest = new TopicMetricsCollector(topicMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();
@@ -93,21 +103,29 @@ public class TopicMetricsCollectorTest {
         assertThat(allValues.get(0)).hasSize(2);
         assertThat(allValues.get(1)).hasSize(2);
 
-        for (List<Metric> metricList : allValues) {
-            /* TODO: Note -- the list could be the right size but the data inside completely borked
-               and this poorly written test would still pass. Please fix some day. */
-            for (Metric metric : metricList) {
-                if (metricPathsList.contains(metric.getMetricPath())) {
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|test|PublishCount")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("2");
-                        assertThat(metric.getMetricValue()).isNotEqualTo("10");
-                    }
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|dev|SubscriptionCount")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("4");
-                    }
-                }
-            }
-        }
+        assertThatMetric(allValues.get(0).get(0))
+                .hasName("SubscriptionCount")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Topics|test|SubscriptionCount")
+                .hasValue("3")
+                .withPropertiesMatching(standardPropsForAlias("Subscription Count"));
+
+        assertThatMetric(allValues.get(0).get(1))
+                .hasName("PublishCount")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Topics|test|PublishCount")
+                .hasValue("2")
+                .withPropertiesMatching(standardPropsForAlias("Publish Count"));
+
+        assertThatMetric(allValues.get(1).get(0))
+                .hasName("SubscriptionCount")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Topics|dev|SubscriptionCount")
+                .hasValue("4")
+                .withPropertiesMatching(standardPropsForAlias("Subscription Count"));
+
+        assertThatMetric(allValues.get(1).get(1))
+                .hasName("PublishCount")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Topics|dev|PublishCount")
+                .hasValue("3")
+                .withPropertiesMatching(standardPropsForAlias("Publish Count"));
     }
 
     private PCFMessage[] createPCFResponseForInquireTopicStatusCmd() {

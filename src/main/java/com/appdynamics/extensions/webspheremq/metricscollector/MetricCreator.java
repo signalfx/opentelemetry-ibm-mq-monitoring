@@ -9,22 +9,25 @@ import javax.annotation.Nullable;
 public final class MetricCreator {
 
     private final String metricPrefix;
-    private final QueueManager queueManager;
+    private final String queueManagerName;
     @Nullable
     private final String firstPathComponent;
 
     public MetricCreator(String metricPrefix, QueueManager queueManager) {
-        this(metricPrefix, queueManager, null);
+        this(metricPrefix, WMQUtil.getQueueManagerNameFromConfig(queueManager), null);
     }
 
     public MetricCreator(String metricPrefix, QueueManager queueManager, @Nullable String firstPathComponent) {
+        this(metricPrefix, WMQUtil.getQueueManagerNameFromConfig(queueManager), firstPathComponent);
+    }
+
+    public MetricCreator(String metricPrefix, String queueManagerName, @Nullable String firstPathComponent) {
         this.metricPrefix = metricPrefix;
-        this.queueManager = queueManager;
+        this.queueManagerName = queueManagerName;
         this.firstPathComponent = firstPathComponent;
     }
 
     Metric createMetric(String metricName, int metricValue, WMQMetricOverride wmqOverride, String... pathElements) {
-        String queueManagerName = WMQUtil.getQueueManagerNameFromConfig(queueManager);
         String metricPath = getMetricsName(queueManagerName, pathElements);
         if (wmqOverride != null && wmqOverride.getMetricProperties() != null) {
             return new Metric(metricName, String.valueOf(metricValue), metricPath, wmqOverride.getMetricProperties());

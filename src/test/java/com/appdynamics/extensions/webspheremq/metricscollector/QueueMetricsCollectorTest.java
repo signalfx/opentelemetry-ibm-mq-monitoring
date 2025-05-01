@@ -26,7 +26,6 @@ import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
@@ -43,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+import static com.appdynamics.extensions.webspheremq.metricscollector.MetricAssert.assertThatMetric;
+import static com.appdynamics.extensions.webspheremq.metricscollector.MetricPropertiesAssert.standardPropsForAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -95,28 +96,47 @@ public class QueueMetricsCollectorTest {
         classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_INQUIRE_Q_STATUS");
 
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
-        List<String> metricPathsList = Lists.newArrayList();
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.QUEUE.1|UncommittedMsgs");
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|OldestMsgAge");
 
         List<List<Metric>> allValues = pathCaptor.getAllValues();
         assertThat(allValues).hasSize(2);
         assertThat(allValues.get(0)).hasSize(5);
         assertThat(allValues.get(1)).hasSize(5);
-        for (List<Metric> metricList : allValues) {
-            /* TODO: Note -- the list could be the right size but the data inside completely borked
-               and this poorly written test would still pass. Please fix some day. */
-            for (Metric metric : metricList) {
-                if (metricPathsList.contains(metric.getMetricPath())) {
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.QUEUE.1|UncommittedMsgs")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("10");
-                    }
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|OldestMsgAge")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("-1");
-                    }
-                }
-            }
-        }
+
+        verifyStatusRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", List.of(0, -1, -1, -1, 0));
+        verifyStatusRow(allValues.get(1), "DEV.QUEUE.1", List.of(1, -1, -1, -1, 10));
+    }
+
+    private static void verifyStatusRow(List<Metric> metrics, String component,
+                                        List<Integer> values) {
+        assertThatMetric(metrics.get(0))
+                .hasName("CurrentQueueDepth")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|" + component + "|local-transmission|CurrentQueueDepth")
+                .hasValue(String.valueOf(values.get(0)))
+                .withPropertiesMatching(standardPropsForAlias("Current Queue Depth"));
+
+        assertThatMetric(metrics.get(1))
+                .hasName("OnQTime_1")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|" + component + "|OnQTime_1")
+                .hasValue(String.valueOf(values.get(1)))
+                .withPropertiesMatching(standardPropsForAlias("OnQTime"));
+
+        assertThatMetric(metrics.get(2))
+                .hasName("OnQTime_2")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|" + component + "|OnQTime_2")
+                .hasValue(String.valueOf(values.get(2)))
+                .withPropertiesMatching(standardPropsForAlias("OnQTime"));
+
+        assertThatMetric(metrics.get(3))
+                .hasName("OldestMsgAge")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|" + component + "|local-transmission|OldestMsgAge")
+                .hasValue(String.valueOf(values.get(3)))
+                .withPropertiesMatching(standardPropsForAlias("OldestMsgAge"));
+
+        assertThatMetric(metrics.get(4))
+                .hasName("UncommittedMsgs")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|" + component + "|local-transmission|UncommittedMsgs")
+                .hasValue(String.valueOf(values.get(4)))
+                .withPropertiesMatching(standardPropsForAlias("UncommittedMsgs"));
     }
 
     @Test
@@ -128,34 +148,43 @@ public class QueueMetricsCollectorTest {
         classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_INQUIRE_Q");
 
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
-        List<String> metricPathsList = Lists.newArrayList();
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.QUEUE.1|local-transmission|CurrentQueueDepth");
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|CurrentQueueDepth");
 
         List<List<Metric>> allValues = pathCaptor.getAllValues();
         assertThat(allValues).hasSize(2);
         assertThat(allValues.get(0)).hasSize(4);
         assertThat(allValues.get(1)).hasSize(4);
-        int assertionCount = 0;
-        for (List<Metric> metricList : allValues) {
-            /* TODO: Note -- the list could be the right size but the data inside completely borked
-               and this poorly written test would still pass. Please fix some day. */
-            for (Metric metric : metricList) {
-                if (metricPathsList.contains(metric.getMetricPath())) {
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.QUEUE.1|local-transmission|CurrentQueueDepth")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("3");
-                        assertionCount++;
-                    }
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|CurrentQueueDepth")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("2");
-                        assertionCount++;
-                    }
-                }
-            }
-        }
-        // Maybe one day this would be 8...
-        assertThat(assertionCount).isEqualTo(2);
+
+        verifyQRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", List.of(5000, 2, 2, 2));
+        verifyQRow(allValues.get(1), "DEV.QUEUE.1", List.of(5000, 3, 3, 3));
     }
+
+    private static void verifyQRow(List<Metric> metrics, String component,
+                                        List<Integer> values) {
+        assertThatMetric(metrics.get(0))
+                .hasName("MaxQueueDepth")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|" + component + "|local-transmission|MaxQueueDepth")
+                .hasValue(String.valueOf(values.get(0)))
+                .withPropertiesMatching(standardPropsForAlias("Max Queue Depth"));
+
+        assertThatMetric(metrics.get(1))
+                .hasName("CurrentQueueDepth")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|" + component + "|local-transmission|CurrentQueueDepth")
+                .hasValue(String.valueOf(values.get(1)))
+                .withPropertiesMatching(standardPropsForAlias("Current Queue Depth"));
+
+        assertThatMetric(metrics.get(2))
+                .hasName("OpenInputCount")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|" + component + "|local-transmission|OpenInputCount")
+                .hasValue(String.valueOf(values.get(2)))
+                .withPropertiesMatching(standardPropsForAlias("Open Input Count"));
+
+        assertThatMetric(metrics.get(3))
+                .hasName("OpenOutputCount")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|" + component + "|local-transmission|OpenOutputCount")
+                .hasValue(String.valueOf(values.get(3)))
+                .withPropertiesMatching(standardPropsForAlias("Open Output Count"));
+    }
+
 
     @Test
     void testProcessPCFRequestAndPublishQMetricsForResetQStatsCmd() throws Exception {
@@ -170,29 +199,29 @@ public class QueueMetricsCollectorTest {
         classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_RESET_Q_STATS");
 
         verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
-        List<String> metricPathsList = Lists.newArrayList();
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|HighQDepth");
-        metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|MsgEnqCount");
 
         List<List<Metric>> allValues = pathCaptor.getAllValues();
         assertThat(allValues).hasSize(1);
         assertThat(allValues.get(0)).hasSize(3);
-        for (List<Metric> metricList : allValues) {
-            /* TODO: Note -- the list could be the right size but the data inside completely borked
-               and this poorly written test would still pass. Please fix some day. */
-            for (Metric metric : metricList) {
-                if (metricPathsList.contains(metric.getMetricPath())) {
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|HighQDepth")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("10");
-                    }
-                    if (metric.getMetricPath().equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|MsgEnqCount")) {
-                        assertThat(metric.getMetricValue()).isEqualTo("3");
-                    }
-                }
-            }
-        }
-    }
 
+        assertThatMetric(allValues.get(0).get(0))
+                .hasName("HighQDepth")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|HighQDepth")
+                .hasValue("10")
+                .withPropertiesMatching(standardPropsForAlias("HighQDepth"));
+
+        assertThatMetric(allValues.get(0).get(1))
+                .hasName("MsgDeqCount")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|MsgDeqCount")
+                .hasValue("0")
+                .withPropertiesMatching(standardPropsForAlias("MsgDeqCount"));
+
+        assertThatMetric(allValues.get(0).get(2))
+                .hasName("MsgEnqCount")
+                .hasPath("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|MsgEnqCount")
+                .hasValue("3")
+                .withPropertiesMatching(standardPropsForAlias("MsgEnqCount"));
+    }
 
     /*
         PCFMessage:
@@ -366,8 +395,6 @@ public class QueueMetricsCollectorTest {
         response1.addParameter(CMQC.MQIA_HIGH_Q_DEPTH, 10);
         response1.addParameter(CMQC.MQIA_TIME_SINCE_RESET, 65);
 
-        PCFMessage [] messages = { response1 };
-        return messages;
+        return new PCFMessage[]{ response1 };
     }
-
 }

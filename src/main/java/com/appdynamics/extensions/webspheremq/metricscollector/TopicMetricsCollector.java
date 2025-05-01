@@ -16,54 +16,50 @@
 
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Iterator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
-public class TopicMetricsCollector extends MetricsCollector {
+import static java.util.Collections.emptyMap;
+
+public class TopicMetricsCollector implements MetricsPublisher {
     private static final Logger logger = LoggerFactory.getLogger(TopicMetricsCollector.class);
     private final Map<String, WMQMetricOverride> metrics;
+    private final JobSubmitterContext context;
 
-    public TopicMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch) {
-        super(monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
+    public TopicMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, JobSubmitterContext context) {
         this.metrics = metricsToReport;
+        this.context = context;
     }
 
     @Override
     public void publishMetrics() throws TaskExecutionException {
         logger.info("Collecting Topic metrics...");
-        List<Future> futures = Lists.newArrayList();
+        List<Future<?>> futures = Lists.newArrayList();
 
         //  to query the current status of topics, which is essential for monitoring and managing the publish/subscribe environment in IBM MQ.
         Map<String, WMQMetricOverride> metricsForInquireTStatusCmd = getMetricsToReport(InquireTStatusCmdCollector.COMMAND);
         if (!metricsForInquireTStatusCmd.isEmpty()) {
-            MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, InquireTStatusCmdCollector.ARTIFACT);
-            IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(metricsForInquireTStatusCmd);
-            MetricsCollectorContext context = new MetricsCollectorContext(metricsForInquireTStatusCmd, attributesBuilder, queueManager, agent, metricWriteHelper);
-            InquireTStatusCmdCollector metricsPublisher = new InquireTStatusCmdCollector(context, metricCreator);
-            MetricsPublisherJob job = new MetricsPublisherJob(metricsPublisher, countDownLatch);
-            futures.add(monitorContextConfig.getContext().getExecutorService()
-                    .submit("Topic Status Cmd Collector", job));
+            MetricCreator metricCreator = context.newMetricCreator(InquireTStatusCmdCollector.ARTIFACT);
+            MetricsCollectorContext collectorContext = context.newCollectorContext(metricsForInquireTStatusCmd);
+            InquireTStatusCmdCollector metricsPublisher = new InquireTStatusCmdCollector(collectorContext, metricCreator);
+            futures.add(context.submitPublishJob("Topic Status Cmd Collector", metricsPublisher));
         }
-        for (Future f : futures) {
+        for (Future<?> future : futures) {
             try {
-                long timeout = 20;
-                if (monitorContextConfig.getConfigYml().get("topicMetricsCollectionTimeoutInSeconds") != null) {
-                    timeout = (Integer) monitorContextConfig.getConfigYml().get("topicMetricsCollectionTimeoutInSeconds");
-                }
-                f.get(timeout, TimeUnit.SECONDS);
+                int timeout = context.getConfigInt("topicMetricsCollectionTimeoutInSeconds", 20);
+                future.get(timeout, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 logger.error("The thread was interrupted ", e);
             } catch (ExecutionException e) {
@@ -75,19 +71,15 @@ public class TopicMetricsCollector extends MetricsCollector {
     }
 
     private Map<String, WMQMetricOverride> getMetricsToReport(String command) {
-        Map<String, WMQMetricOverride> commandMetrics = Maps.newHashMap();
         if (metrics == null || metrics.isEmpty()) {
             logger.debug("There are no metrics configured for {}", command);
-            return commandMetrics;
+            return emptyMap();
         }
-        Iterator<String> itr = metrics.keySet().iterator();
-        while (itr.hasNext()) {
-            String metricKey = itr.next();
-            WMQMetricOverride wmqOverride = metrics.get(metricKey);
-            if (wmqOverride.getIbmCommand().equalsIgnoreCase(command)) {
-                commandMetrics.put(metricKey, wmqOverride);
-            }
-        }
-        return commandMetrics;
+        return metrics.entrySet().stream()
+                .filter(entry ->
+                        entry.getValue().getIbmCommand().equalsIgnoreCase(command))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> y, HashMap::new));
     }
 }

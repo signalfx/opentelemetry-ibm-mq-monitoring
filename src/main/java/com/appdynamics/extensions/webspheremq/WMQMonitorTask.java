@@ -140,9 +140,11 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 				metricsByCommand.putIfAbsent(cmd, new HashMap<>());
 				metricsByCommand.get(cmd).put(key, wmqOverride);
 			}
-			if (metricsByCommand.get("MQCMD_INQUIRE_Q_MGR_STATUS") != null) {
+			Map<String, WMQMetricOverride> queueManagerMetricsToReport = metricsByCommand.get("MQCMD_INQUIRE_Q_MGR_STATUS");
+			if (queueManagerMetricsToReport != null) {
 				MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager);
-				MetricsCollector qMgrMetricsCollector = new QueueManagerMetricsCollector(metricsByCommand.get("MQCMD_INQUIRE_Q_MGR_STATUS"), this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch, metricCreator);
+				MetricsCollectorContext context = new MetricsCollectorContext(queueManagerMetricsToReport, queueManager, agent, metricWriteHelper);
+				MetricsPublisher qMgrMetricsCollector = new QueueManagerMetricsCollector(context, metricCreator);
                 Runnable job = new MetricsPublisherJob(qMgrMetricsCollector, countDownLatch);
                 monitorContextConfig.getContext().getExecutorService().execute("QueueManagerMetricsCollector", job);
 			}
@@ -168,8 +170,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 			if (metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS") != null) {
 				Map<String, WMQMetricOverride> metricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS");
 				MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, ChannelMetricsCollector.ARTIFACT);
-				IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(metricsToReport);
-				MetricsCollectorContext context = new MetricsCollectorContext(metricsToReport, attributesBuilder, queueManager, agent, metricWriteHelper);
+				MetricsCollectorContext context = new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
 				MetricsPublisher channelMetricsCollector = new ChannelMetricsCollector(context, metricCreator);
 				Runnable job = new MetricsPublisherJob(channelMetricsCollector, countDownLatch);
 				monitorContextConfig.getContext().getExecutorService().execute("ChannelMetricsCollector", job);
@@ -177,8 +178,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 			if (metricsByCommand.get("MQCMD_INQUIRE_CHANNEL") != null) {
 				MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, InquireChannelCmdCollector.ARTIFACT);
 				Map<String, WMQMetricOverride> metricsToReport = metricsByCommand.get("MQCMD_INQUIRE_CHANNEL");
-				IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(metricsToReport);
-				MetricsCollectorContext context = new MetricsCollectorContext(metricsToReport, attributesBuilder, queueManager, agent, metricWriteHelper);
+				MetricsCollectorContext context = new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
 				MetricsPublisher inquireChannelMetricsCollector =
 						new InquireChannelCmdCollector(context, metricCreator);
 				Runnable job = new MetricsPublisherJob(inquireChannelMetricsCollector, countDownLatch);
@@ -205,7 +205,8 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		Map<String, WMQMetricOverride> listenerMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_LISTENER);
 		if (listenerMetricsToReport != null) {
 			MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, ListenerMetricsCollector.ARTIFACT);
-			MetricsCollector listenerMetricsCollector = new ListenerMetricsCollector(listenerMetricsToReport, this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch, metricCreator);
+			MetricsCollectorContext context = new MetricsCollectorContext(listenerMetricsToReport, queueManager, agent, metricWriteHelper);
+			MetricsPublisher listenerMetricsCollector = new ListenerMetricsCollector(context, metricCreator);
 			Runnable job = new MetricsPublisherJob(listenerMetricsCollector, countDownLatch);
 			monitorContextConfig.getContext().getExecutorService().execute("ListenerMetricsCollector", job);
 		} else {
@@ -214,7 +215,9 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
 		Map<String, WMQMetricOverride> topicMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_TOPIC);
 		if (topicMetricsToReport != null) {
-			MetricsCollector topicsMetricsCollector = new TopicMetricsCollector(topicMetricsToReport, this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch);
+			MetricsCollectorContext collectorContext = new MetricsCollectorContext(topicMetricsToReport, queueManager, agent, metricWriteHelper);
+			JobSubmitterContext jobSubmitterContext = new JobSubmitterContext(monitorContextConfig, countDownLatch, collectorContext);
+			MetricsPublisher topicsMetricsCollector = new TopicMetricsCollector(topicMetricsToReport, jobSubmitterContext);
 			Runnable job = new MetricsPublisherJob(topicsMetricsCollector, countDownLatch);
 			monitorContextConfig.getContext().getExecutorService().execute("TopicMetricsCollector", job);
 		} else {

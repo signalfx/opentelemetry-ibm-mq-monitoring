@@ -74,7 +74,7 @@ public class InquireChannelCmdCollector implements MetricsPublisher {
 				}
                 for (PCFMessage pcfMessage : response) {
                     String channelName = pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
-                    Set<ExcludeFilters> excludeFilters = context.getChannelExcludeFilterNames();
+                    Set<ExcludeFilters> excludeFilters = context.getChannelExcludeFilters();
                     if (!ExcludeFilters.isExcluded(channelName, excludeFilters)) { //check for exclude filters
                         logger.debug("Pulling out metrics for channel name {}", channelName);
 						List<Metric> responseMetrics = Lists.newArrayList();
