@@ -76,7 +76,7 @@ final public class QueueManagerMetricsCollector extends MetricsCollector {
 				WMQMetricOverride wmqOverride = metrics.get(metrickey);
 				int metricVal = responses[0].getIntParameterValue(wmqOverride.getConstantValue());
 				if (logger.isDebugEnabled()) {
-					logger.debug("Metric: " + metrickey + "=" + metricVal);
+                    logger.debug("Metric: {}={}", metrickey, metricVal);
 				}
 				Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, metrickey);
 				responseMetrics.add(metric);
