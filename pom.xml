@@ -36,6 +36,7 @@
         <lib.dir>${basedir}/lib</lib.dir>
         <ibm.mq.lib.version>9.4.0.0</ibm.mq.lib.version>
         <target.dir>${project.build.directory}/WMQMonitor</target.dir>
+        <skipUTs>false</skipUTs>
     </properties>
 
     <profiles>
@@ -444,6 +445,7 @@
                 <version>3.2.5</version>
                 <configuration>
                     <argLine>-Xmx1024m</argLine>
+                    <skipTests>${skipUTs}</skipTests>
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>

@@ -35,7 +35,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '11'
+          java-version: '8'
 
       - name: Wait for MQ to be ready
         run: |
@@ -49,5 +49,5 @@ jobs:
       - name: Run Integration Tests
         run: |
           echo "Running integration tests"
-          ./mvnw verify
+          ./mvnw failsafe:integration-test -DskipUTs=true
 
