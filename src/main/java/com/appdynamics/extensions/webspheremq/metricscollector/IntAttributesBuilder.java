@@ -2,7 +2,9 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -14,12 +16,12 @@ import java.util.Map;
 public final class IntAttributesBuilder {
     private final Collection<WMQMetricOverride> metrics;
 
-    public IntAttributesBuilder(Map<String, WMQMetricOverride> metrics) {
-        this(metrics.values());
+    public IntAttributesBuilder(@Nullable Map<String, WMQMetricOverride> metrics) {
+        this(metrics == null ? null : metrics.values());
     }
 
-    public IntAttributesBuilder(Collection<WMQMetricOverride> metrics) {
-        this.metrics = metrics;
+    public IntAttributesBuilder(@Nullable Collection<WMQMetricOverride> metrics) {
+        this.metrics = metrics == null ? Collections.emptySet() : metrics;
     }
 
     int[] buildIntAttributesArray(int... inputAttrs) {

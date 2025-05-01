@@ -18,7 +18,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
-import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
@@ -45,8 +44,8 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
     private final MetricsCollectorContext context;
 
     public InquireTStatusCmdCollector(MetricsCollectorContext context, MetricCreator metricCreator) {
-        this.metricCreator = metricCreator;
         this.context = context;
+        this.metricCreator = metricCreator;
     }
 
     @Override
@@ -59,7 +58,6 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
             return;
         }
         Set<String> topicGenericNames = context.getTopicIncludeFilterNames();
-        //
         //  to query the current status of topics, which is essential for monitoring and managing the publish/subscribe environment in IBM MQ.
         for (String topicGenericName : topicGenericNames) {
             // Request: https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ref.adm.doc/q088140_.htm
@@ -98,7 +96,7 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
 
         for (PCFMessage pcfMessage : response) {
             String topicString = pcfMessage.getStringParameterValue(CMQC.MQCA_TOPIC_STRING).trim();
-            Set<ExcludeFilters> excludeFilters = context.getTopicExcludeFilterNames();
+            Set<ExcludeFilters> excludeFilters = context.getTopicExcludeFilters();
             if (!ExcludeFilters.isExcluded(topicString, excludeFilters)) { //check for exclude filters
                 logger.debug("Pulling out metrics for topic name {} for command {}", topicString, command);
                 List<Metric> responseMetrics = extractMetrics(command, pcfMessage, topicString);

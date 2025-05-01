@@ -78,9 +78,13 @@ public class TopicMetricsCollectorTest {
     }
 
     @Test
-    void testpublishMetrics() throws Exception {
+    void testPublishMetrics() throws Exception {
+        MetricsCollectorContext collectorContext = new MetricsCollectorContext(topicMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
+        JobSubmitterContext jobContext = new JobSubmitterContext(monitorContextConfig, mock(CountDownLatch.class), collectorContext);
+        classUnderTest = new TopicMetricsCollector(topicMetricsToReport, jobContext);
+
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireTopicStatusCmd());
-        classUnderTest = new TopicMetricsCollector(topicMetricsToReport, monitorContextConfig, pcfMessageAgent, queueManager, metricWriteHelper, Mockito.mock(CountDownLatch.class));
+
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();

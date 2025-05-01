@@ -15,6 +15,7 @@ import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.Future;
 
 /**
  * A temporary bundle to contain the collaborators of the original MetricsCollector
@@ -30,8 +31,15 @@ public final class MetricsCollectorContext {
     private final PCFMessageAgent agent;
     private final MetricWriteHelper metricWriteHelper;
 
-    public MetricsCollectorContext(@Nullable  Map<String, WMQMetricOverride> metricsToReport,
-                            IntAttributesBuilder attributesBuilder, QueueManager queueManager, PCFMessageAgent agent, MetricWriteHelper metricWriteHelper) {
+    public MetricsCollectorContext(@Nullable Map<String, WMQMetricOverride> metricsToReport,
+                                   QueueManager queueManager, PCFMessageAgent agent, MetricWriteHelper metricWriteHelper) {
+        this(metricsToReport, new IntAttributesBuilder(metricsToReport),
+                queueManager, agent, metricWriteHelper);
+    }
+
+    public MetricsCollectorContext(@Nullable Map<String, WMQMetricOverride> metricsToReport,
+                                   IntAttributesBuilder attributesBuilder, QueueManager queueManager,
+                                   PCFMessageAgent agent, MetricWriteHelper metricWriteHelper) {
         this.metricsToReport = metricsToReport == null ? Collections.emptyMap() : new HashMap<>(metricsToReport);
         this.attributesBuilder = attributesBuilder;
         this.queueManager = queueManager;
@@ -39,19 +47,19 @@ public final class MetricsCollectorContext {
         this.metricWriteHelper = metricWriteHelper;
     }
 
-    boolean hasNoMetricsToReport(){
+    boolean hasNoMetricsToReport() {
         return metricsToReport.isEmpty();
     }
 
-    public int[] buildIntAttributesArray(int ... inputAttrs) {
+    int[] buildIntAttributesArray(int... inputAttrs) {
         return attributesBuilder.buildIntAttributesArray(inputAttrs);
     }
 
-    public Set<String> getChannelIncludeFilterNames() {
+    Set<String> getChannelIncludeFilterNames() {
         return queueManager.getChannelFilters().getInclude();
     }
 
-    public Set<String> getTopicIncludeFilterNames() {
+    Set<ExcludeFilters> getChannelExcludeFilters() {
         return queueManager.getTopicFilters().getInclude();
     }
 
@@ -59,6 +67,23 @@ public final class MetricsCollectorContext {
         return queueManager.getChannelFilters().getExclude();
     }
 
+    Set<String> getListenerIncludeFilterNames() {
+        return queueManager.getListenerFilters().getInclude();
+    }
+
+    Set<ExcludeFilters> getListenerExcludeFilters() {
+        return queueManager.getListenerFilters().getExclude();
+    }
+
+    Set<String> getTopicIncludeFilterNames() {
+        return queueManager.getTopicFilters().getInclude();
+    }
+
+    Set<ExcludeFilters> getTopicExcludeFilters() {
+        return queueManager.getTopicFilters().getExclude();
+    }
+
+    PCFMessage[] send(PCFMessage request) throws IOException, MQDataException {
     public Set<ExcludeFilters> getTopicExcludeFilterNames() {
         return queueManager.getTopicFilters().getExclude();
     }
@@ -67,8 +92,8 @@ public final class MetricsCollectorContext {
         return agent.send(request);
     }
 
-    public void forEachMetric(MetricConsumerAction action) throws PCFException {
-        if(metricsToReport == null) {
+    void forEachMetric(MetricConsumerAction action) throws PCFException {
+        if (metricsToReport == null) {
             return;
         }
         for (Map.Entry<String, WMQMetricOverride> entry : metricsToReport.entrySet()) {
@@ -76,19 +101,35 @@ public final class MetricsCollectorContext {
         }
     }
 
-    public void transformAndPrintMetric(Metric responseMetrics) {
+    void transformAndPrintMetric(Metric responseMetrics) {
         transformAndPrintMetrics(Collections.singletonList(responseMetrics));
     }
 
-    public void transformAndPrintMetrics(List<Metric> responseMetrics) {
+    void transformAndPrintMetrics(List<Metric> responseMetrics) {
         metricWriteHelper.transformAndPrintMetrics(responseMetrics);
     }
 
-    String getQueueManagerName(){
+    String getQueueManagerName() {
         return WMQUtil.getQueueManagerNameFromConfig(queueManager);
     }
 
+    QueueManager getQueueManager() {
+        return queueManager;
+    }
+
+    PCFMessageAgent getAgent() {
+        return agent;
+    }
+
+    public MetricWriteHelper getMetricWriteHelper() {
+        return metricWriteHelper;
+    }
+
+    public String getAgentQueueManagerName() {
+        return agent.getQManagerName();
+    }
+
     interface MetricConsumerAction {
-      void accept(String key, WMQMetricOverride wmqMetricOverride) throws PCFException;
+        void accept(String key, WMQMetricOverride wmqMetricOverride) throws PCFException;
     }
 }

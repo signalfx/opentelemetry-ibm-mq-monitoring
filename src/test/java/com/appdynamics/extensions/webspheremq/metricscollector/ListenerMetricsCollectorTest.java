@@ -77,11 +77,12 @@ class ListenerMetricsCollectorTest {
     }
 
     @Test
-    public void testpublishMetrics() throws Exception {
+    public void testPublishMetrics() throws Exception {
         CountDownLatch latch = mock(CountDownLatch.class);
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireListenerStatusCmd());
-        classUnderTest = new ListenerMetricsCollector(listenerMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                queueManager, metricWriteHelper, latch, metricCreator);
+        IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(listenerMetricsToReport);
+        MetricsCollectorContext context = new MetricsCollectorContext(listenerMetricsToReport, attributesBuilder, queueManager, pcfMessageAgent, metricWriteHelper);
+        classUnderTest = new ListenerMetricsCollector(context, metricCreator);
         classUnderTest.publishMetrics();
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
         List<String> metricPathsList = Lists.newArrayList();

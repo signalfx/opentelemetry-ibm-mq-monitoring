@@ -54,34 +54,31 @@ import java.util.concurrent.CountDownLatch;
  *
  *
  */
-final public class ListenerMetricsCollector extends MetricsCollector {
+final public class ListenerMetricsCollector implements MetricsPublisher {
 
     private  final static Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
     public final static String ARTIFACT = "Listeners";
     private final MetricCreator metricCreator;
-    private final IntAttributesBuilder attributesBuilder;
-    private final Map<String, WMQMetricOverride> metrics;
+    private final MetricsCollectorContext context;
 
-    public ListenerMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch, MetricCreator metricCreator) {
-        super(monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
+    public ListenerMetricsCollector(MetricsCollectorContext context, MetricCreator metricCreator) {
         this.metricCreator = metricCreator;
-        this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
-        this.metrics = metricsToReport;
+        this.context = context;
     }
 
     @Override
     public void publishMetrics() throws TaskExecutionException {
         long entryTime = System.currentTimeMillis();
 
-        if (metrics == null || metrics.isEmpty()) {
+        if (context.hasNoMetricsToReport()) {
             logger.debug("Listener metrics to report from the config is null or empty, nothing to publish");
             return;
         }
 
-        int[] attrs = attributesBuilder.buildIntAttributesArray(CMQCFC.MQCACH_LISTENER_NAME);
+        int[] attrs = context.buildIntAttributesArray(CMQCFC.MQCACH_LISTENER_NAME);
         logger.debug("Attributes being sent along PCF agent request to query channel metrics: " + Arrays.toString(attrs));
 
-        Set<String> listenerGenericNames = this.queueManager.getListenerFilters().getInclude();
+        Set<String> listenerGenericNames = context.getListenerIncludeFilterNames();
         for(String listenerGenericName : listenerGenericNames){
             PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_LISTENER_STATUS);
             request.addParameter(CMQCFC.MQCACH_LISTENER_NAME, listenerGenericName);
@@ -89,7 +86,7 @@ final public class ListenerMetricsCollector extends MetricsCollector {
             try {
                 logger.debug("sending PCF agent request to query metrics for generic listener {}", listenerGenericName);
                 long startTime = System.currentTimeMillis();
-                PCFMessage[] response = agent.send(request);
+                PCFMessage[] response = context.send(request);
                 long endTime = System.currentTimeMillis() - startTime;
                 logger.debug("PCF agent listener metrics query response for generic listener {} received in {} milliseconds", listenerGenericName, endTime);
                 if (response == null || response.length <= 0) {
@@ -98,19 +95,16 @@ final public class ListenerMetricsCollector extends MetricsCollector {
                 }
                 for (PCFMessage pcfMessage : response) {
                     String listenerName = pcfMessage.getStringParameterValue(CMQCFC.MQCACH_LISTENER_NAME).trim();
-                    Set<ExcludeFilters> excludeFilters = this.queueManager.getListenerFilters().getExclude();
+                    Set<ExcludeFilters> excludeFilters = context.getListenerExcludeFilters();
                     if (!ExcludeFilters.isExcluded(listenerName, excludeFilters)) { //check for exclude filters
                         logger.debug("Pulling out metrics for listener name {}", listenerName);
-                        Iterator<String> itr = metrics.keySet().iterator();
                         List<Metric> responseMetrics = Lists.newArrayList();
-                        while (itr.hasNext()) {
-                            String metrickey = itr.next();
-                            WMQMetricOverride wmqOverride = metrics.get(metrickey);
+                        context.forEachMetric((metricKey, wmqOverride) -> {
                             int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                            Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, listenerName, metrickey);
+                            Metric metric = metricCreator.createMetric(metricKey, metricVal, wmqOverride, listenerName, metricKey);
                             responseMetrics.add(metric);
-                        }
-                        metricWriteHelper.transformAndPrintMetrics(responseMetrics);
+                        });
+                        context.transformAndPrintMetrics(responseMetrics);
                     } else {
                         logger.debug("Listener name {} is excluded.", listenerName);
                     }
