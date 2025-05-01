@@ -182,7 +182,7 @@ class MQOtelTranslator {
     //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|ConnectionCount
     //Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|HeartBeat
     private static final Mapping websphereMQNameMappings = new Mapping(new HashMap<String, String>() {{
-        put("Status", "mq.status");
+        put("Status", "mq.manager.status");
         put("ConnectionCount", "mq.connection.count");
         put("HeartBeat", "mq.heartbeat");
         put("Restart Log Size", "mq.restart.log.size");
