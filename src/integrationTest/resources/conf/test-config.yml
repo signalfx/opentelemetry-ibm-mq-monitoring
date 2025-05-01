@@ -4,8 +4,8 @@
 numberOfThreads: 20
 
 #This will create it in specific Tier aka Component. Replace <COMPONENT_ID>. Please make sure to have a trailing |.
-#To find out the COMPONENT_ID, please see the screen shot here https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
-metricPrefix: "Server|Component:IT|Custom Metrics|WebsphereMQ|"
+#To find out the COMPONENT_ID, please see the screenshot here https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
+metricPrefix: "Server|Component:Test|Custom Metrics|WebsphereMQ|"
 #For SIM
 #metricPrefix: "Custom Metrics|WebsphereMQ|"
 
@@ -63,7 +63,7 @@ queueManagers:
     # IBM Cipher Suite e.g. "SSL_RSA_WITH_AES_128_CBC_SHA256"..
     # For translation to IBM Cipher  http://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.dev.doc/q113210_.htm
     # A cipher working for IBM Cloud MQ and Temurin JDK 8 is TLS_AES_128_GCM_SHA256
-    #cipherSuite: ""
+    #cipherSuite:  "TLS_AES_128_GCM_SHA256"
 
 
     queueFilters:
@@ -139,6 +139,11 @@ mqMetrics:
             alias: "Archive Log Size"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_ARCHIVE_LOG_SIZE"
             ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
+
+        - StatisticsInterval:
+            alias: "Statistics Interval"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_STATISTICS_INTERVAL"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR"
 
   # This Object will extract queue metrics
   - metricsType: "queueMetrics"
@@ -231,29 +236,35 @@ mqMetrics:
         - Messages:
             alias: "Messages"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS"
-          
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - Status:
             alias: "Status"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_CHANNEL_STATUS"  #http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
             aggregationType: "OBSERVATION"
             timeRollUpType: "AVERAGE"
             clusterRollUpType: "INDIVIDUAL"
-          
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - ByteSent:
             alias: "Byte Sent"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BYTES_SENT"
-          
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - ByteReceived:
             alias: "Byte Received"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BYTES_RECEIVED"
-          
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - BuffersSent:
             alias: "Buffers Sent"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BUFFERS_SENT"
-          
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - BuffersReceived:
             alias: "Buffers Received"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BUFFERS_RECEIVED"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
 
         - CurrentSharingConversations:
             alias: "Current Sharing Conversations"
@@ -263,6 +274,30 @@ mqMetrics:
             alias: "Max Sharing Conversations"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_SHARING_CONVS"
 
+        - MaxInstances:
+            alias: "Max Instances"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_INSTANCES"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MaxInstancesPerClient:
+            alias: "Max Instances per Client"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgRetryCount:
+            alias: "Message Retry Count"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MR_COUNT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgsReceived:
+            alias: "Message Received Count"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS_RECEIVED"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgsSent:
+            alias: "Message Sent"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS_SENT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
 
   - metricsType: "listenerMetrics"
     metrics:
@@ -287,6 +322,14 @@ mqMetrics:
             ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_SUB_COUNT"
             ibmCommand: "MQCMD_INQUIRE_TOPIC_STATUS"
 
+  # Sets up reading configuration events from the configuration queue.
+  - metricsType: "configurationMetrics"
+    metrics:
+      include:
+        - MaxHandles:
+            alias: "Max Handles"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MAX_HANDLES"
+
 #Run it as a scheduled task instead of running every minute.
 #If you want to run this every minute, comment this out
 #taskSchedule:
@@ -295,13 +338,13 @@ mqMetrics:
 
 
 sslConnection:
-  trustStorePath: ""
-  trustStorePassword: ""
-  trustStoreEncryptedPassword: ""
+ trustStorePath: ""
+ trustStorePassword: ""
+ trustStoreEncryptedPassword: ""
 
-  keyStorePath: ""
-  keyStorePassword: ""
-  keyStoreEncryptedPassword: ""
+ keyStorePath: ""
+ keyStorePassword: ""
+ keyStoreEncryptedPassword: ""
 
 
 # If any of the following fields are not set, the values of the specific fields are set from the system properties of the corresponding fields as specified in the comments.
@@ -326,5 +369,5 @@ controllerInfo:
 
 # Configure the OTLP exporter using system properties keys following the specification https://opentelemetry.io/docs/languages/java/configuration/
 otlpExporter:
-  otel.exporter.otlp.endpoint: http://0.0.0.0:14317
+  otel.exporter.otlp.endpoint: http://0.0.0.0:4317
   otel.exporter.otlp.protocol: grpc

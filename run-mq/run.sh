@@ -5,4 +5,4 @@ java \
    -Djavax.net.ssl.trustStorePassword=passw0rd \
    -cp ../target/ibm-mq-monitoring-extension-opentelemetry.jar:../target/libs/com.ibm.mq.allclient.jar \
    com.appdynamics.extensions.opentelemetry.Main \
-   ./config.yml
+   ../src/integrationTest/resources/conf/test-config.yml
