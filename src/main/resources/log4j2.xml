@@ -44,24 +44,24 @@
 
     <Loggers>
         <!-- Root logger config -->
-        <Root level="debug">
+        <Root level="info">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Async"/>
             <AppenderRef ref="ErrorFile"/>
         </Root>
 
         <!-- Special configurations for specific packages -->
-        <Logger name="com.splunk" level="debug" additivity="false">
+        <Logger name="com.splunk" level="info" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Async"/>
         </Logger>
 
-        <Logger name="com.appdynamics" level="debug" additivity="false">
+        <Logger name="com.appdynamics" level="info" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Async"/>
         </Logger>
 
-        <Logger name="com.singularity" level="debug" additivity="false">
+        <Logger name="com.singularity" level="info" additivity="false">
             <AppenderRef ref="Console"/>
             <AppenderRef ref="Async"/>
         </Logger>
