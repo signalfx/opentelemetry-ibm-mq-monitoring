@@ -16,7 +16,7 @@
 
 package com.appdynamics.extensions.webspheremq.config;
 
-import com.appdynamics.extensions.webspheremq.metricscollector.MetricsCollector;
+import com.appdynamics.extensions.webspheremq.metricscollector.FilterType;
 import com.google.common.base.Strings;
 
 import java.util.HashSet;
@@ -56,7 +56,7 @@ public class ExcludeFilters {
 		if (Strings.isNullOrEmpty(resourceName)) {
 			return true;
 		}
-		switch (MetricsCollector.FilterType.valueOf(type)){
+		switch (FilterType.valueOf(type)){
 			case CONTAINS:
 				for (String filterValue : values) {
 					if (resourceName.contains(filterValue)) {

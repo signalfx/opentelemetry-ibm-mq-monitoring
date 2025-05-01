@@ -10,12 +10,17 @@ import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyMap;
 
 /**
  * A temporary bundle to contain the collaborators of the original MetricsCollector
@@ -24,6 +29,8 @@ import java.util.concurrent.Future;
  */
 @Immutable
 public final class MetricsCollectorContext {
+
+    private static final Logger logger = LoggerFactory.getLogger(MetricsCollectorContext.class);
 
     private final Map<String, WMQMetricOverride> metricsToReport;
     private final IntAttributesBuilder attributesBuilder;
@@ -79,6 +86,14 @@ public final class MetricsCollectorContext {
         return queueManager.getTopicFilters().getExclude();
     }
 
+    Set<String> getQueueIncludeFilterNames() {
+        return queueManager.getQueueFilters().getInclude();
+    }
+
+    Set<ExcludeFilters> getQueueExcludeFilters() {
+        return queueManager.getQueueFilters().getExclude();
+    }
+
     PCFMessage[] send(PCFMessage request) throws IOException, MQDataException {
         return agent.send(request);
     }
@@ -112,15 +127,29 @@ public final class MetricsCollectorContext {
         return agent;
     }
 
-    public MetricWriteHelper getMetricWriteHelper() {
+    MetricWriteHelper getMetricWriteHelper() {
         return metricWriteHelper;
     }
 
-    public String getAgentQueueManagerName() {
+    String getAgentQueueManagerName() {
         return agent.getQManagerName();
+    }
+
+    Map<String, WMQMetricOverride> getMetricsForCommand(String command) {
+        if (metricsToReport == null || metricsToReport.isEmpty()) {
+            logger.debug("There are no metrics configured for {}", command);
+            return emptyMap();
+        }
+        return metricsToReport.entrySet().stream()
+                .filter(entry ->
+                        entry.getValue().getIbmCommand().equalsIgnoreCase(command))
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey, Map.Entry::getValue,
+                        (x, y) -> y, HashMap::new));
     }
 
     interface MetricConsumerAction {
         void accept(String key, WMQMetricOverride wmqMetricOverride) throws PCFException;
+
     }
 }

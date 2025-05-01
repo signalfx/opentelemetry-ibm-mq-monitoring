@@ -16,7 +16,6 @@
 
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
@@ -26,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -53,29 +51,17 @@ import java.util.Set;
  *   a map of metrics to report, and shared state.
  * - Invoke the run method to execute the queue metrics collection process.
  */
-final class InquireQStatusCmdCollector extends QueueMetricsCollector implements Runnable {
+final class InquireQStatusCmdCollector implements MetricsPublisher {
 
     private static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);
 
     static final String COMMAND = "MQCMD_INQUIRE_Q_STATUS";
-    private final IntAttributesBuilder attributesBuilder;
-    private final Map<String, WMQMetricOverride> metrics;
+    private final MetricsCollectorContext context;
+    private final QueueCollectionBuddy queueBuddy;
 
-    public InquireQStatusCmdCollector(QueueMetricsCollector collector, Map<String, WMQMetricOverride> metricsToReport,
-                                      QueueCollectorSharedState sharedState, MetricCreator metricCreator){
-        super(metricsToReport, collector.monitorContextConfig, collector.agent, collector.metricWriteHelper,
-                collector.queueManager, collector.countDownLatch, sharedState, metricCreator);
-        this.attributesBuilder = new IntAttributesBuilder(metricsToReport);
-        this.metrics = metricsToReport;
-    }
-
-    @Override
-    public void run() {
-        try {
-            publishMetrics();
-        } catch (TaskExecutionException e) {
-            logger.error("Something unforeseen has happened ",e);
-        }
+    InquireQStatusCmdCollector(MetricsCollectorContext context, QueueCollectionBuddy queueBuddy) {
+        this.context = context;
+        this.queueBuddy = queueBuddy;
     }
 
     @Override
@@ -83,7 +69,7 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
         logger.info("Collecting metrics for command {}", COMMAND);
         long entryTime = System.currentTimeMillis();
 
-        if (metrics == null || metrics.isEmpty()) {
+        if (context.hasNoMetricsToReport()) {
             logger.debug("Queue metrics to report from the config is null or empty, nothing to publish for command {}", COMMAND);
             return;
         }
@@ -91,30 +77,18 @@ final class InquireQStatusCmdCollector extends QueueMetricsCollector implements 
         //
         // attrs = { CMQC.MQCA_Q_NAME, MQIACF_OLDEST_MSG_AGE, MQIACF_Q_TIME_INDICATOR };
         //
-        int[] attrs = attributesBuilder.buildIntAttributesArray(CMQC.MQCA_Q_NAME);
+        int[] attrs = context.buildIntAttributesArray(CMQC.MQCA_Q_NAME);
         if (logger.isDebugEnabled()) {
             logger.debug("Attributes being sent along PCF agent request to query queue metrics: {} for command {}", Arrays.toString(attrs), COMMAND);
         }
 
-        Set<String> queueGenericNames = this.queueManager.getQueueFilters().getInclude();
+        Set<String> queueGenericNames = context.getQueueIncludeFilterNames();
         for(String queueGenericName : queueGenericNames){
             // list of all metrics extracted through MQCMD_INQUIRE_Q_STATUS is mentioned here https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ref.adm.doc/q087880_.htm
             PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS);
             request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
             request.addParameter(CMQCFC.MQIACF_Q_STATUS_ATTRS, attrs);
-            try {
-                processPCFRequestAndPublishQMetrics(queueGenericName, request,COMMAND);
-            } catch (PCFException pcfe) {
-                logger.error("PCFException caught while collecting metric for Queue: {} for command {}",queueGenericName,COMMAND, pcfe);
-                PCFMessage[] msgs = (PCFMessage[]) pcfe.exceptionSource;
-                for (PCFMessage msg : msgs) {
-                    logger.error(msg.toString());
-                }
-                // Dont throw exception as it will stop queuemetric colloection
-            } catch (Exception mqe) {
-                logger.error("MQException caught", mqe);
-                // Dont throw exception as it will stop queuemetric colloection
-            }
+            queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName);
         }
         long exitTime = System.currentTimeMillis() - entryTime;
         logger.debug("Time taken to publish metrics for all queues is {} milliseconds for command {}", exitTime,COMMAND);

@@ -9,7 +9,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * A simple job that just runs a MetricsPublisher one time.
  */
-public class MetricsPublisherJob implements Runnable {
+final public class MetricsPublisherJob implements Runnable {
 
     public static final Logger logger = LoggerFactory.getLogger(MetricsPublisherJob.class);
     private final MetricsPublisher delegate;

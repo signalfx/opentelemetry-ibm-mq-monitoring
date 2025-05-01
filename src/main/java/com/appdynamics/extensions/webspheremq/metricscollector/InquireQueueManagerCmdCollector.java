@@ -39,23 +39,22 @@ import java.util.concurrent.CountDownLatch;
 /**
  * This class is responsible for queue metric collection.
  */
-final public class InquireQueueManagerCmdCollector extends MetricsCollector {
+final public class InquireQueueManagerCmdCollector implements MetricsPublisher {
 
 	private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQueueManagerCmdCollector.class);
 	public final static String ARTIFACT = "Queue Manager";
 	private final MetricCreator metricCreator;
-	private final Map<String, WMQMetricOverride> metrics;
+	private final MetricsCollectorContext context;
 
-	public InquireQueueManagerCmdCollector(Map<String, WMQMetricOverride> metricsToReport, MonitorContextConfiguration monitorContextConfig, PCFMessageAgent agent, QueueManager queueManager, MetricWriteHelper metricWriteHelper, CountDownLatch countDownLatch, MetricCreator metricCreator) {
-		super(monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
+	public InquireQueueManagerCmdCollector(MetricsCollectorContext context, MetricCreator metricCreator) {
         this.metricCreator = metricCreator;
-		this.metrics = metricsToReport;
+		this.context = context;
     }
 
 	@Override
 	public void publishMetrics() throws TaskExecutionException {
 		long entryTime = System.currentTimeMillis();
-		logger.debug("publishMetrics entry time for queuemanager {} is {} milliseconds", agent.getQManagerName(), entryTime);
+		logger.debug("publishMetrics entry time for queuemanager {} is {} milliseconds", context.getAgentQueueManagerName(), entryTime);
 		PCFMessage request;
 		PCFMessage[] responses;
 		// CMQCFC.MQCMD_INQUIRE_Q_MGR is 2
@@ -65,28 +64,26 @@ final public class InquireQueueManagerCmdCollector extends MetricsCollector {
 		request.addParameter(new MQCFIL(MQConstants.MQIACF_Q_MGR_ATTRS, new int[] {MQConstants.MQIACF_ALL}));
 		try {
 			// Note that agent.send() method is synchronized
-			logger.debug("sending PCF agent request to query queuemanager {}", agent.getQManagerName());
+			logger.debug("sending PCF agent request to query queuemanager {}", context.getAgentQueueManagerName());
 			long startTime = System.currentTimeMillis();
-			responses = agent.send(request);
+			responses = context.send(request);
 			long endTime = System.currentTimeMillis() - startTime;
-			logger.debug("PCF agent queuemanager metrics query response for {} received in {} milliseconds", agent.getQManagerName(), endTime);
+			logger.debug("PCF agent queuemanager metrics query response for {} received in {} milliseconds",
+					context.getAgentQueueManagerName(), endTime);
 			if (responses == null || responses.length <= 0) {
 				logger.debug("Unexpected Error while PCFMessage.send(), response is either null or empty");
 				return;
 			}
-			Iterator<String> overrideItr = metrics.keySet().iterator();
 			List<Metric> responseMetrics = Lists.newArrayList();
-			while (overrideItr.hasNext()) {
-				String metrickey = overrideItr.next();
-				WMQMetricOverride wmqOverride = metrics.get(metrickey);
+			context.forEachMetric((metrickey, wmqOverride) -> {
 				int metricVal = responses[0].getIntParameterValue(wmqOverride.getConstantValue());
 				if (logger.isDebugEnabled()) {
 					logger.debug("Metric: " + metrickey + "=" + metricVal);
 				}
 				Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, metrickey);
 				responseMetrics.add(metric);
-			}
-			metricWriteHelper.transformAndPrintMetrics(responseMetrics);
+			});
+			context.transformAndPrintMetrics(responseMetrics);
 		} catch (Exception e) {
 			logger.error(e.getMessage());
 			throw new TaskExecutionException(e);

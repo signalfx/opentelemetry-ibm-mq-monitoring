@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
-public class ReadConfigurationEventQueueCollector implements MetricsPublisher {
+final public class ReadConfigurationEventQueueCollector implements MetricsPublisher {
 
 	private static final Logger logger = ExtensionsLoggerFactory.getLogger(ReadConfigurationEventQueueCollector.class);
 	private final MetricWriteHelper metricWriteHelper;

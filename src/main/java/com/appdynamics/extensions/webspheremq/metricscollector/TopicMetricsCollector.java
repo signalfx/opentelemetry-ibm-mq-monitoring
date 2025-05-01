@@ -33,13 +33,11 @@ import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
 
-public class TopicMetricsCollector implements MetricsPublisher {
+final public class TopicMetricsCollector implements MetricsPublisher {
     private static final Logger logger = LoggerFactory.getLogger(TopicMetricsCollector.class);
-    private final Map<String, WMQMetricOverride> metrics;
-    private final JobSubmitterContext context;
+        private final JobSubmitterContext context;
 
-    public TopicMetricsCollector(Map<String, WMQMetricOverride> metricsToReport, JobSubmitterContext context) {
-        this.metrics = metricsToReport;
+    public TopicMetricsCollector(JobSubmitterContext context) {
         this.context = context;
     }
 
@@ -49,7 +47,7 @@ public class TopicMetricsCollector implements MetricsPublisher {
         List<Future<?>> futures = Lists.newArrayList();
 
         //  to query the current status of topics, which is essential for monitoring and managing the publish/subscribe environment in IBM MQ.
-        Map<String, WMQMetricOverride> metricsForInquireTStatusCmd = getMetricsToReport(InquireTStatusCmdCollector.COMMAND);
+        Map<String, WMQMetricOverride> metricsForInquireTStatusCmd = context.getMetricsForCommand(InquireTStatusCmdCollector.COMMAND);
         if (!metricsForInquireTStatusCmd.isEmpty()) {
             MetricCreator metricCreator = context.newMetricCreator(InquireTStatusCmdCollector.ARTIFACT);
             MetricsCollectorContext collectorContext = context.newCollectorContext(metricsForInquireTStatusCmd);
@@ -68,18 +66,5 @@ public class TopicMetricsCollector implements MetricsPublisher {
                 logger.error("Thread timed out ", e);
             }
         }
-    }
-
-    private Map<String, WMQMetricOverride> getMetricsToReport(String command) {
-        if (metrics == null || metrics.isEmpty()) {
-            logger.debug("There are no metrics configured for {}", command);
-            return emptyMap();
-        }
-        return metrics.entrySet().stream()
-                .filter(entry ->
-                        entry.getValue().getIbmCommand().equalsIgnoreCase(command))
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey, Map.Entry::getValue,
-                        (x, y) -> y, HashMap::new));
     }
 }

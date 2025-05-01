@@ -34,7 +34,7 @@ import java.util.Set;
 /**
  * This class is responsible for channel inquiry metric collection.
  */
-public class InquireChannelCmdCollector implements MetricsPublisher {
+public final class InquireChannelCmdCollector implements MetricsPublisher {
 
 	public static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireChannelCmdCollector.class);
 	public static final String ARTIFACT = "Channels";
