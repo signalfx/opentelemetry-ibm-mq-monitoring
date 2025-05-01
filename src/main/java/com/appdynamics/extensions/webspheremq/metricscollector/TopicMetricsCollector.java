@@ -50,7 +50,9 @@ public class TopicMetricsCollector extends MetricsCollector {
         Map<String, WMQMetricOverride> metricsForInquireTStatusCmd = getMetricsToReport(InquireTStatusCmdCollector.COMMAND);
         if (!metricsForInquireTStatusCmd.isEmpty()) {
             MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, InquireTStatusCmdCollector.ARTIFACT);
-            InquireTStatusCmdCollector metricsPublisher = new InquireTStatusCmdCollector(this, metricsForInquireTStatusCmd, metricCreator);
+            IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(metricsForInquireTStatusCmd);
+            MetricsCollectorContext context = new MetricsCollectorContext(metricsForInquireTStatusCmd, attributesBuilder, queueManager, agent, metricWriteHelper);
+            InquireTStatusCmdCollector metricsPublisher = new InquireTStatusCmdCollector(context, metricCreator);
             MetricsPublisherJob job = new MetricsPublisherJob(metricsPublisher, countDownLatch);
             futures.add(monitorContextConfig.getContext().getExecutorService()
                     .submit("Topic Status Cmd Collector", job));
