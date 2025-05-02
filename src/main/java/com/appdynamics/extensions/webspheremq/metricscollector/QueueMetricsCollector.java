@@ -44,7 +44,7 @@ import static com.ibm.mq.constants.CMQC.MQQT_LOCAL;
 import static com.ibm.mq.constants.CMQC.MQQT_MODEL;
 import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
 
-public class QueueMetricsCollector extends MetricsCollector {
+final public class QueueMetricsCollector implements MetricsPublisher {
 
 	private static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
 	public final static String ARTIFACT = "Queues";
@@ -54,41 +54,46 @@ public class QueueMetricsCollector extends MetricsCollector {
 	private final QueueCollectorSharedState sharedState;
 	private final MetricCreator metricCreator;
 	private final Map<String, WMQMetricOverride> metrics;
+    private final JobSubmitterContext context;
 
-	public QueueMetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
-                                 MonitorContextConfiguration monitorContextConfig,
-                                 PCFMessageAgent agent, MetricWriteHelper metricWriteHelper,
-                                 QueueManager queueManager, CountDownLatch countDownLatch,
-                                 QueueCollectorSharedState sharedState, MetricCreator metricCreator) {
-		super(monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch);
+    public QueueMetricsCollector(Map<String, WMQMetricOverride> metricsToReport,
+                                 QueueCollectorSharedState sharedState,
+								 JobSubmitterContext context) {
 		this.sharedState = sharedState;
-        this.metricCreator = metricCreator;
 		this.metrics = metricsToReport;
+        this.context = context;
+		this.metricCreator = context.newMetricCreator(ARTIFACT);
     }
 
 	@Override
 	public void publishMetrics() throws TaskExecutionException {
 		logger.info("Collecting queue metrics...");
 		List<Future> futures = Lists.newArrayList();
-		Map<String, WMQMetricOverride>  metricsForInquireQCmd = getMetricsToReport(InquireQCmdCollector.COMMAND);
+		Map<String, WMQMetricOverride>  metricsForInquireQCmd = context.getMetricsForCommand(InquireQCmdCollector.COMMAND);
 		if(!metricsForInquireQCmd.isEmpty()){
-			futures.add(monitorContextConfig.getContext().getExecutorService().submit("InquireQCmdCollector", new InquireQCmdCollector(this,metricsForInquireQCmd, sharedState, metricCreator)));
+			MetricsCollectorContext collectorContext = context.newCollectorContext(metricsForInquireQCmd);
+			QueueCollectionBuddy queueBuddy = new QueueCollectionBuddy(collectorContext, sharedState, metricCreator, InquireQCmdCollector.COMMAND);
+			MetricsPublisher publisher = new InquireQCmdCollector(collectorContext, queueBuddy);
+			futures.add(context.submitPublishJob("InquireQCmdCollector", publisher));
 		}
-		Map<String, WMQMetricOverride>  metricsForInquireQStatusCmd = getMetricsToReport(InquireQStatusCmdCollector.COMMAND);
+		Map<String, WMQMetricOverride>  metricsForInquireQStatusCmd = context.getMetricsForCommand(InquireQStatusCmdCollector.COMMAND);
 		if(!metricsForInquireQStatusCmd.isEmpty()){
-			futures.add(monitorContextConfig.getContext().getExecutorService().submit("InquireQStatusCmdCollector", new InquireQStatusCmdCollector(this,metricsForInquireQStatusCmd, sharedState, metricCreator)));
+			MetricsCollectorContext collectorContext = context.newCollectorContext(metricsForInquireQStatusCmd);
+			QueueCollectionBuddy queueBuddy = new QueueCollectionBuddy(collectorContext, sharedState, metricCreator, InquireQStatusCmdCollector.COMMAND);
+			MetricsPublisher publisher = new InquireQStatusCmdCollector(collectorContext, queueBuddy);
+			futures.add(context.submitPublishJob("InquireQStatusCmdCollector", publisher));
 		}
-		Map<String, WMQMetricOverride>  metricsForResetQStatsCmd = getMetricsToReport(ResetQStatsCmdCollector.COMMAND);
+		Map<String, WMQMetricOverride>  metricsForResetQStatsCmd = context.getMetricsForCommand(ResetQStatsCmdCollector.COMMAND);
 		if(!metricsForResetQStatsCmd.isEmpty()){
-			futures.add(monitorContextConfig.getContext().getExecutorService().submit("ResetQStatsCmdCollector", new ResetQStatsCmdCollector(this,metricsForResetQStatsCmd, sharedState, metricCreator)));
+			MetricsCollectorContext collectorContext = context.newCollectorContext(metricsForResetQStatsCmd);
+			QueueCollectionBuddy queueBuddy = new QueueCollectionBuddy(collectorContext, sharedState, metricCreator, ResetQStatsCmdCollector.COMMAND);
+			MetricsPublisher collector = new ResetQStatsCmdCollector(collectorContext, queueBuddy);
+			futures.add(context.submitPublishJob("ResetQStatsCmdCollector", collector));
 		}
-		for(Future f: futures){
+		for(Future<?> future: futures){
 			try {
-				long timeout = 20;
-				if(monitorContextConfig.getConfigYml().get("queueMetricsCollectionTimeoutInSeconds") != null){
-					timeout = (Integer)monitorContextConfig.getConfigYml().get("queueMetricsCollectionTimeoutInSeconds");
-				}
-				f.get(timeout, TimeUnit.SECONDS);
+				int timeout = context.getConfigInt("queueMetricsCollectionTimeoutInSeconds", 20);
+				future.get(timeout, TimeUnit.SECONDS);
 			} catch (InterruptedException e) {
 				logger.error("The thread was interrupted ",e);
 			} catch (ExecutionException e) {
@@ -99,26 +104,10 @@ public class QueueMetricsCollector extends MetricsCollector {
 		}
 	}
 
-	private Map<String, WMQMetricOverride> getMetricsToReport(String command) {
-		Map<String, WMQMetricOverride> commandMetrics = Maps.newHashMap();
-		if (metrics == null || metrics.isEmpty()) {
-			logger.debug("There are no metrics configured for {}",command);
-			return commandMetrics;
-		}
-		for (Map.Entry<String, WMQMetricOverride> entry : metrics.entrySet()) {
-			String key = entry.getKey();
-			WMQMetricOverride wmqOverride = entry.getValue();
-			if (wmqOverride.getIbmCommand().equalsIgnoreCase(command)) {
-				commandMetrics.put(key, wmqOverride);
-			}
-		}
-		return commandMetrics;
-	}
-
-	protected void processPCFRequestAndPublishQMetrics(String queueGenericName, PCFMessage request, String command) throws IOException, MQDataException {
+	protected void processPCFRequestAndPublishQMetrics(MetricsCollectorContext context, String queueGenericName, PCFMessage request, String command) throws IOException, MQDataException {
 		logger.debug("sending PCF agent request to query metrics for generic queue {} for command {}",queueGenericName,command);
 		long startTime = System.currentTimeMillis();
-		PCFMessage[] response = agent.send(request);
+		PCFMessage[] response = context.send(request);
 		long endTime = System.currentTimeMillis() - startTime;
 		logger.debug("PCF agent queue metrics query response for generic queue {} for command {} received in {} milliseconds", queueGenericName, command,endTime);
 		if (response == null || response.length <= 0) {
@@ -168,7 +157,7 @@ public class QueueMetricsCollector extends MetricsCollector {
 				sharedState.putQueueType(queueName, queueType);
 			}
 
-			Set<ExcludeFilters> excludeFilters = queueManager.getQueueFilters().getExclude();
+			Set<ExcludeFilters> excludeFilters = context.getQueueExcludeFilters();
 			if(!ExcludeFilters.isExcluded(queueName,excludeFilters)) { //check for exclude filters
 				logger.debug("Pulling out metrics for queue name {} for command {}",queueName,command);
 				Iterator<String> itr = metrics.keySet().iterator();
@@ -206,7 +195,7 @@ public class QueueMetricsCollector extends MetricsCollector {
 					}
 
 				}
-				metricWriteHelper.transformAndPrintMetrics(responseMetrics);
+				context.transformAndPrintMetrics(responseMetrics);
 			}
 			else{
 				logger.debug("Queue name {} is excluded.",queueName);

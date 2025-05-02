@@ -148,9 +148,11 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
                 Runnable job = new MetricsPublisherJob(qMgrMetricsCollector, countDownLatch);
                 monitorContextConfig.getContext().getExecutorService().execute("QueueManagerMetricsCollector", job);
 			}
-			if (metricsByCommand.get("MQCMD_INQUIRE_Q_MGR") != null) {
+			Map<String, WMQMetricOverride> inquireMetricsToReport = metricsByCommand.get("MQCMD_INQUIRE_Q_MGR");
+			if (inquireMetricsToReport != null) {
 				MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, InquireQueueManagerCmdCollector.ARTIFACT);
-				MetricsCollector inquireQueueMgrMetricsCollector = new InquireQueueManagerCmdCollector(metricsByCommand.get("MQCMD_INQUIRE_Q_MGR"), this.monitorContextConfig, agent, queueManager, metricWriteHelper, countDownLatch, metricCreator);
+				MetricsCollectorContext context = new MetricsCollectorContext(inquireMetricsToReport, queueManager, agent, metricWriteHelper);
+				MetricsPublisher inquireQueueMgrMetricsCollector = new InquireQueueManagerCmdCollector(context, metricCreator);
                 Runnable job = new MetricsPublisherJob(inquireQueueMgrMetricsCollector, countDownLatch);
                 monitorContextConfig.getContext().getExecutorService().execute("InquireQueueManagerCmdCollector", job);
 			}
@@ -191,11 +193,10 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		Map<String, WMQMetricOverride> queueMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE);
 		if (queueMetricsToReport != null) {
 			QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
-			MetricCreator metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, QueueMetricsCollector.ARTIFACT);
-			MetricsCollector queueMetricsCollector =
-					new QueueMetricsCollector(queueMetricsToReport,
-						monitorContextConfig, agent, metricWriteHelper, queueManager, countDownLatch, sharedState,
-							metricCreator);
+			MetricsCollectorContext collectorContext = new MetricsCollectorContext(queueMetricsToReport, queueManager, agent, metricWriteHelper);
+			JobSubmitterContext jobSubmitterContext = new JobSubmitterContext(monitorContextConfig, countDownLatch, collectorContext);
+			MetricsPublisher queueMetricsCollector =
+					new QueueMetricsCollector(queueMetricsToReport, sharedState, jobSubmitterContext);
 			Runnable job = new MetricsPublisherJob(queueMetricsCollector, countDownLatch);
 			monitorContextConfig.getContext().getExecutorService().execute("QueueMetricsCollector", job);
 		} else {
@@ -217,7 +218,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 		if (topicMetricsToReport != null) {
 			MetricsCollectorContext collectorContext = new MetricsCollectorContext(topicMetricsToReport, queueManager, agent, metricWriteHelper);
 			JobSubmitterContext jobSubmitterContext = new JobSubmitterContext(monitorContextConfig, countDownLatch, collectorContext);
-			MetricsPublisher topicsMetricsCollector = new TopicMetricsCollector(topicMetricsToReport, jobSubmitterContext);
+			MetricsPublisher topicsMetricsCollector = new TopicMetricsCollector(jobSubmitterContext);
 			Runnable job = new MetricsPublisherJob(topicsMetricsCollector, countDownLatch);
 			monitorContextConfig.getContext().getExecutorService().execute("TopicMetricsCollector", job);
 		} else {

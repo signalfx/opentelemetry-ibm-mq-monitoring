@@ -87,7 +87,7 @@ public class TopicMetricsCollectorTest {
     void testPublishMetrics() throws Exception {
         MetricsCollectorContext collectorContext = new MetricsCollectorContext(topicMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
         JobSubmitterContext jobContext = new JobSubmitterContext(monitorContextConfig, mock(CountDownLatch.class), collectorContext);
-        classUnderTest = new TopicMetricsCollector(topicMetricsToReport, jobContext);
+        classUnderTest = new TopicMetricsCollector(jobContext);
 
         when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(createPCFResponseForInquireTopicStatusCmd());
 

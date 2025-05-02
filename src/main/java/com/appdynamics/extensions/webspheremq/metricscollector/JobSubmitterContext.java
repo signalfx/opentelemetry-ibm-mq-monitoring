@@ -24,18 +24,18 @@ final public class JobSubmitterContext {
         this.collectorContext = collectorContext;
     }
 
-    public String getMetricPrefix() {
+    String getMetricPrefix() {
         return monitorContextConfig.getMetricPrefix();
     }
 
-    public Future<?> submitPublishJob(String name, MetricsPublisher publisher) {
+    Future<?> submitPublishJob(String name, MetricsPublisher publisher) {
         MetricsPublisherJob job = new MetricsPublisherJob(publisher, countDownLatch);
         return monitorContextConfig.getContext()
                 .getExecutorService()
                 .submit(name, job);
     }
 
-    public int getConfigInt(String key, int defaultValue) {
+    int getConfigInt(String key, int defaultValue) {
         Object result = monitorContextConfig.getConfigYml().get(key);
         if(result == null){
             return defaultValue;
@@ -43,15 +43,19 @@ final public class JobSubmitterContext {
         return (Integer) result;
     }
 
-    public MetricCreator newMetricCreator(String firstPathComponent) {
+    MetricCreator newMetricCreator(String firstPathComponent) {
         return new MetricCreator(getMetricPrefix(), collectorContext.getQueueManagerName(), firstPathComponent);
     }
 
-    public MetricsCollectorContext newCollectorContext(Map<String, WMQMetricOverride> newMetrics) {
+    MetricsCollectorContext newCollectorContext(Map<String, WMQMetricOverride> newMetrics) {
         IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(newMetrics);
         return new MetricsCollectorContext(newMetrics, attributesBuilder,
                 collectorContext.getQueueManager(),
                 collectorContext.getAgent(),
                 collectorContext.getMetricWriteHelper());
+    }
+
+    Map<String, WMQMetricOverride> getMetricsForCommand(String command){
+        return collectorContext.getMetricsForCommand(command);
     }
 }

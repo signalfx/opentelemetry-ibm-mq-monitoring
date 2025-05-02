@@ -48,8 +48,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class QueueMetricsCollectorTest {
-    private QueueMetricsCollector classUnderTest;
+public class QueueCollectionBuddyTest {
+    private QueueCollectionBuddy classUnderTest;
 
     @Mock
     private AMonitorJob aMonitorJob;
@@ -68,6 +68,7 @@ public class QueueMetricsCollectorTest {
     private QueueManager queueManager;
     ArgumentCaptor<List<Metric>> pathCaptor;
     MetricCreator metricCreator;
+    MetricsCollectorContext collectorContext;
 
     @BeforeEach
     void setup() {
@@ -81,6 +82,7 @@ public class QueueMetricsCollectorTest {
         QueueCollectorSharedState.getInstance().resetForTest();
         pathCaptor = ArgumentCaptor.forClass(List.class);
         metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, QueueMetricsCollector.ARTIFACT);
+        collectorContext = new MetricsCollectorContext(queueMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
     }
 
     @Test
@@ -91,9 +93,9 @@ public class QueueMetricsCollectorTest {
         sharedState.putQueueType("DEV.QUEUE.1","local-transmission");
         PCFMessage request = createPCFRequestForInquireQStatusCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQStatusCmd());
-        classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                metricWriteHelper, queueManager, phaser, sharedState, metricCreator);
-        classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_INQUIRE_Q_STATUS");
+
+        classUnderTest = new QueueCollectionBuddy(collectorContext, sharedState, metricCreator, "MQCMD_INQUIRE_Q_STATUS");
+        classUnderTest.processPCFRequestAndPublishQMetrics(request, "*");
 
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
 
@@ -143,9 +145,8 @@ public class QueueMetricsCollectorTest {
     void testProcessPCFRequestAndPublishQMetricsForInquireQCmd() throws Exception {
         PCFMessage request = createPCFRequestForInquireQCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQCmd());
-        classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                metricWriteHelper, queueManager, phaser, QueueCollectorSharedState.getInstance(), metricCreator);
-        classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_INQUIRE_Q");
+        classUnderTest = new QueueCollectionBuddy(collectorContext, QueueCollectorSharedState.getInstance(), metricCreator, "MQCMD_INQUIRE_Q");
+        classUnderTest.processPCFRequestAndPublishQMetrics(request, "*");
 
         verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
 
@@ -185,7 +186,6 @@ public class QueueMetricsCollectorTest {
                 .withPropertiesMatching(standardPropsForAlias("Open Output Count"));
     }
 
-
     @Test
     void testProcessPCFRequestAndPublishQMetricsForResetQStatsCmd() throws Exception {
         QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
@@ -194,9 +194,8 @@ public class QueueMetricsCollectorTest {
         sharedState.putQueueType("DEV.QUEUE.1","local-transmission");
         PCFMessage request = createPCFRequestForResetQStatsCmd();
         when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForResetQStatsCmd());
-        classUnderTest = new QueueMetricsCollector(queueMetricsToReport, monitorContextConfig, pcfMessageAgent,
-                metricWriteHelper, queueManager, phaser, QueueCollectorSharedState.getInstance(), metricCreator);
-        classUnderTest.processPCFRequestAndPublishQMetrics("*", request, "MQCMD_RESET_Q_STATS");
+        classUnderTest = new QueueCollectionBuddy(collectorContext, sharedState, metricCreator, "MQCMD_RESET_Q_STATUS");
+        classUnderTest.processPCFRequestAndPublishQMetrics(request, "*");
 
         verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
 
