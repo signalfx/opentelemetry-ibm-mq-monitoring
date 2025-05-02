@@ -13,80 +13,81 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.appdynamics.extensions.webspheremq.config;
 
 import com.appdynamics.extensions.webspheremq.metricscollector.FilterType;
 import com.google.common.base.Strings;
-
 import java.util.HashSet;
 import java.util.Set;
 
 public class ExcludeFilters {
 
-	private String type;
-	private Set<String> values = new HashSet<>();
+  private String type;
+  private Set<String> values = new HashSet<>();
 
-	public String getType() {
-		return type;
-	}
-	public void setType(String type) {
-		this.type = type;
-	}
-	public Set<String> getValues() {
-		return values;
-	}
-	public void setValues(Set<String> values) {
-		this.values = values;
-	}
+  public String getType() {
+    return type;
+  }
 
-	public static boolean isExcluded(String resourceName, Set<ExcludeFilters> excludeFilters) {
-		if(excludeFilters == null){
-			return false;
-		}
-		for(ExcludeFilters filter : excludeFilters){
-			if(filter.isExcluded(resourceName)){
-				return true;
-			}
-		}
-		return false;
-	}
+  public void setType(String type) {
+    this.type = type;
+  }
 
-	public boolean isExcluded(String resourceName) {
-		if (Strings.isNullOrEmpty(resourceName)) {
-			return true;
-		}
-		switch (FilterType.valueOf(type)){
-			case CONTAINS:
-				for (String filterValue : values) {
-					if (resourceName.contains(filterValue)) {
-						return true;
-					}
-				}
-				break;
-			case STARTSWITH:
-				for (String filterValue : values) {
-					if (resourceName.startsWith(filterValue)) {
-						return true;
-					}
-				}
-				break;
-			case NONE:
-				return false;
-			case EQUALS:
-				for (String filterValue : values) {
-					if (resourceName.equals(filterValue)) {
-						return true;
-					}
-				}
-				break;
-			case ENDSWITH:
-				for (String filterValue : values) {
-					if (resourceName.endsWith(filterValue)) {
-						return true;
-					}
-				}
-		}
-		return false;
-	}
+  public Set<String> getValues() {
+    return values;
+  }
+
+  public void setValues(Set<String> values) {
+    this.values = values;
+  }
+
+  public static boolean isExcluded(String resourceName, Set<ExcludeFilters> excludeFilters) {
+    if (excludeFilters == null) {
+      return false;
+    }
+    for (ExcludeFilters filter : excludeFilters) {
+      if (filter.isExcluded(resourceName)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  public boolean isExcluded(String resourceName) {
+    if (Strings.isNullOrEmpty(resourceName)) {
+      return true;
+    }
+    switch (FilterType.valueOf(type)) {
+      case CONTAINS:
+        for (String filterValue : values) {
+          if (resourceName.contains(filterValue)) {
+            return true;
+          }
+        }
+        break;
+      case STARTSWITH:
+        for (String filterValue : values) {
+          if (resourceName.startsWith(filterValue)) {
+            return true;
+          }
+        }
+        break;
+      case NONE:
+        return false;
+      case EQUALS:
+        for (String filterValue : values) {
+          if (resourceName.equals(filterValue)) {
+            return true;
+          }
+        }
+        break;
+      case ENDSWITH:
+        for (String filterValue : values) {
+          if (resourceName.endsWith(filterValue)) {
+            return true;
+          }
+        }
+    }
+    return false;
+  }
 }

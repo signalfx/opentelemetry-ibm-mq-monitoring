@@ -45,6 +45,15 @@ Build the package with:
 ./mvnw package
 ```
 
+### Format
+
+This project uses [spotless](https://github.com/diffplug/spotless/tree/main/plugin-maven) to provide 
+consistent code format. To format your code:
+
+```shell
+./mvnw spotless:apply
+```
+
 ## Run
 
 Run the standalone jar alongside the IBM jar:

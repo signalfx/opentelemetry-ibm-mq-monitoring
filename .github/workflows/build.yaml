@@ -29,4 +29,4 @@ jobs:
           java-distribution: 'temurin'
           java-version: '11'
       - name: Maven build and test
-        run: ./mvnw package
+        run: ./mvnw verify package

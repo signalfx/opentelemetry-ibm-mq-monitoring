@@ -13,83 +13,82 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.webspheremq.config.QueueManager;
-import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
+import java.util.List;
 import org.slf4j.Logger;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
+/** This class is responsible for queue metric collection. */
+public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
 
-/**
- * This class is responsible for queue metric collection.
- */
-final public class InquireQueueManagerCmdCollector implements MetricsPublisher {
+  private static final Logger logger =
+      ExtensionsLoggerFactory.getLogger(InquireQueueManagerCmdCollector.class);
+  public static final String ARTIFACT = "Queue Manager";
+  private final MetricCreator metricCreator;
+  private final MetricsCollectorContext context;
 
-	private static final Logger logger = ExtensionsLoggerFactory.getLogger(InquireQueueManagerCmdCollector.class);
-	public final static String ARTIFACT = "Queue Manager";
-	private final MetricCreator metricCreator;
-	private final MetricsCollectorContext context;
+  public InquireQueueManagerCmdCollector(
+      MetricsCollectorContext context, MetricCreator metricCreator) {
+    this.metricCreator = metricCreator;
+    this.context = context;
+  }
 
-	public InquireQueueManagerCmdCollector(MetricsCollectorContext context, MetricCreator metricCreator) {
-        this.metricCreator = metricCreator;
-		this.context = context;
+  @Override
+  public void publishMetrics() throws TaskExecutionException {
+    long entryTime = System.currentTimeMillis();
+    logger.debug(
+        "publishMetrics entry time for queuemanager {} is {} milliseconds",
+        context.getAgentQueueManagerName(),
+        entryTime);
+    PCFMessage request;
+    PCFMessage[] responses;
+    // CMQCFC.MQCMD_INQUIRE_Q_MGR is 2
+    request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR);
+    // request.addParameter(CMQC.MQCA_Q_MGR_NAME, "*");
+    // CMQCFC.MQIACF_Q_MGR_STATUS_ATTRS is 1001
+    request.addParameter(
+        new MQCFIL(MQConstants.MQIACF_Q_MGR_ATTRS, new int[] {MQConstants.MQIACF_ALL}));
+    try {
+      // Note that agent.send() method is synchronized
+      logger.debug(
+          "sending PCF agent request to query queuemanager {}", context.getAgentQueueManagerName());
+      long startTime = System.currentTimeMillis();
+      responses = context.send(request);
+      long endTime = System.currentTimeMillis() - startTime;
+      logger.debug(
+          "PCF agent queuemanager metrics query response for {} received in {} milliseconds",
+          context.getAgentQueueManagerName(),
+          endTime);
+      if (responses == null || responses.length <= 0) {
+        logger.debug("Unexpected Error while PCFMessage.send(), response is either null or empty");
+        return;
+      }
+      List<Metric> responseMetrics = Lists.newArrayList();
+      context.forEachMetric(
+          (metrickey, wmqOverride) -> {
+            int metricVal = responses[0].getIntParameterValue(wmqOverride.getConstantValue());
+            if (logger.isDebugEnabled()) {
+              logger.debug("Metric: " + metrickey + "=" + metricVal);
+            }
+            Metric metric =
+                metricCreator.createMetric(metrickey, metricVal, wmqOverride, metrickey);
+            responseMetrics.add(metric);
+          });
+      context.transformAndPrintMetrics(responseMetrics);
+    } catch (Exception e) {
+      logger.error(e.getMessage());
+      throw new TaskExecutionException(e);
+    } finally {
+      long exitTime = System.currentTimeMillis() - entryTime;
+      logger.debug("Time taken to publish metrics for queuemanager is {} milliseconds", exitTime);
     }
-
-	@Override
-	public void publishMetrics() throws TaskExecutionException {
-		long entryTime = System.currentTimeMillis();
-		logger.debug("publishMetrics entry time for queuemanager {} is {} milliseconds", context.getAgentQueueManagerName(), entryTime);
-		PCFMessage request;
-		PCFMessage[] responses;
-		// CMQCFC.MQCMD_INQUIRE_Q_MGR is 2
-		request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR);
-		//request.addParameter(CMQC.MQCA_Q_MGR_NAME, "*");
-		// CMQCFC.MQIACF_Q_MGR_STATUS_ATTRS is 1001
-		request.addParameter(new MQCFIL(MQConstants.MQIACF_Q_MGR_ATTRS, new int[] {MQConstants.MQIACF_ALL}));
-		try {
-			// Note that agent.send() method is synchronized
-			logger.debug("sending PCF agent request to query queuemanager {}", context.getAgentQueueManagerName());
-			long startTime = System.currentTimeMillis();
-			responses = context.send(request);
-			long endTime = System.currentTimeMillis() - startTime;
-			logger.debug("PCF agent queuemanager metrics query response for {} received in {} milliseconds",
-					context.getAgentQueueManagerName(), endTime);
-			if (responses == null || responses.length <= 0) {
-				logger.debug("Unexpected Error while PCFMessage.send(), response is either null or empty");
-				return;
-			}
-			List<Metric> responseMetrics = Lists.newArrayList();
-			context.forEachMetric((metrickey, wmqOverride) -> {
-				int metricVal = responses[0].getIntParameterValue(wmqOverride.getConstantValue());
-				if (logger.isDebugEnabled()) {
-					logger.debug("Metric: " + metrickey + "=" + metricVal);
-				}
-				Metric metric = metricCreator.createMetric(metrickey, metricVal, wmqOverride, metrickey);
-				responseMetrics.add(metric);
-			});
-			context.transformAndPrintMetrics(responseMetrics);
-		} catch (Exception e) {
-			logger.error(e.getMessage());
-			throw new TaskExecutionException(e);
-		} finally {
-			long exitTime = System.currentTimeMillis() - entryTime;
-			logger.debug("Time taken to publish metrics for queuemanager is {} milliseconds", exitTime);
-		}
-	}
+  }
 }

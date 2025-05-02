@@ -13,82 +13,87 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.appdynamics.extensions.webspheremq.config;
 
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
 /**
- * Represents an override for WebSphere MQ metrics with custom properties.
- * This class provides functionality to specify and manage IBM constants,
- * commands, and associated metric properties for WebSphere MQ configuration.
+ * Represents an override for WebSphere MQ metrics with custom properties. This class provides
+ * functionality to specify and manage IBM constants, commands, and associated metric properties for
+ * WebSphere MQ configuration.
  */
 public class WMQMetricOverride {
 
-	String ibmConstant;
-	String ibmCommand;
-	int constantValue = -1;
-	Map<String, ?> metricProperties;
+  String ibmConstant;
+  String ibmCommand;
+  int constantValue = -1;
+  Map<String, ?> metricProperties;
 
-	public static final Logger logger = LoggerFactory.getLogger(WMQMetricOverride.class);
+  public static final Logger logger = LoggerFactory.getLogger(WMQMetricOverride.class);
 
-	public String getIbmConstant() {
-		return ibmConstant;
-	}
+  public String getIbmConstant() {
+    return ibmConstant;
+  }
 
-	public void setIbmConstant(String ibmConstant) {
-		this.ibmConstant = ibmConstant;
-	}
+  public void setIbmConstant(String ibmConstant) {
+    this.ibmConstant = ibmConstant;
+  }
 
-	public String getIbmCommand() {
-		return ibmCommand;
-	}
+  public String getIbmCommand() {
+    return ibmCommand;
+  }
 
-	public Map<String, ?> getMetricProperties() {
-		return metricProperties;
-	}
+  public Map<String, ?> getMetricProperties() {
+    return metricProperties;
+  }
 
-	public void setMetricProperties(Map<String, ?> metricProperties) {
-		this.metricProperties = metricProperties;
-	}
+  public void setMetricProperties(Map<String, ?> metricProperties) {
+    this.metricProperties = metricProperties;
+  }
 
-	public void setIbmCommand(String ibmCommand) {
-		this.ibmCommand = ibmCommand;
-	}
+  public void setIbmCommand(String ibmCommand) {
+    this.ibmCommand = ibmCommand;
+  }
 
-	public int getConstantValue() {
-		if (constantValue == -1) {
-			int lastPacSeparatorDotIdx = getIbmConstant().lastIndexOf('.');
-			if (lastPacSeparatorDotIdx != -1) {
-				String declaredField = getIbmConstant().substring(lastPacSeparatorDotIdx + 1);
-				String classStr = getIbmConstant().substring(0, lastPacSeparatorDotIdx);
-				Class clazz;
-				try {
-					clazz = Class.forName(classStr);
-					constantValue = (Integer) clazz.getDeclaredField(declaredField).get(Integer.class);
-				} catch (Exception e) {
-					logger.warn(e.getMessage());
-					logger.warn("ibmConstant {} is not a valid constant defaulting constant value to -1", getIbmConstant());
-				}
-			}
-		}
-		return constantValue;
-	}
-
-	public void setConstantValue(int constantValue) {
-		this.constantValue = constantValue;
-	}
-
-    @Override
-    public String toString() {
-        return "[" +
-                "IbmConstant=" + getIbmConstant() + "," +
-                "IbmCommand=" + getIbmCommand() + "," +
-                "ConstantVal=" + getConstantValue() + "," +
-                "]";
+  public int getConstantValue() {
+    if (constantValue == -1) {
+      int lastPacSeparatorDotIdx = getIbmConstant().lastIndexOf('.');
+      if (lastPacSeparatorDotIdx != -1) {
+        String declaredField = getIbmConstant().substring(lastPacSeparatorDotIdx + 1);
+        String classStr = getIbmConstant().substring(0, lastPacSeparatorDotIdx);
+        Class clazz;
+        try {
+          clazz = Class.forName(classStr);
+          constantValue = (Integer) clazz.getDeclaredField(declaredField).get(Integer.class);
+        } catch (Exception e) {
+          logger.warn(e.getMessage());
+          logger.warn(
+              "ibmConstant {} is not a valid constant defaulting constant value to -1",
+              getIbmConstant());
+        }
+      }
     }
+    return constantValue;
+  }
 
+  public void setConstantValue(int constantValue) {
+    this.constantValue = constantValue;
+  }
+
+  @Override
+  public String toString() {
+    return "["
+        + "IbmConstant="
+        + getIbmConstant()
+        + ","
+        + "IbmCommand="
+        + getIbmCommand()
+        + ","
+        + "ConstantVal="
+        + getConstantValue()
+        + ","
+        + "]";
+  }
 }

@@ -469,6 +469,33 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.44.4</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal> <!-- so spotless runs in ./mvnw verify -->
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <java>
+                        <includes>
+                            <include>src/main/java/**/*.java</include>
+                            <include>src/test/java/**/*.java</include>
+                            <include>src/integrationTest/java/**/*.java</include>
+                        </includes>
+                        <googleJavaFormat />
+                        <importOrder />
+                    </java>
+                    <!-- TODO: ADD LICENSE HEADER -->
+                    <licenseHeader>
+                        <file>${project.basedir}/buildscripts/spotless.license.java</file>
+                    </licenseHeader>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <repositories>

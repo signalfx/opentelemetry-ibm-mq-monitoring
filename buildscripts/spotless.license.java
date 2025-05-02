@@ -13,11 +13,3 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.appdynamics.extensions.webspheremq.metricscollector;
-
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
-
-public interface MetricsPublisher {
-
-  void publishMetrics() throws TaskExecutionException;
-}
