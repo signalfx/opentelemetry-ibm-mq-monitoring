@@ -7,67 +7,62 @@
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package com.splunk.ibm.mq.integration.tests;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Paths;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Paths;
-
-/**
- * Integration Test for WMQMonitor
- */
+/** Integration Test for WMQMonitor */
 class WMQMonitorIntegrationTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(WMQMonitorIntegrationTest.class);
+  private static final Logger logger = LoggerFactory.getLogger(WMQMonitorIntegrationTest.class);
 
-    @NotNull
-    private String getConfigFile(String resourcePath) throws URISyntaxException {
-        URL resource = getClass().getClassLoader().getResource(resourcePath);
-        if (resource == null) {
-            throw new IllegalArgumentException("file not found!");
-        }
-
-        File file = Paths.get(resource.toURI()).toFile();
-        logger.info("Config file: {}", file.getAbsolutePath());
-        return file.getAbsolutePath();
+  @NotNull
+  private String getConfigFile(String resourcePath) throws URISyntaxException {
+    URL resource = getClass().getClassLoader().getResource(resourcePath);
+    if (resource == null) {
+      throw new IllegalArgumentException("file not found!");
     }
 
-    @Test
-    void test_monitor_with_full_config() throws Exception {
-        logger.info("\n\n\n\n\n\nRunning test: test_monitor_with_full_config");
-        TestResultMetricExporter testExporter = new TestResultMetricExporter();
-        MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter);
-        String configFile = getConfigFile("conf/test-config.yml");
+    File file = Paths.get(resource.toURI()).toFile();
+    logger.info("Config file: {}", file.getAbsolutePath());
+    return file.getAbsolutePath();
+  }
 
-        TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper);
-        monitor.testrun();
+  @Test
+  void test_monitor_with_full_config() throws Exception {
+    logger.info("\n\n\n\n\n\nRunning test: test_monitor_with_full_config");
+    TestResultMetricExporter testExporter = new TestResultMetricExporter();
+    MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter);
+    String configFile = getConfigFile("conf/test-config.yml");
 
-    }
+    TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper);
+    monitor.testrun();
+  }
 
-    @Test
-    void test_wmqmonitor() throws Exception {
-        logger.info("\n\n\n\n\n\nRunning test: test_wmqmonitor");
-        TestResultMetricExporter testExporter = new TestResultMetricExporter();
-        MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter);
-        String configFile = getConfigFile("conf/test-queuemgr-config.yml");
+  @Test
+  void test_wmqmonitor() throws Exception {
+    logger.info("\n\n\n\n\n\nRunning test: test_wmqmonitor");
+    TestResultMetricExporter testExporter = new TestResultMetricExporter();
+    MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter);
+    String configFile = getConfigFile("conf/test-queuemgr-config.yml");
 
-        TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper);
-        monitor.testrun();
-    }
+    TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper);
+    monitor.testrun();
+  }
 }

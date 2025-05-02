@@ -20,22 +20,22 @@ import java.util.Set;
 
 public class ResourceFilters {
 
-    private Set<String> include = new HashSet<>();
-    private Set<ExcludeFilters> exclude = new HashSet<>();
+  private Set<String> include = new HashSet<>();
+  private Set<ExcludeFilters> exclude = new HashSet<>();
 
-    public Set<String> getInclude() {
-        return include;
-    }
+  public Set<String> getInclude() {
+    return include;
+  }
 
-    public void setInclude(Set<String> include) {
-        this.include = include;
-    }
+  public void setInclude(Set<String> include) {
+    this.include = include;
+  }
 
-    public Set<ExcludeFilters> getExclude() {
-        return exclude;
-    }
+  public Set<ExcludeFilters> getExclude() {
+    return exclude;
+  }
 
-    public void setExclude(Set<ExcludeFilters> exclude) {
-        this.exclude = exclude;
-    }
+  public void setExclude(Set<ExcludeFilters> exclude) {
+    this.exclude = exclude;
+  }
 }

@@ -20,17 +20,17 @@ import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.metrics.transformers.Transformer;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OpenTelemetryMetricWriteHelper extends MetricWriteHelper {
 
-  private static final Logger logger = LoggerFactory.getLogger(OpenTelemetryMetricWriteHelper.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(OpenTelemetryMetricWriteHelper.class);
 
   private final MetricExporter exporter;
 
@@ -41,11 +41,12 @@ public class OpenTelemetryMetricWriteHelper extends MetricWriteHelper {
   @Override
   public void printMetric(String metricPath, BigDecimal value, String metricType) {
     String metricName = metricPath.substring(metricPath.lastIndexOf('|'));
-    transformAndPrintMetrics(Collections.singletonList(new Metric(metricName, value.toString(), metricPath)));
+    transformAndPrintMetrics(
+        Collections.singletonList(new Metric(metricName, value.toString(), metricPath)));
   }
 
-    @Override
-    public void transformAndPrintMetrics(List<Metric> metrics) {
+  @Override
+  public void transformAndPrintMetrics(List<Metric> metrics) {
     Transformer transformer = new Transformer(metrics);
     transformer.transform();
     MQOtelTranslator mqOtelTransformer = new MQOtelTranslator();
