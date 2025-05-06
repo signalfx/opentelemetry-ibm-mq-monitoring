@@ -25,7 +25,6 @@ import com.ibm.mq.headers.pcf.MQCFIN;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFParameter;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -47,7 +46,7 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() throws TaskExecutionException {
+  public void publishMetrics() {
     logger.info("Collecting metrics for command {}", COMMAND);
     long entryTime = System.currentTimeMillis();
 

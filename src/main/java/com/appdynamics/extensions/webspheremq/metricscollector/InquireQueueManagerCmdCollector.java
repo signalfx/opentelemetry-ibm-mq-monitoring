@@ -22,7 +22,6 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import java.util.List;
 import org.slf4j.Logger;
 
@@ -42,7 +41,7 @@ public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() throws TaskExecutionException {
+  public void publishMetrics() {
     long entryTime = System.currentTimeMillis();
     logger.debug(
         "publishMetrics entry time for queuemanager {} is {} milliseconds",
@@ -85,7 +84,7 @@ public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
       context.transformAndPrintMetrics(responseMetrics);
     } catch (Exception e) {
       logger.error(e.getMessage());
-      throw new TaskExecutionException(e);
+      throw new RuntimeException(e);
     } finally {
       long exitTime = System.currentTimeMillis() - entryTime;
       logger.debug("Time taken to publish metrics for queuemanager is {} milliseconds", exitTime);

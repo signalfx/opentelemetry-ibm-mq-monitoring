@@ -28,7 +28,6 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.*;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -61,7 +60,7 @@ public final class QueueMetricsCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() throws TaskExecutionException {
+  public void publishMetrics() {
     logger.info("Collecting queue metrics...");
     List<Future> futures = Lists.newArrayList();
     Map<String, WMQMetricOverride> metricsForInquireQCmd =

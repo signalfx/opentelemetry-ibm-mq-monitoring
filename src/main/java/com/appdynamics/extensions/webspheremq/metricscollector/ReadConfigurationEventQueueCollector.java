@@ -32,7 +32,6 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -126,7 +125,7 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
   }
 
   @Override
-  public void publishMetrics() throws TaskExecutionException {
+  public void publishMetrics() {
     long entryTime = System.currentTimeMillis();
     String configurationQueueName = this.queueManager.getConfigurationQueueName();
     logger.info(

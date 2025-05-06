@@ -18,7 +18,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import java.util.Arrays;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -37,7 +36,7 @@ final class InquireQCmdCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() throws TaskExecutionException {
+  public void publishMetrics() {
     logger.info("Collecting metrics for command {}", COMMAND);
     /*
      * attrs = { CMQC.MQCA_Q_NAME, CMQC.MQIA_CURRENT_Q_DEPTH, CMQC.MQIA_MAX_Q_DEPTH, CMQC.MQIA_OPEN_INPUT_COUNT, CMQC.MQIA_OPEN_OUTPUT_COUNT };
