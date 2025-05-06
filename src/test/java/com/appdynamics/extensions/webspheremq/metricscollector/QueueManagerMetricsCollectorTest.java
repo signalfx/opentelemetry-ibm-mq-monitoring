@@ -33,7 +33,6 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -68,7 +67,7 @@ class QueueManagerMetricsCollectorTest {
         new MonitorContextConfiguration(
             "WMQMonitor",
             "Custom Metrics|WMQMonitor|",
-            PathResolver.resolveDirectory(AManagedMonitor.class),
+            PathResolver.resolveDirectory(QueueManagerMetricsCollectorTest.class),
             aMonitorJob);
     monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
     Map<String, ?> configMap = monitorContextConfig.getConfigYml();

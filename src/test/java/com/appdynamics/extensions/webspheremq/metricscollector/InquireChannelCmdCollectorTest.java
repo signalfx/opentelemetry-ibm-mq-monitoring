@@ -35,7 +35,6 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.singularity.ee.agent.systemagent.api.AManagedMonitor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +68,7 @@ class InquireChannelCmdCollectorTest {
         new MonitorContextConfiguration(
             "WMQMonitor",
             "Custom Metrics|WMQMonitor|",
-            PathResolver.resolveDirectory(AManagedMonitor.class),
+            PathResolver.resolveDirectory(InquireChannelCmdCollectorTest.class),
             aMonitorJob);
     monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
     Map<String, ?> configMap = monitorContextConfig.getConfigYml();

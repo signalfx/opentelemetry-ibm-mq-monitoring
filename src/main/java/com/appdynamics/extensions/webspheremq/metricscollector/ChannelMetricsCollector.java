@@ -25,7 +25,6 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +46,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() throws TaskExecutionException {
+  public void publishMetrics() {
     long entryTime = System.currentTimeMillis();
 
     if (context.hasNoMetricsToReport()) {

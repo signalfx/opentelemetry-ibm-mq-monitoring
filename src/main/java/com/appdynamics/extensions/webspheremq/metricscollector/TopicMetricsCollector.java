@@ -17,7 +17,6 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -36,7 +35,7 @@ public final class TopicMetricsCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() throws TaskExecutionException {
+  public void publishMetrics() {
     logger.info("Collecting Topic metrics...");
     List<Future<?>> futures = Lists.newArrayList();
 
