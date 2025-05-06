@@ -23,9 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.*;
 
-import com.appdynamics.extensions.AMonitorJob;
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
+import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
@@ -55,11 +54,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ChannelMetricsCollectorTest {
   ChannelMetricsCollector classUnderTest;
 
-  @Mock AMonitorJob aMonitorJob;
-
   @Mock PCFMessageAgent pcfMessageAgent;
 
-  @Mock MetricWriteHelper metricWriteHelper;
+  @Mock OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   QueueManager queueManager;
   ArgumentCaptor<List<Metric>> pathCaptor;

@@ -20,9 +20,8 @@ import static com.appdynamics.extensions.webspheremq.metricscollector.MetricProp
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.appdynamics.extensions.AMonitorJob;
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
+import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
@@ -49,11 +48,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class TopicMetricsCollectorTest {
   private TopicMetricsCollector classUnderTest;
 
-  @Mock private AMonitorJob aMonitorJob;
-
   @Mock private PCFMessageAgent pcfMessageAgent;
 
-  @Mock private MetricWriteHelper metricWriteHelper;
+  @Mock private OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   private Map<String, ?> configMap;
 
@@ -82,7 +79,7 @@ public class TopicMetricsCollectorTest {
             topicMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
     JobSubmitterContext jobContext =
         new JobSubmitterContext(
-            "",
+            (String) this.configMap.get("metricPrefix"),
             mock(CountDownLatch.class),
             collectorContext,
             Executors.newScheduledThreadPool(2),

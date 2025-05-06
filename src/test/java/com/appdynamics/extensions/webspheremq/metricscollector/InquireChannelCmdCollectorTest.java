@@ -21,9 +21,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.appdynamics.extensions.AMonitorJob;
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
+import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
@@ -49,11 +48,9 @@ class InquireChannelCmdCollectorTest {
 
   InquireChannelCmdCollector classUnderTest;
 
-  @Mock AMonitorJob aMonitorJob;
-
   @Mock PCFMessageAgent pcfMessageAgent;
 
-  @Mock MetricWriteHelper metricWriteHelper;
+  @Mock OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   ArgumentCaptor<List> pathCaptor;
   MetricCreator metricCreator;

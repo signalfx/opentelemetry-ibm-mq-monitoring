@@ -18,9 +18,8 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.appdynamics.extensions.AMonitorJob;
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
+import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
@@ -47,11 +46,9 @@ class QueueManagerMetricsCollectorTest {
 
   QueueManagerMetricsCollector classUnderTest;
 
-  @Mock AMonitorJob aMonitorJob;
-
   @Mock PCFMessageAgent pcfMessageAgent;
 
-  @Mock MetricWriteHelper metricWriteHelper;
+  @Mock OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   private Map<String, ?> configMap;
   Map<String, WMQMetricOverride> queueMgrMetricsToReport;

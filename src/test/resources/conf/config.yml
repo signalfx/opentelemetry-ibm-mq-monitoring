@@ -3,7 +3,7 @@ numberOfThreads: 10
 
 #This will create it in specific Tier aka Component. Replace <COMPONENT_ID>. Please make sure to have a trailing |.
 #To find out the COMPONENT_ID, please see the screen shot here https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
-metricPrefix: "Server|Component:Tier1|Custom Metrics|WebsphereMQ|"
+metricPrefix: "Server|Component:Tier1|Custom Metrics|WebsphereMQ"
 
 #This is the timeout on queue metrics and channel metrics threads.Default value is 20 seconds.
 #No need to change the default unless you know what you are doing.

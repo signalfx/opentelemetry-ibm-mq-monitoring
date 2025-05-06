@@ -16,7 +16,6 @@
 package com.appdynamics.extensions.webspheremq;
 
 import com.appdynamics.extensions.AMonitorTaskRunnable;
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.appdynamics.extensions.util.StringUtils;
 import com.appdynamics.extensions.webspheremq.common.Constants;
@@ -47,7 +46,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
   private final String metricPrefix;
   private final ScheduledExecutorService service;
   private Map<String, ?> configMap;
-  private MetricWriteHelper metricWriteHelper;
+  private OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   public WMQMonitorTask(
       OpenTelemetryMetricWriteHelper metricWriteHelper,

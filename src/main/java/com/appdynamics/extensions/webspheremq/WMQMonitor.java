@@ -166,6 +166,7 @@ public class WMQMonitor {
     try {
       doRun(service);
     } finally {
+      this.overrideHelper.onComplete();
       long endTime = System.currentTimeMillis();
       logger.info(
           "End executing WMQMonitor at {}, total execution time: {}",

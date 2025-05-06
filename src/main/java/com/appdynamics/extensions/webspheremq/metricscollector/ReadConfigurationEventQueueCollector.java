@@ -15,9 +15,9 @@
  */
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
+import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import com.google.common.collect.Lists;
@@ -41,7 +41,7 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
 
   private static final Logger logger =
       ExtensionsLoggerFactory.getLogger(ReadConfigurationEventQueueCollector.class);
-  private final MetricWriteHelper metricWriteHelper;
+  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
   private final MQQueueManager mqQueueManager;
@@ -56,7 +56,7 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
       PCFMessageAgent agent,
       MQQueueManager mqQueueManager,
       QueueManager queueManager,
-      MetricWriteHelper metricWriteHelper,
+      OpenTelemetryMetricWriteHelper metricWriteHelper,
       MetricCreator metricCreator) {
     this.metricsToReport = metricsToReport;
     this.metricsPrefix = metricsPrefix;
