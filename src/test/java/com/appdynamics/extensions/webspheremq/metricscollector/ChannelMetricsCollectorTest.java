@@ -23,11 +23,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.*;
 
-import com.appdynamics.extensions.AMonitorJob;
-import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.PathResolver;
+import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
+import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -56,29 +54,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ChannelMetricsCollectorTest {
   ChannelMetricsCollector classUnderTest;
 
-  @Mock AMonitorJob aMonitorJob;
-
   @Mock PCFMessageAgent pcfMessageAgent;
 
-  @Mock MetricWriteHelper metricWriteHelper;
-
-  MonitorContextConfiguration monitorContextConfig;
+  @Mock OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   QueueManager queueManager;
   ArgumentCaptor<List<Metric>> pathCaptor;
   MetricCreator metricCreator;
   MetricsCollectorContext context;
+  private Map<String, ?> configMap;
 
   @BeforeEach
   void setup() {
-    monitorContextConfig =
-        new MonitorContextConfiguration(
-            "WMQMonitor",
-            "Custom Metrics|WMQMonitor|",
-            PathResolver.resolveDirectory(ChannelMetricsCollectorTest.class),
-            aMonitorJob);
-    monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
-    Map<String, ?> configMap = monitorContextConfig.getConfigYml();
+    this.configMap =
+        WMQMonitor.readConfig(
+            WMQMonitor.getInstallDirectory(), "src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager =
         mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
@@ -100,7 +90,7 @@ class ChannelMetricsCollectorTest {
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator =
         new MetricCreator(
-            monitorContextConfig.getMetricPrefix(), queueManager, ChannelMetricsCollector.ARTIFACT);
+            (String) configMap.get("metricPrefix"), queueManager, ChannelMetricsCollector.ARTIFACT);
     IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(channelMetricsToReport);
     context =
         new MetricsCollectorContext(

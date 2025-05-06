@@ -17,8 +17,8 @@ package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import static java.util.Collections.emptyMap;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
+import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.ExcludeFilters;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -49,13 +49,13 @@ public final class MetricsCollectorContext {
   private final IntAttributesBuilder attributesBuilder;
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
-  private final MetricWriteHelper metricWriteHelper;
+  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   public MetricsCollectorContext(
       @Nullable Map<String, WMQMetricOverride> metricsToReport,
       QueueManager queueManager,
       PCFMessageAgent agent,
-      MetricWriteHelper metricWriteHelper) {
+      OpenTelemetryMetricWriteHelper metricWriteHelper) {
     this(
         metricsToReport,
         new IntAttributesBuilder(metricsToReport),
@@ -69,7 +69,7 @@ public final class MetricsCollectorContext {
       IntAttributesBuilder attributesBuilder,
       QueueManager queueManager,
       PCFMessageAgent agent,
-      MetricWriteHelper metricWriteHelper) {
+      OpenTelemetryMetricWriteHelper metricWriteHelper) {
     this.metricsToReport =
         metricsToReport == null ? Collections.emptyMap() : new HashMap<>(metricsToReport);
     this.attributesBuilder = attributesBuilder;
@@ -151,7 +151,7 @@ public final class MetricsCollectorContext {
     return agent;
   }
 
-  MetricWriteHelper getMetricWriteHelper() {
+  OpenTelemetryMetricWriteHelper getMetricWriteHelper() {
     return metricWriteHelper;
   }
 

@@ -15,11 +15,11 @@
  */
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.webspheremq.config.WMQMetricOverride;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * JobSubmitterContext is a bundle class used by MetricsPublisher instances in order to bundle
@@ -27,30 +27,36 @@ import java.util.concurrent.Future;
  */
 public final class JobSubmitterContext {
 
-  private final MonitorContextConfiguration monitorContextConfig;
+  private final String metricsPrefix;
   private final CountDownLatch countDownLatch;
   private final MetricsCollectorContext collectorContext;
+  private final ScheduledExecutorService service;
+  private final Map<String, ?> configMap;
 
   public JobSubmitterContext(
-      MonitorContextConfiguration monitorContextConfig,
+      String metricsPrefix,
       CountDownLatch countDownLatch,
-      MetricsCollectorContext collectorContext) {
-    this.monitorContextConfig = monitorContextConfig;
+      MetricsCollectorContext collectorContext,
+      ScheduledExecutorService service,
+      Map<String, ?> configMap) {
+    this.metricsPrefix = metricsPrefix;
+    this.service = service;
+    this.configMap = configMap;
     this.countDownLatch = countDownLatch;
     this.collectorContext = collectorContext;
   }
 
   String getMetricPrefix() {
-    return monitorContextConfig.getMetricPrefix();
+    return this.metricsPrefix;
   }
 
   Future<?> submitPublishJob(String name, MetricsPublisher publisher) {
     MetricsPublisherJob job = new MetricsPublisherJob(publisher, countDownLatch);
-    return monitorContextConfig.getContext().getExecutorService().submit(name, job);
+    return this.service.submit(job);
   }
 
   int getConfigInt(String key, int defaultValue) {
-    Object result = monitorContextConfig.getConfigYml().get(key);
+    Object result = this.configMap.get(key);
     if (result == null) {
       return defaultValue;
     }

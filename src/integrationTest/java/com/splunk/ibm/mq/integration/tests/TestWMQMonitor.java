@@ -15,16 +15,17 @@
  */
 package com.splunk.ibm.mq.integration.tests;
 
-import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.TasksExecutionServiceProvider;
+import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.appdynamics.extensions.util.AssertUtils;
 import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.webspheremq.WMQMonitorTask;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * The TestWMQMonitor class extends the WMQMonitor class and provides a test implementation of the
@@ -34,14 +35,8 @@ import java.util.Map;
  */
 class TestWMQMonitor extends WMQMonitor {
 
-  private final MetricWriteHelper overrideHelper;
-
-  TestWMQMonitor(String testConfigFile, MetricWriteHelper overrideHelper) {
-    super(overrideHelper);
-    this.overrideHelper = overrideHelper;
-    Map<String, String> args = new HashMap<>();
-    args.put("config-file", testConfigFile);
-    initialize(args);
+  TestWMQMonitor(String testConfigFile, OpenTelemetryMetricWriteHelper overrideHelper) {
+    super(overrideHelper, Collections.singletonMap("config-file", testConfigFile));
   }
 
   /**
@@ -53,21 +48,20 @@ class TestWMQMonitor extends WMQMonitor {
    * WMQMonitorTask
    */
   void testrun() {
-    List<Map> queueManagers =
-        (List<Map>) this.getContextConfiguration().getConfigYml().get("queueManagers");
+    List<Map> queueManagers = (List<Map>) this.configMap.get("queueManagers");
     AssertUtils.assertNotNull(
         queueManagers, "The 'queueManagers' section in config.yml is not initialised");
     ObjectMapper mapper = new ObjectMapper();
     // we override this helper to pass in our opentelemetry helper instead.
     if (this.overrideHelper != null) {
-      TasksExecutionServiceProvider tasksExecutionServiceProvider =
-          new TasksExecutionServiceProvider(this, this.overrideHelper);
+
+      ScheduledExecutorService service = Executors.newScheduledThreadPool(queueManagers.size() + 1);
 
       for (Map queueManager : queueManagers) {
         QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
         WMQMonitorTask wmqTask =
             new WMQMonitorTask(
-                tasksExecutionServiceProvider, this.getContextConfiguration(), qManager);
+                overrideHelper, this.configMap, qManager, getDefaultMetricPrefix(), service);
         wmqTask.run();
       }
     }

@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.integration.tests;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import java.io.File;
@@ -48,7 +47,8 @@ class WMQMonitorIntegrationTest {
   void test_monitor_with_full_config() throws Exception {
     logger.info("\n\n\n\n\n\nRunning test: test_monitor_with_full_config");
     TestResultMetricExporter testExporter = new TestResultMetricExporter();
-    MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter);
+    OpenTelemetryMetricWriteHelper metricWriteHelper =
+        new OpenTelemetryMetricWriteHelper(testExporter);
     String configFile = getConfigFile("conf/test-config.yml");
 
     TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper);
@@ -59,7 +59,8 @@ class WMQMonitorIntegrationTest {
   void test_wmqmonitor() throws Exception {
     logger.info("\n\n\n\n\n\nRunning test: test_wmqmonitor");
     TestResultMetricExporter testExporter = new TestResultMetricExporter();
-    MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter);
+    OpenTelemetryMetricWriteHelper metricWriteHelper =
+        new OpenTelemetryMetricWriteHelper(testExporter);
     String configFile = getConfigFile("conf/test-queuemgr-config.yml");
 
     TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper);
