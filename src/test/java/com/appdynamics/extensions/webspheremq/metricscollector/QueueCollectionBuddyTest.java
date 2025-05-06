@@ -22,9 +22,8 @@ import static org.mockito.Mockito.*;
 
 import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.PathResolver;
+import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -56,23 +55,18 @@ public class QueueCollectionBuddyTest {
 
   @Mock private CountDownLatch phaser;
 
-  private MonitorContextConfiguration monitorContextConfig;
   private Map<String, WMQMetricOverride> queueMetricsToReport;
   private QueueManager queueManager;
   ArgumentCaptor<List<Metric>> pathCaptor;
   MetricCreator metricCreator;
   MetricsCollectorContext collectorContext;
+  private Map<String, ?> configMap;
 
   @BeforeEach
   void setup() {
-    monitorContextConfig =
-        new MonitorContextConfiguration(
-            "WMQMonitor",
-            "Custom Metrics|WMQMonitor|",
-            PathResolver.resolveDirectory(QueueCollectionBuddyTest.class),
-            aMonitorJob);
-    monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
-    Map<String, ?> configMap = monitorContextConfig.getConfigYml();
+    this.configMap =
+        WMQMonitor.readConfig(
+            WMQMonitor.getInstallDirectory(), "src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager =
         mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
@@ -83,7 +77,7 @@ public class QueueCollectionBuddyTest {
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator =
         new MetricCreator(
-            monitorContextConfig.getMetricPrefix(), queueManager, QueueMetricsCollector.ARTIFACT);
+            (String) configMap.get("metricPrefix"), queueManager, QueueMetricsCollector.ARTIFACT);
     collectorContext =
         new MetricsCollectorContext(
             queueMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);

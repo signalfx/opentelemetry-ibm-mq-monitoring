@@ -20,11 +20,9 @@ import static com.appdynamics.extensions.webspheremq.metricscollector.MetricProp
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.PathResolver;
+import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -45,28 +43,22 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ListenerMetricsCollectorTest {
   private ListenerMetricsCollector classUnderTest;
-  @Mock private AMonitorJob aMonitorJob;
 
   @Mock private PCFMessageAgent pcfMessageAgent;
 
   @Mock private MetricWriteHelper metricWriteHelper;
 
-  private MonitorContextConfiguration monitorContextConfig;
   private Map<String, WMQMetricOverride> listenerMetricsToReport;
   private QueueManager queueManager;
   private ArgumentCaptor<List<Metric>> pathCaptor;
   private MetricCreator metricCreator;
+  private Map<String, ?> configMap;
 
   @BeforeEach
   public void setup() {
-    monitorContextConfig =
-        new MonitorContextConfiguration(
-            "WMQMonitor",
-            "Custom Metrics|WMQMonitor|",
-            PathResolver.resolveDirectory(ListenerMetricsCollectorTest.class),
-            aMonitorJob);
-    monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
-    Map<String, ?> configMap = monitorContextConfig.getConfigYml();
+    this.configMap =
+        WMQMonitor.readConfig(
+            WMQMonitor.getInstallDirectory(), "src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager =
         mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
@@ -76,7 +68,7 @@ class ListenerMetricsCollectorTest {
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator =
         new MetricCreator(
-            monitorContextConfig.getMetricPrefix(),
+            (String) configMap.get("metricPrefix"),
             queueManager,
             ListenerMetricsCollector.ARTIFACT);
   }

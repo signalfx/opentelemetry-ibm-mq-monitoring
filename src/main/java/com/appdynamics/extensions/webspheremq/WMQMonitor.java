@@ -15,79 +15,91 @@
  */
 package com.appdynamics.extensions.webspheremq;
 
-import com.appdynamics.extensions.ABaseMonitor;
 import com.appdynamics.extensions.Constants;
-import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.TasksExecutionServiceProvider;
+import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.appdynamics.extensions.util.AssertUtils;
 import com.appdynamics.extensions.util.CryptoUtils;
+import com.appdynamics.extensions.util.PathResolver;
+import com.appdynamics.extensions.util.StringUtils;
+import com.appdynamics.extensions.util.TimeUtils;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
+import com.appdynamics.extensions.yml.YmlReader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WMQMonitor extends ABaseMonitor {
+public class WMQMonitor {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitor.class);
 
-  private final MetricWriteHelper overrideHelper;
+  protected final OpenTelemetryMetricWriteHelper overrideHelper;
+  protected final Map<String, ?> configMap;
 
-  public WMQMonitor() {
-    this(null);
+  public WMQMonitor(OpenTelemetryMetricWriteHelper overrideHelper, Map<String, String> args) {
+    this.overrideHelper = overrideHelper;
+    File installDir = getInstallDirectory();
+    configMap = readConfig(installDir, args.get("config-file"));
+    List<Map> queueManagers = (List<Map>) configMap.get("queueManagers");
+    AssertUtils.assertNotNull(
+        queueManagers, "The 'queueManagers' section in config.yml is not initialised");
+    init();
   }
 
-  public WMQMonitor(MetricWriteHelper overrideHelper) {
-    this.overrideHelper = overrideHelper;
+  public static File resolvePath(File installDir, String path) {
+    File file = PathResolver.getFile(path, installDir);
+    if (file != null && file.exists()) {
+      return file;
+    } else {
+      throw new IllegalArgumentException("The path [" + path + "] cannot be resolved to a file");
+    }
+  }
+
+  public static Map<String, ?> readConfig(File installDir, String path) {
+    File configFile = resolvePath(installDir, path);
+    logger.info("Loading the configuration from {}", configFile.getAbsolutePath());
+    return YmlReader.readFromFileAsMap(configFile);
+  }
+
+  public static File getInstallDirectory() {
+    File installDir = PathResolver.resolveDirectory(WMQMonitor.class);
+    if (installDir == null) {
+      throw new RuntimeException("The install directory cannot be null");
+    }
+    return installDir;
   }
 
   protected String getDefaultMetricPrefix() {
     return "Custom Metrics|WMQMonitor|";
   }
 
-  public String getMonitorName() {
-    return "WMQMonitor";
-  }
-
-  protected void doRun(TasksExecutionServiceProvider tasksExecutionServiceProvider) {
-    List<Map> queueManagers =
-        (List<Map>) this.getContextConfiguration().getConfigYml().get("queueManagers");
-    AssertUtils.assertNotNull(
-        queueManagers, "The 'queueManagers' section in config.yml is not initialised");
+  protected void doRun(ScheduledExecutorService service) {
+    List<Map> queueManagers = (List<Map>) this.configMap.get("queueManagers");
     ObjectMapper mapper = new ObjectMapper();
-    // we override this helper to pass in our opentelemetry helper instead.
-    if (this.overrideHelper != null) {
-      tasksExecutionServiceProvider = new TasksExecutionServiceProvider(this, this.overrideHelper);
+
+    String metricsPrefix = (String) configMap.get("metricPrefix");
+    if (metricsPrefix == null || metricsPrefix.isEmpty()) {
+      metricsPrefix = getDefaultMetricPrefix();
     }
+    metricsPrefix = StringUtils.trim(metricsPrefix.trim(), "|");
     for (Map queueManager : queueManagers) {
       QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
       WMQMonitorTask wmqTask =
-          new WMQMonitorTask(
-              tasksExecutionServiceProvider, this.getContextConfiguration(), qManager);
-      tasksExecutionServiceProvider.submit((String) queueManager.get("name"), wmqTask);
+          new WMQMonitorTask(this.overrideHelper, this.configMap, qManager, metricsPrefix, service);
+      service.submit(wmqTask);
     }
   }
 
-  @Override
-  protected List<Map<String, ?>> getServers() {
-    List<Map<String, ?>> queueManagers =
-        (List<Map<String, ?>>) getContextConfiguration().getConfigYml().get("queueManagers");
-    AssertUtils.assertNotNull(
-        queueManagers, "The 'queueManagers' section in config.yml is not initialised");
-    return queueManagers;
-  }
-
-  @Override
-  protected void initializeMoreStuff(Map<String, String> args) {
-    super.initializeMoreStuff(args);
-    Map<String, ?> configProperties = this.getContextConfiguration().getConfigYml();
-    Map<String, String> sslConnection = (Map<String, String>) configProperties.get("sslConnection");
+  private void init() {
+    Map<String, String> sslConnection = (Map<String, String>) configMap.get("sslConnection");
 
     if (sslConnection != null) {
-      String encryptionKey = (String) configProperties.get("encryptionKey");
+      String encryptionKey = (String) configMap.get("encryptionKey");
       logger.debug("Encryption key from config.yml set for ssl connection is {}", encryptionKey);
 
       String trustStorePath = sslConnection.get("trustStorePath");
@@ -142,5 +154,23 @@ public class WMQMonitor extends ABaseMonitor {
       return CryptoUtils.getPassword(cryptoMap);
     }
     return null;
+  }
+
+  public void execute(ScheduledExecutorService service) {
+    long startTime = System.currentTimeMillis();
+    logger.info(
+        "Started executing WMQMonitor at {}",
+        TimeUtils.getFormattedTimestamp(startTime, "yyyy-MM-dd HH:mm:ss z"));
+    logger.info(
+        "Using WMQMonitor Version [{}]", WMQMonitor.class.getPackage().getImplementationTitle());
+    try {
+      doRun(service);
+    } finally {
+      long endTime = System.currentTimeMillis();
+      logger.info(
+          "End executing WMQMonitor at {}, total execution time: {}",
+          TimeUtils.getFormattedTimestamp(endTime, "yyyy-MM-dd HH:mm:ss z"),
+          endTime - startTime);
+    }
   }
 }

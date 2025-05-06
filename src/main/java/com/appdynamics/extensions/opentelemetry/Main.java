@@ -18,8 +18,6 @@ package com.appdynamics.extensions.opentelemetry;
 import com.appdynamics.extensions.util.YmlUtils;
 import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.yml.YmlReader;
-import com.singularity.ee.agent.systemagent.api.TaskExecutionContext;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
 import java.io.File;
 import java.util.HashMap;
@@ -42,9 +40,10 @@ public class Main {
     Config.setUpSSLConnection(config);
 
     OtlpGrpcMetricExporter exporter = Config.createOtlpGrpcMetricsExporter(config);
-
-    WMQMonitor monitor = new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter));
-    TaskExecutionContext taskExecCtx = new TaskExecutionContext();
+    Map<String, String> taskArguments = new HashMap<>();
+    taskArguments.put("config-file", configFile);
+    WMQMonitor monitor =
+        new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter), taskArguments);
 
     int numberOfThreads = 1;
     int taskDelaySeconds = 60;
@@ -58,18 +57,7 @@ public class Main {
     }
     final ScheduledExecutorService service = Executors.newScheduledThreadPool(numberOfThreads);
     service.scheduleAtFixedRate(
-        () -> {
-          try {
-            Map<String, String> taskArguments = new HashMap<>();
-            taskArguments.put("config-file", configFile);
-            monitor.execute(taskArguments, taskExecCtx);
-          } catch (TaskExecutionException e) {
-            throw new RuntimeException(e);
-          }
-        },
-        initialDelaySeconds,
-        taskDelaySeconds,
-        TimeUnit.SECONDS);
+        () -> monitor.execute(service), initialDelaySeconds, taskDelaySeconds, TimeUnit.SECONDS);
 
     Runtime.getRuntime()
         .addShutdownHook(

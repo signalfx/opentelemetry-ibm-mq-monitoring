@@ -16,7 +16,6 @@
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -45,22 +44,22 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
   private final MetricWriteHelper metricWriteHelper;
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
-  private final MonitorContextConfiguration monitorContextConfig;
   private final MQQueueManager mqQueueManager;
   private final Map<String, WMQMetricOverride> metricsToReport;
   private final long bootTime;
   private final MetricCreator metricCreator;
+  private final String metricsPrefix;
 
   public ReadConfigurationEventQueueCollector(
       Map<String, WMQMetricOverride> metricsToReport,
-      MonitorContextConfiguration monitorContextConfig,
+      String metricsPrefix,
       PCFMessageAgent agent,
       MQQueueManager mqQueueManager,
       QueueManager queueManager,
       MetricWriteHelper metricWriteHelper,
       MetricCreator metricCreator) {
     this.metricsToReport = metricsToReport;
-    this.monitorContextConfig = monitorContextConfig;
+    this.metricsPrefix = metricsPrefix;
     this.agent = agent;
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;
@@ -178,10 +177,7 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
 
   private String getMetricsName(String qmNameToBeDisplayed, String... pathelements) {
     StringBuilder pathBuilder =
-        new StringBuilder(monitorContextConfig.getMetricPrefix())
-            .append("|")
-            .append(qmNameToBeDisplayed)
-            .append("|");
+        new StringBuilder(metricsPrefix).append("|").append(qmNameToBeDisplayed).append("|");
     for (int i = 0; i < pathelements.length; i++) {
       pathBuilder.append(pathelements[i]);
       if (i != pathelements.length - 1) {

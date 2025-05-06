@@ -22,9 +22,8 @@ import static org.mockito.Mockito.*;
 
 import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.PathResolver;
+import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -38,6 +37,7 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -55,21 +55,17 @@ public class TopicMetricsCollectorTest {
 
   @Mock private MetricWriteHelper metricWriteHelper;
 
-  private MonitorContextConfiguration monitorContextConfig;
+  private Map<String, ?> configMap;
+
   private Map<String, WMQMetricOverride> topicMetricsToReport;
   private QueueManager queueManager;
   private ArgumentCaptor<List<Metric>> pathCaptor;
 
   @BeforeEach
   void setup() {
-    monitorContextConfig =
-        new MonitorContextConfiguration(
-            "WMQMonitor",
-            "Custom Metrics|WMQMonitor|",
-            PathResolver.resolveDirectory(TopicMetricsCollectorTest.class),
-            aMonitorJob);
-    monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
-    Map<String, ?> configMap = monitorContextConfig.getConfigYml();
+    this.configMap =
+        WMQMonitor.readConfig(
+            WMQMonitor.getInstallDirectory(), "src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager =
         mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
@@ -85,7 +81,12 @@ public class TopicMetricsCollectorTest {
         new MetricsCollectorContext(
             topicMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
     JobSubmitterContext jobContext =
-        new JobSubmitterContext(monitorContextConfig, mock(CountDownLatch.class), collectorContext);
+        new JobSubmitterContext(
+            "",
+            mock(CountDownLatch.class),
+            collectorContext,
+            Executors.newScheduledThreadPool(2),
+            this.configMap);
     classUnderTest = new TopicMetricsCollector(jobContext);
 
     when(pcfMessageAgent.send(any(PCFMessage.class)))

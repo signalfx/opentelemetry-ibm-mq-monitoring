@@ -38,6 +38,9 @@ public final class MetricCreator {
 
   public MetricCreator(
       String metricPrefix, String queueManagerName, @Nullable String firstPathComponent) {
+    if (metricPrefix == null || metricPrefix.isEmpty()) {
+      throw new IllegalArgumentException("MetricPrefix cannot be null or empty");
+    }
     this.metricPrefix = metricPrefix;
     this.queueManagerName = queueManagerName;
     this.firstPathComponent = firstPathComponent;

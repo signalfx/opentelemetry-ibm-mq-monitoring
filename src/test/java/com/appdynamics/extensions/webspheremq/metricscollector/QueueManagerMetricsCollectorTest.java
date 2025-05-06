@@ -20,9 +20,8 @@ import static org.mockito.Mockito.*;
 
 import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.PathResolver;
+import com.appdynamics.extensions.webspheremq.WMQMonitor;
 import com.appdynamics.extensions.webspheremq.common.Constants;
 import com.appdynamics.extensions.webspheremq.common.WMQUtil;
 import com.appdynamics.extensions.webspheremq.config.QueueManager;
@@ -54,7 +53,7 @@ class QueueManagerMetricsCollectorTest {
 
   @Mock MetricWriteHelper metricWriteHelper;
 
-  MonitorContextConfiguration monitorContextConfig;
+  private Map<String, ?> configMap;
   Map<String, WMQMetricOverride> queueMgrMetricsToReport;
   QueueManager queueManager;
   ArgumentCaptor<List> pathCaptor;
@@ -63,14 +62,9 @@ class QueueManagerMetricsCollectorTest {
 
   @BeforeEach
   public void setup() {
-    monitorContextConfig =
-        new MonitorContextConfiguration(
-            "WMQMonitor",
-            "Custom Metrics|WMQMonitor|",
-            PathResolver.resolveDirectory(QueueManagerMetricsCollectorTest.class),
-            aMonitorJob);
-    monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
-    Map<String, ?> configMap = monitorContextConfig.getConfigYml();
+    this.configMap =
+        WMQMonitor.readConfig(
+            WMQMonitor.getInstallDirectory(), "src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager =
         mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
@@ -78,7 +72,7 @@ class QueueManagerMetricsCollectorTest {
         WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
     queueMgrMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER);
     pathCaptor = ArgumentCaptor.forClass(List.class);
-    metricCreator = new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager);
+    metricCreator = new MetricCreator((String) configMap.get("metricPrefix"), queueManager);
     context =
         new MetricsCollectorContext(
             queueMgrMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
