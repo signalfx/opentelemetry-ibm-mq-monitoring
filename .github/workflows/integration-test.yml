@@ -18,6 +18,7 @@ jobs:
         env:
           LICENSE: accept
           MQ_QMGR_NAME: QM1
+          MQ_APP_PASSWORD: passw0rd   # deprecated, but needed for app user in some setups
           MQ_ADMIN_PASSWORD: passw0rd
           MQ_ENABLE_METRICS: true
         options: >-
@@ -45,6 +46,23 @@ jobs:
             sleep 5
           done
           docker exec ibm-mq-test dspmq
+
+      - name: Grant MQ permissions to app user
+        run: |
+          docker exec ibm-mq-test setmqaut -m QM1 -t qmgr -p app +connect +inq
+          docker exec ibm-mq-test setmqaut -m QM1 -t q -n '**' -p app +put +get +inq +browse
+          docker exec ibm-mq-test setmqaut -m QM1 -t chl -n 'DEV.APP.SVRCONN' -p app +connect +inq
+
+      - name: Allow app user access to channel
+        run: |
+          docker exec ibm-mq-test bash -c "echo 'ALTER QMGR CHLAUTH(DISABLED)' | runmqsc QM1"
+
+      - name: Create test queues
+        run: |
+          docker exec ibm-mq-test bash -c "echo '
+            DEFINE QLOCAL(DEV.QUEUE.1)
+            DEFINE CHANNEL(DEV.APP.SVRCONN) CHLTYPE(SVRCONN) TRPTYPE(TCP)
+          ' | runmqsc QM1"
 
       - name: Run Integration Tests
         run: |
