@@ -341,6 +341,10 @@ mqMetrics:
         - MaxHandles:
             alias: "Max Handles"
             ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MAX_HANDLES"
+# Uncomment to track max active channels as part of configuration events.
+#        - MaxActiveChannels:
+#            alias: "Max Active Channels"
+#            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MAX_ACTIVE_CHANNELS"
 
 #Run it as a scheduled task instead of running every minute.
 #If you want to run this every minute, comment this out

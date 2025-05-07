@@ -15,7 +15,6 @@
  */
 package com.appdynamics.extensions.webspheremq.metricscollector;
 
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import java.util.concurrent.CountDownLatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ public final class MetricsPublisherJob implements Runnable {
   public void run() {
     try {
       delegate.publishMetrics();
-    } catch (TaskExecutionException e) {
+    } catch (Exception e) {
       logger.error("Error executing " + delegate.getClass().getSimpleName(), e);
     } finally {
       latch.countDown();
