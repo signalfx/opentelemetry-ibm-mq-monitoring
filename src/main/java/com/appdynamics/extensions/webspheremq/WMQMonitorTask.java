@@ -327,12 +327,18 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
       CountDownLatch countDownLatch,
       PCFMessageAgent agent) {
 
+    if (metricsToReport == null) {
+      logger.warn("No metrics to report for Listener.");
+      return;
+    }
+
     MetricsCollectorContext context =
         new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
     MetricCreator metricCreator =
         new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, artifact);
     MetricsPublisher metricsCollector = collectorConstructor.apply(context, metricCreator);
-    processMetricCollection(metricsToReport, metricsCollector, artifact, countDownLatch);
+    Runnable job = new MetricsPublisherJob(metricsCollector, countDownLatch);
+    monitorContextConfig.getContext().getExecutorService().execute(artifact, job);
   }
 
   // Inquire for topic metrics
@@ -343,29 +349,21 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
       CountDownLatch countDownLatch,
       PCFMessageAgent agent) {
 
+    if (metricsToReport == null) {
+      logger.warn("No metrics to report for Topic.");
+      return;
+    }
+
     MetricsCollectorContext context =
         new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
     JobSubmitterContext jobSubmitterContext =
         new JobSubmitterContext(monitorContextConfig, countDownLatch, context);
     MetricsPublisher metricsCollector = collectorConstructor.apply(jobSubmitterContext);
-    processMetricCollection(metricsToReport, metricsCollector, artifact, countDownLatch);
-  }
-
-  private void processMetricCollection(
-      Map<String, WMQMetricOverride> metricsToReport,
-      MetricsPublisher metricsCollector,
-      String artifact,
-      CountDownLatch countDownLatch) {
-    if (metricsToReport == null) {
-      logger.warn("No metrics to report for this type");
-      return;
-    }
-
     Runnable job = new MetricsPublisherJob(metricsCollector, countDownLatch);
     monitorContextConfig.getContext().getExecutorService().execute(artifact, job);
   }
 
-  // Process configuration-specific metrics
+  // Inquire configuration-specific metrics
   private void inquireConfigurationMetrics(
       Map<String, WMQMetricOverride> configurationMetricsToReport,
       CountDownLatch countDownLatch,
