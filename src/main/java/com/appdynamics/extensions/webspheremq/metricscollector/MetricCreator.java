@@ -46,7 +46,7 @@ public final class MetricCreator {
   Metric createMetric(
       String metricName, int metricValue, WMQMetricOverride wmqOverride, String... pathElements) {
     String metricPath = getMetricsName(queueManagerName, pathElements);
-    if (wmqOverride != null && wmqOverride.getMetricProperties() != null) {
+    if (wmqOverride != null) {
       return new Metric(
           metricName, String.valueOf(metricValue), metricPath, wmqOverride.getMetricProperties());
     }
