@@ -245,6 +245,10 @@ mqMetrics:
   - metricsType: "channelMetrics"
     metrics:
       include:
+        - ActiveChannelInstances:
+            alias: "Active Channel Instances"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
         - Messages:
             alias: "Messages"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS"

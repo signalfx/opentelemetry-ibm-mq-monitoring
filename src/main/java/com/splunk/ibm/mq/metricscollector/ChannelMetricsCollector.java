@@ -15,19 +15,27 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
-import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
-
 import com.appdynamics.extensions.metrics.Metric;
+import com.splunk.ibm.mq.config.ExcludeFilters;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.constants.CMQXC;
+import com.ibm.mq.constants.MQConstants;
+import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.splunk.ibm.mq.config.ExcludeFilters;
-import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
+import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
 
 /** This class is responsible for channel metric collection. */
 public final class ChannelMetricsCollector implements MetricsPublisher {
@@ -64,6 +72,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
     }
 
     Set<String> channelGenericNames = context.getChannelIncludeFilterNames();
+    Map<String, Integer> activeConnections = new HashMap<>();
 
     //
     // The MQCMD_INQUIRE_CHANNEL_STATUS command queries the current operational status of channels.
@@ -111,6 +120,10 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
                   }
                 });
             context.transformAndPrintMetrics(responseMetrics);
+            if (pcfMessage.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_TYPE)
+                == CMQXC.MQCHT_SVRCONN) {
+              activeConnections.put(channelName, 0);
+            }
           } else {
             logger.debug("Channel name {} is excluded.", channelName);
           }
@@ -132,6 +145,50 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
         logger.error(
             "Unexpected Error occurred while collecting metrics for channel " + channelGenericName,
             e);
+      }
+    }
+
+    if (!activeConnections.isEmpty()) {
+      PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CONNECTION);
+      request.addParameter(
+          new MQCFIL(MQConstants.MQIACF_CHANNEL_ATTRS, new int[] {MQConstants.MQIACF_ALL}));
+      request.addParameter(MQConstants.MQBACF_GENERIC_CONNECTION_ID, "");
+      try {
+        long startTime = System.currentTimeMillis();
+        PCFMessage[] response = context.send(request);
+        long endTime = System.currentTimeMillis() - startTime;
+        logger.debug(
+            "PCF agent queue metrics query response for connections received in {} milliseconds",
+            endTime);
+        if (response == null || response.length <= 0) {
+          logger.warn("Unexpected Error while PCFMessage.send(), response is either null or empty");
+          return;
+        }
+        for (PCFMessage pcfMessage : response) {
+          String channelName =
+              pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
+          Integer count = activeConnections.get(channelName);
+          if (count != null) {
+            activeConnections.put(channelName, ++count);
+          }
+        }
+        List<Metric> responseMetrics = Lists.newArrayList();
+        for (Map.Entry<String, Integer> activeChannelConnections : activeConnections.entrySet()) {
+          String metrickey = "Active Channel Instances";
+          Metric metric =
+              metricCreator.createMetric(
+                  metrickey,
+                  activeChannelConnections.getValue(),
+                  null,
+                  activeChannelConnections.getKey(),
+                  metrickey);
+          responseMetrics.add(metric);
+        }
+        context.transformAndPrintMetrics(responseMetrics);
+      } catch (PCFException pcfe) {
+        logger.error(pcfe.getMessage(), pcfe);
+      } catch (Exception e) {
+        logger.error("Unexpected Error occoured while collecting metrics for connections ", e);
       }
     }
 
