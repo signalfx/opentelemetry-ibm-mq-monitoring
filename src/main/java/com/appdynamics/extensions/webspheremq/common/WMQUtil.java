@@ -66,11 +66,15 @@ public class WMQUtil {
       Map.Entry firstEntry = (Map.Entry) metric.entrySet().iterator().next();
       String metricName = firstEntry.getKey().toString();
       Map<String, ?> metricPropsMap = (Map<String, ?>) metric.get(metricName);
-      WMQMetricOverride override = new WMQMetricOverride();
-      override.setIbmCommand((String) metricPropsMap.get("ibmCommand"));
-      override.setIbmConstant((String) metricPropsMap.get("ibmConstant"));
-      override.setMetricProperties(metricPropsMap);
-      if (override.getConstantValue() == -1) {
+
+      WMQMetricOverride override =
+          WMQMetricOverride.builder()
+              .ibmCommand((String) metricPropsMap.get("ibmCommand"))
+              .ibmConstant((String) metricPropsMap.get("ibmConstant"))
+              .metricProperties(metricPropsMap)
+              .build();
+
+      if (override.hasInvalidConstant()) {
         // Only add the metric which is valid, if constant value
         // resolutes to -1 then it is invalid.
         logger.warn(
