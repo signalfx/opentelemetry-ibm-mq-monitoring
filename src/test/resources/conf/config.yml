@@ -115,9 +115,9 @@ queueManagers:
         include: ["#"]
         exclude:
              #type value: STARTSWITH, EQUALS, ENDSWITH, CONTAINS
-           - type: "STARTSWITH"
+           - type: "EQUALS"
              #The name of the queue or queue name pattern as per queue filter, comma separated values
-             values: ["SYSTEM","$SYS"]
+             values: ["system","$SYS"]
 
 mqMetrics:
   # This Object will extract queue manager metrics
@@ -127,32 +127,9 @@ mqMetrics:
         - Status:
             alias: "Status"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_Q_MGR_STATUS"
-            aggregationType: "OBSERVATION"
-            timeRollUpType: "AVERAGE"
-            clusterRollUpType: "INDIVIDUAL"
         - ConnectionCount:
             alias: "ConnectionCount"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_CONNECTION_COUNT"
-
-        - ReusableLogSize:
-            alias: "Reusable Log Size"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_REUSABLE_LOG_SIZE"
-            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
-
-        - RestartLogSize:
-            alias: "Restart Log Size"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_RESTART_LOG_SIZE"
-            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
-
-        - ArchiveLogSize:
-            alias: "Archive Log Size"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_ARCHIVE_LOG_SIZE"
-            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
-
-        - StatisticsInterval:
-            alias: "Statistics Interval"
-            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_STATISTICS_INTERVAL"
-            ibmCommand: "MQCMD_INQUIRE_Q_MGR"
 
   # This Object will extract queue metrics
   - metricsType: "queueMetrics"
@@ -168,16 +145,6 @@ mqMetrics:
             ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_CURRENT_Q_DEPTH"
             ibmCommand: "MQCMD_INQUIRE_Q"
 
-        - CurrentQueueFileSize:
-            alias: "Current queue file size"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_CUR_Q_FILE_SIZE"
-            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
-
-        - MaxQueueFileSize:
-            alias: "Current maximum queue file size"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_CUR_MAX_FILE_SIZE"
-            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
-
         - OpenInputCount:
             alias: "Open Input Count"
             ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_OPEN_INPUT_COUNT"
@@ -192,21 +159,16 @@ mqMetrics:
             alias: "OldestMsgAge"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_OLDEST_MSG_AGE"
             ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
-            aggregationType: "OBSERVATION"
-            timeRollUpType: "CURRENT"
-            clusterRollUpType: "INDIVIDUAL"
+
+        - OnQTime:
+            alias: "OnQTime"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_Q_TIME_INDICATOR"
+            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
 
         - UncommittedMsgs:
             alias: "UncommittedMsgs"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_UNCOMMITTED_MSGS"
             ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
-
-        - OnQTime:
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_Q_TIME_INDICATOR"
-            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
-            aggregationType: "OBSERVATION"
-            timeRollUpType: "CURRENT"
-            clusterRollUpType: "INDIVIDUAL"
 
         - HighQDepth:
             alias: "HighQDepth"
@@ -223,20 +185,6 @@ mqMetrics:
             ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MSG_ENQ_COUNT"
             ibmCommand: "MQCMD_RESET_Q_STATS"
 
-        - UncommittedMsgs:
-            alias: "Uncommitted Messages"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_UNCOMMITTED_MSGS"
-            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
-
-        - ServiceInterval:
-            alias: "Service Interval"
-            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_Q_SERVICE_INTERVAL"
-            ibmCommand: "MQCMD_INQUIRE_Q"
-
-        - ServiceIntervalEvent:
-            alias: "Service Interval Event"
-            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT"
-            ibmCommand: "MQCMD_INQUIRE_Q"
 
   # This Object will extract channel metrics
   - metricsType: "channelMetrics"
@@ -245,53 +193,26 @@ mqMetrics:
         - Messages:
             alias: "Messages"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS"
-            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
 
         - Status:
             alias: "Status"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_CHANNEL_STATUS"  #http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
-            aggregationType: "OBSERVATION"
-            timeRollUpType: "AVERAGE"
-            clusterRollUpType: "INDIVIDUAL"
-            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
 
         - ByteSent:
             alias: "Byte Sent"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BYTES_SENT"
-            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
 
         - ByteReceived:
             alias: "Byte Received"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BYTES_RECEIVED"
-            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
 
         - BuffersSent:
             alias: "Buffers Sent"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BUFFERS_SENT"
-            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
 
         - BuffersReceived:
             alias: "Buffers Received"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BUFFERS_RECEIVED"
-            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
-
-        - CurrentSharingConversations:
-            alias: "Current Sharing Conversations"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_CURRENT_SHARING_CONVS"
-
-        - MaxSharingConversations:
-            alias: "Max Sharing Conversations"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_SHARING_CONVS"
-
-        - MaxInstances:
-            alias: "Max Instances"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_INSTANCES"
-            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
-
-        - MaxInstancesPerClient:
-            alias: "Max Instances per Client"
-            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT"
-            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
 
         - MsgRetryCount:
             alias: "Message Retry Count"
@@ -314,9 +235,6 @@ mqMetrics:
         - Status:
             alias: "Status"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_LISTENER_STATUS"
-            aggregationType: "OBSERVATION"
-            timeRollUpType: "AVERAGE"
-            clusterRollUpType: "INDIVIDUAL"
 
   # This Object will extract topic metrics
   - metricsType: "topicMetrics"
@@ -345,9 +263,9 @@ mqMetrics:
 
 #Run it as a scheduled task instead of running every minute.
 #If you want to run this every minute, comment this out
-#taskSchedule:
-#  numberOfThreads: 1
-#  taskDelaySeconds: 300
+taskSchedule:
+  numberOfThreads: 1
+  taskDelaySeconds: 1800
 
 
 sslConnection:
