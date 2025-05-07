@@ -47,6 +47,13 @@ jobs:
           done
           docker exec ibm-mq-test dspmq
 
+      - name: Create test queues and channel
+        run: |
+          docker exec ibm-mq-test bash -c "echo '
+            DEFINE QLOCAL(DEV.QUEUE.1) REPLACE
+            DEFINE CHANNEL(DEV.APP.SVRCONN) CHLTYPE(SVRCONN) TRPTYPE(TCP) REPLACE
+          ' | runmqsc QM1"
+
       - name: Allow app user access to channel
         run: |
           docker exec ibm-mq-test bash -c "echo 'ALTER QMGR CHLAUTH(DISABLED)' | runmqsc QM1"
