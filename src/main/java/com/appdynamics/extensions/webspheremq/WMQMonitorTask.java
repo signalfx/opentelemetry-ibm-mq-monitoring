@@ -60,9 +60,9 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitorTask.class);
   private final QueueManager queueManager;
-  private MonitorContextConfiguration monitorContextConfig;
-  private Map<String, ?> configMap;
-  private MetricWriteHelper metricWriteHelper;
+  private final MonitorContextConfiguration monitorContextConfig;
+  private final Map<String, ?> configMap;
+  private final MetricWriteHelper metricWriteHelper;
 
   public WMQMonitorTask(
       TasksExecutionServiceProvider tasksExecutionServiceProvider,
@@ -156,10 +156,10 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
     // Step 2: Inquire each metric type
     inquireQueueMangerMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER), countDownLatch, mqQueueManager, agent);
+        metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER), countDownLatch, agent);
 
     inquireChannelMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_CHANNEL), countDownLatch, mqQueueManager, agent);
+        metricsMap.get(Constants.METRIC_TYPE_CHANNEL), countDownLatch, agent);
 
     inquireQueueMetrics(
         metricsMap.get(Constants.METRIC_TYPE_QUEUE),
@@ -170,14 +170,12 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     inquireListenerMetrics(
         metricsMap.get(Constants.METRIC_TYPE_LISTENER),
         ListenerMetricsCollector::new,
-        ListenerMetricsCollector.ARTIFACT,
         countDownLatch,
         agent);
 
     inquireTopicMetrics(
         metricsMap.get(Constants.METRIC_TYPE_TOPIC),
         TopicMetricsCollector::new,
-        null,
         countDownLatch,
         agent);
 
@@ -195,7 +193,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
   private void inquireQueueMangerMetrics(
       Map<String, WMQMetricOverride> metricsToReport,
       CountDownLatch countDownLatch,
-      MQQueueManager mqQueueManager,
       PCFMessageAgent agent) {
     if (metricsToReport == null) {
       logger.warn("No metrics to report for type Queue Manager.");
@@ -222,7 +219,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
   private void inquireChannelMetrics(
       Map<String, WMQMetricOverride> metricsToReport,
       CountDownLatch countDownLatch,
-      MQQueueManager mqQueueManager,
       PCFMessageAgent agent) {
     if (metricsToReport == null) {
       logger.warn("No metrics to report for type Channel.");
@@ -323,7 +319,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
   private void inquireListenerMetrics(
       Map<String, WMQMetricOverride> metricsToReport,
       BiFunction<MetricsCollectorContext, MetricCreator, MetricsPublisher> collectorConstructor,
-      String artifact,
       CountDownLatch countDownLatch,
       PCFMessageAgent agent) {
 
@@ -335,17 +330,16 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     MetricsCollectorContext context =
         new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
     MetricCreator metricCreator =
-        new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, artifact);
+        new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, ListenerMetricsCollector.ARTIFACT);
     MetricsPublisher metricsCollector = collectorConstructor.apply(context, metricCreator);
     Runnable job = new MetricsPublisherJob(metricsCollector, countDownLatch);
-    monitorContextConfig.getContext().getExecutorService().execute(artifact, job);
+    monitorContextConfig.getContext().getExecutorService().execute(ListenerMetricsCollector.ARTIFACT, job);
   }
 
   // Inquire for topic metrics
   private void inquireTopicMetrics(
       Map<String, WMQMetricOverride> metricsToReport,
       Function<JobSubmitterContext, MetricsPublisher> collectorConstructor,
-      String artifact,
       CountDownLatch countDownLatch,
       PCFMessageAgent agent) {
 
@@ -360,7 +354,8 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
         new JobSubmitterContext(monitorContextConfig, countDownLatch, context);
     MetricsPublisher metricsCollector = collectorConstructor.apply(jobSubmitterContext);
     Runnable job = new MetricsPublisherJob(metricsCollector, countDownLatch);
-    monitorContextConfig.getContext().getExecutorService().execute(artifact, job);
+    // not sure why the name is always 'null'.  might have to revisit
+    monitorContextConfig.getContext().getExecutorService().execute(null, job);
   }
 
   // Inquire configuration-specific metrics
