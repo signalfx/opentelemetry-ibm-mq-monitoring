@@ -63,8 +63,8 @@ jobs:
         run: |
           docker exec ibm-mq-test setmqaut -m QM1 -t qmgr -p app +all +connect +inq
           docker exec ibm-mq-test setmqaut -m QM1 -t queue -n '**' -p app +all +put +get +inq +browse
-          docker exec ibm-mq-test setmqaut -m QM1 -n '**' -t topic -p app +all
-          docker exec ibm-mq-test setmqaut -m QM1 -n '**' -t authinfo -p app +all
+          docker exec ibm-mq-test setmqaut -m QM1 -t topic -n '**' -p app +all
+          docker exec ibm-mq-test setmqaut -m QM1 -t authinfo -n '**' -p app +all
           docker exec ibm-mq-test setmqaut -m QM1 -t chl -n '**' -p app +all
         # docker exec ibm-mq-test setmqaut -m QM1 -t chl -n 'DEV.APP.SVRCONN' -p app +all +alladm +allmqi
 
