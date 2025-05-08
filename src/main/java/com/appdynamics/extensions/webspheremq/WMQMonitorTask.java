@@ -158,8 +158,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     inquireQueueMangerMetrics(
         metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER), countDownLatch, agent);
 
-    inquireChannelMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_CHANNEL), countDownLatch, agent);
+    inquireChannelMetrics(metricsMap.get(Constants.METRIC_TYPE_CHANNEL), countDownLatch, agent);
 
     inquireQueueMetrics(
         metricsMap.get(Constants.METRIC_TYPE_QUEUE),
@@ -330,10 +329,16 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     MetricsCollectorContext context =
         new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
     MetricCreator metricCreator =
-        new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, ListenerMetricsCollector.ARTIFACT);
+        new MetricCreator(
+            monitorContextConfig.getMetricPrefix(),
+            queueManager,
+            ListenerMetricsCollector.ARTIFACT);
     MetricsPublisher metricsCollector = collectorConstructor.apply(context, metricCreator);
     Runnable job = new MetricsPublisherJob(metricsCollector, countDownLatch);
-    monitorContextConfig.getContext().getExecutorService().execute(ListenerMetricsCollector.ARTIFACT, job);
+    monitorContextConfig
+        .getContext()
+        .getExecutorService()
+        .execute(ListenerMetricsCollector.ARTIFACT, job);
   }
 
   // Inquire for topic metrics
