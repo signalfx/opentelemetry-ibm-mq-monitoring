@@ -51,12 +51,13 @@ jobs:
         run: |
           docker exec ibm-mq-test bash -c "echo '
             DEFINE QLOCAL(DEV.QUEUE.1) REPLACE
-            DEFINE CHANNEL(DEV.APP.SVRCONN) CHLTYPE(SVRCONN) TRPTYPE(TCP) REPLACE
+            DEFINE CHANNEL(DEV.APP.SVRCONN) CHLTYPE(SVRCONN) TRPTYPE(TCP) SSLCAUTH(NO) REPLACE
           ' | runmqsc QM1"
 
       - name: Allow app user access to channel
         run: |
           docker exec ibm-mq-test bash -c "echo 'ALTER QMGR CHLAUTH(DISABLED)' | runmqsc QM1"
+          docker exec ibm-mq-test bash -c "echo 'DISPLAY CHL(*)' | runmqsc QM1"
 
       - name: Grant MQ permissions to app user
         run: |
