@@ -62,7 +62,7 @@ jobs:
         run: |
           docker exec ibm-mq-test setmqaut -m QM1 -t qmgr -p app +connect +inq
           docker exec ibm-mq-test setmqaut -m QM1 -t q -n '**' -p app +put +get +inq +browse
-          docker exec ibm-mq-test setmqaut -m QM1 -t chl -n 'DEV.APP.SVRCONN' -p app +connect +inq
+          docker exec ibm-mq-test setmqaut -m QM1 -t chl -n 'DEV.APP.SVRCONN' -p app +connect +all +alladm +allmqi 
 
       - name: Run Integration Tests
         run: |
