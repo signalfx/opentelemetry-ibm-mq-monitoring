@@ -51,7 +51,7 @@ jobs:
         run: |
           docker exec ibm-mq-test bash -c "echo '
             DEFINE QLOCAL(DEV.QUEUE.1) REPLACE
-            DEFINE CHANNEL(DEV.APP.SVRCONN) CHLTYPE(SVRCONN) TRPTYPE(TCP) SSLCAUTH(NO) REPLACE
+            DEFINE CHANNEL(DEV.APP.SVRCONN) CHLTYPE(SVRCONN) TRPTYPE(TCP) SSLCAUTH(OPTIONAL) REPLACE
           ' | runmqsc QM1"
 
       - name: Allow app user access to channel
