@@ -34,6 +34,7 @@ import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.common.WMQUtil;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -110,8 +111,8 @@ public class QueueCollectionBuddyTest {
     assertThat(allValues.get(0)).hasSize(5);
     assertThat(allValues.get(1)).hasSize(5);
 
-    verifyStatusRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", List.of(0, -1, -1, -1, 0));
-    verifyStatusRow(allValues.get(1), "DEV.QUEUE.1", List.of(1, -1, -1, -1, 10));
+    verifyStatusRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", Arrays.asList(0, -1, -1, -1, 0));
+    verifyStatusRow(allValues.get(1), "DEV.QUEUE.1", Arrays.asList(1, -1, -1, -1, 10));
   }
 
   private static void verifyStatusRow(
@@ -181,8 +182,8 @@ public class QueueCollectionBuddyTest {
     assertThat(allValues.get(0)).hasSize(4);
     assertThat(allValues.get(1)).hasSize(4);
 
-    verifyQRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", List.of(5000, 2, 2, 2));
-    verifyQRow(allValues.get(1), "DEV.QUEUE.1", List.of(5000, 3, 3, 3));
+    verifyQRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", Arrays.asList(5000, 2, 2, 2));
+    verifyQRow(allValues.get(1), "DEV.QUEUE.1", Arrays.asList(5000, 3, 3, 3));
   }
 
   private static void verifyQRow(List<Metric> metrics, String component, List<Integer> values) {
