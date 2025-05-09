@@ -25,7 +25,6 @@ import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.common.WMQUtil;
 import com.splunk.ibm.mq.config.QueueManager;
@@ -85,18 +84,18 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     // password.
     String encryptionKey = (String) configMap.get("encryptionKey");
     try {
-      ibmQueueManager = connectToQueueManager(queueManagerName, encryptionKey);
+      ibmQueueManager = connectToQueueManager(queueManager, encryptionKey);
       heartBeatMetricValue = BigDecimal.ONE;
-      agent = initPCFMesageAgent(ibmQueueManager);
+      agent = initPCFMesageAgent(queueManager, ibmQueueManager);
       extractAndReportMetrics(ibmQueueManager, agent);
-    } catch (TaskExecutionException e) {
+
+    } catch (Exception e) {
       logger.error(
-          "Error connecting to QueueManager {} by thread {}",
+          "Error connecting to QueueManager {} by thread {}: {}",
           queueManagerName,
           Thread.currentThread().getName(),
+          e.getMessage(),
           e);
-    } catch (Exception e) {
-      logger.error("Error in run of {}", Thread.currentThread().getName(), e);
     } finally {
       cleanUp(ibmQueueManager, agent);
       metricWriteHelper.printMetric(
@@ -112,8 +111,8 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     }
   }
 
-  private MQQueueManager connectToQueueManager(String queueManagerName, String encryptionKey)
-      throws TaskExecutionException {
+  public static MQQueueManager connectToQueueManager(
+      QueueManager queueManager, String encryptionKey) {
     MQQueueManager ibmQueueManager = null;
     WMQContext auth = new WMQContext(queueManager, encryptionKey);
     Hashtable env = auth.getMQEnvironment();
@@ -122,18 +121,19 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
       ibmQueueManager = new MQQueueManager(queueManager.getName(), env);
     } catch (MQException mqe) {
       logger.error(mqe.getMessage(), mqe);
-      throw new TaskExecutionException(mqe.getMessage());
+      throw new RuntimeException(mqe.getMessage());
     }
     logger.debug(
         "MQQueueManager connection initiated for queueManager {} in thread {}",
-        queueManagerName,
+        WMQUtil.getQueueManagerNameFromConfig(queueManager),
         Thread.currentThread().getName());
     return ibmQueueManager;
   }
 
-  private PCFMessageAgent initPCFMesageAgent(MQQueueManager ibmQueueManager) {
-    PCFMessageAgent agent = null;
+  public static PCFMessageAgent initPCFMesageAgent(
+      QueueManager queueManager, MQQueueManager ibmQueueManager) {
     try {
+      PCFMessageAgent agent;
       if (!Strings.isNullOrEmpty(queueManager.getModelQueueName())
           && !Strings.isNullOrEmpty(queueManager.getReplyQueuePrefix())) {
         logger.debug("Initializing the PCF agent for model queue and reply queue prefix.");
@@ -156,10 +156,11 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
           "Initialized PCFMessageAgent for queueManager {} in thread {}",
           agent.getQManagerName(),
           Thread.currentThread().getName());
+      return agent;
     } catch (MQDataException mqe) {
       logger.error(mqe.getMessage(), mqe);
+      throw new RuntimeException(mqe);
     }
-    return agent;
   }
 
   private void extractAndReportMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
