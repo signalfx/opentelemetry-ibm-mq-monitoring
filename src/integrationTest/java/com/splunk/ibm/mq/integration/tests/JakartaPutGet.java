@@ -32,6 +32,8 @@ import jakarta.jms.JMSContext;
 import jakarta.jms.JMSException;
 import jakarta.jms.JMSProducer;
 import jakarta.jms.TextMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This code was adapted from https://github.com/ibm-messaging/mq-dev-samples/.
@@ -54,6 +56,8 @@ import jakarta.jms.TextMessage;
  * <p>JNDI in use: No
  */
 public class JakartaPutGet {
+
+    private static final Logger logger = LoggerFactory.getLogger(JakartaPutGet.class);
 
   public static void createQueue(QueueManager manager, String name) {
     MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager, null);
@@ -105,7 +109,7 @@ public class JakartaPutGet {
 
       // Create Jakarta objects
       context = cf.createContext();
-      System.out.println("About to create queue " + queueName);
+      logger.info("About to create queue {}", queueName);
       Destination destination = context.createQueue("queue:///" + queueName);
 
       for (int i = 0; i < numberOfMessages; i++) {
@@ -118,7 +122,6 @@ public class JakartaPutGet {
 
         JMSConsumer consumer = context.createConsumer(destination); // autoclosable
         String response = consumer.receiveBody(String.class, 15000); // in ms or 15 seconds
-        System.out.println(response);
 
         Thread.sleep(sleepIntervalMs);
       }
