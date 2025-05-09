@@ -1,4 +1,4 @@
-# AppDynamics Monitoring Extension for use with IBM WebSphere MQ
+# Splunk Monitoring Extension for use with IBM WebSphere MQ
 
 Websphere MQ, formerly known as MQ (message queue) series, is an IBM standard for program-to-program messaging across multiple platforms.
 
