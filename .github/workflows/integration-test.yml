@@ -34,10 +34,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - name: Set up maven
+        uses: s4u/setup-maven-action@4f7fb9d9675e899ca81c6161dadbba0189a4ebb1 # v1.18.0
         with:
-          distribution: 'temurin'
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+          java-distribution: 'temurin'
           java-version: '11'
 
       - name: Wait for MQ to be ready
