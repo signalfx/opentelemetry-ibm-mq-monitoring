@@ -29,7 +29,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.build.timestamp.format>yyyy-MM-dd HH:mm:ss</maven.build.timestamp.format>
         <lib.dir>${basedir}/lib</lib.dir>
-        <ibm.mq.lib.version>9.4.0.0</ibm.mq.lib.version>
+        <ibm.mq.lib.version>9.4.2.1</ibm.mq.lib.version>
         <target.dir>${project.build.directory}/WMQMonitor</target.dir>
     </properties>
 
@@ -198,6 +198,18 @@
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20250107</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ibm.mq</groupId>
+            <artifactId>com.ibm.mq.jakarta.client</artifactId>
+            <version>9.4.2.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.jms</groupId>
+            <artifactId>jakarta.jms-api</artifactId>
+            <version>3.1.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

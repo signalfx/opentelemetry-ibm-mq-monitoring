@@ -18,8 +18,10 @@ jobs:
         env:
           LICENSE: accept
           MQ_QMGR_NAME: QM1
-          MQ_APP_PASSWORD: passw0rd   # deprecated, but needed for app user in some setups
+          MQ_ADMIN_USER: admin
           MQ_ADMIN_PASSWORD: passw0rd
+          MQ_APP_USER: app
+          MQ_APP_PASSWORD: passw0rd # deprecated, but needed for app user in some setups
           MQ_ENABLE_METRICS: true
         options: >-
           --name ibm-mq-test
