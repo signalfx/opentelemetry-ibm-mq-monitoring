@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       ibm-mq:
-        image: icr.io/ibm-messaging/mq:9.4.2.1-amd64
+        image: icr.io/ibm-messaging/mq:9.4.2.1-r1
         ports:
           - 1414:1414
           - 9443:9443
