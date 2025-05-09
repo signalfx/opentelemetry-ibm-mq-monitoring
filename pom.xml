@@ -452,8 +452,11 @@
                 <configuration>
                     <argLine>-Xmx1024m</argLine>
                     <includes>
-                        <include>**/*Test.java</include>
+                        <include>src/test/java/**/*Test.java</include>
                     </includes>
+                    <excludes>
+                        <exclude>**/*IntegrationTest.java</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <!--  add "integrationTest" as a new test source root -->
@@ -465,6 +468,9 @@
                     <includes>
                         <include>**/*IntegrationTest.java</include>
                     </includes>
+                    <excludes>
+                        <exclude>src/test/java/**/*Test.java</exclude>
+                    </excludes>
                 </configuration>
                 <executions>
                     <execution>

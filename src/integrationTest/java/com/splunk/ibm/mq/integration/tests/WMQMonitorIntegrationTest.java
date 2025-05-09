@@ -39,9 +39,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Integration Test for WMQMonitor */
-class WMQMonitorIntegrationIT {
+class WMQMonitorIntegrationTest {
 
-  private static final Logger logger = LoggerFactory.getLogger(WMQMonitorIntegrationIT.class);
+  private static final Logger logger = LoggerFactory.getLogger(WMQMonitorIntegrationTest.class);
 
   private static final ExecutorService service =
       Executors.newFixedThreadPool(
@@ -59,7 +59,7 @@ class WMQMonitorIntegrationIT {
 
   @NotNull
   private static String getConfigFile(String resourcePath) throws URISyntaxException {
-    URL resource = WMQMonitorIntegrationIT.class.getClassLoader().getResource(resourcePath);
+    URL resource = WMQMonitorIntegrationTest.class.getClassLoader().getResource(resourcePath);
     if (resource == null) {
       throw new IllegalArgumentException("file not found!");
     }
