@@ -75,46 +75,60 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
   }
 
   public void run() {
-    String queueManagerTobeDisplayed = WMQUtil.getQueueManagerNameFromConfig(queueManager);
-    logger.debug("WMQMonitor thread for queueManager {} started.", queueManagerTobeDisplayed);
+    String queueManagerName = WMQUtil.getQueueManagerNameFromConfig(queueManager);
+    logger.debug("WMQMonitor thread for queueManager {} started.", queueManagerName);
     long startTime = System.currentTimeMillis();
     MQQueueManager ibmQueueManager = null;
     PCFMessageAgent agent = null;
     BigDecimal heartBeatMetricValue = BigDecimal.ZERO;
-    // encryptionKey is a global setting, which we need to inject to allow decrypting the queue
-    // manager password.
+    // encryptionKey is a global setting; it is needed to allow decrypting the queue manager
+    // password.
     String encryptionKey = (String) configMap.get("encryptionKey");
     try {
-      WMQContext auth = new WMQContext(queueManager, encryptionKey);
-      Hashtable env = auth.getMQEnvironment();
-      try {
-        ibmQueueManager = new MQQueueManager(queueManager.getName(), env);
-      } catch (MQException mqe) {
-        logger.error(mqe.getMessage(), mqe);
-        throw new TaskExecutionException(mqe.getMessage());
-      }
-      logger.debug(
-          "MQQueueManager connection initiated for queueManager {} in thread {}",
-          queueManagerTobeDisplayed,
-          Thread.currentThread().getName());
+      ibmQueueManager = connectToQueueManager(queueManagerName, encryptionKey);
       heartBeatMetricValue = BigDecimal.ONE;
       agent = initPCFMesageAgent(ibmQueueManager);
       extractAndReportMetrics(ibmQueueManager, agent);
+    } catch (TaskExecutionException e) {
+      logger.error(
+          "Error connecting to QueueManager {} by thread {}",
+          queueManagerName,
+          Thread.currentThread().getName(),
+          e);
     } catch (Exception e) {
-      logger.error("Error in run of " + Thread.currentThread().getName(), e);
+      logger.error("Error in run of {}", Thread.currentThread().getName(), e);
     } finally {
       cleanUp(ibmQueueManager, agent);
       metricWriteHelper.printMetric(
           StringUtils.concatMetricPath(
-              monitorContextConfig.getMetricPrefix(), queueManagerTobeDisplayed, "HeartBeat"),
+              monitorContextConfig.getMetricPrefix(), queueManagerName, "HeartBeat"),
           heartBeatMetricValue,
           "AVG.AVG.IND");
       long endTime = System.currentTimeMillis() - startTime;
       logger.debug(
           "WMQMonitor thread for queueManager {} ended. Time taken = {} ms",
-          queueManagerTobeDisplayed,
+          queueManagerName,
           endTime);
     }
+  }
+
+  private MQQueueManager connectToQueueManager(String queueManagerName, String encryptionKey)
+      throws TaskExecutionException {
+    MQQueueManager ibmQueueManager = null;
+    WMQContext auth = new WMQContext(queueManager, encryptionKey);
+    Hashtable env = auth.getMQEnvironment();
+
+    try {
+      ibmQueueManager = new MQQueueManager(queueManager.getName(), env);
+    } catch (MQException mqe) {
+      logger.error(mqe.getMessage(), mqe);
+      throw new TaskExecutionException(mqe.getMessage());
+    }
+    logger.debug(
+        "MQQueueManager connection initiated for queueManager {} in thread {}",
+        queueManagerName,
+        Thread.currentThread().getName());
+    return ibmQueueManager;
   }
 
   private PCFMessageAgent initPCFMesageAgent(MQQueueManager ibmQueueManager) {
