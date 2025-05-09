@@ -34,12 +34,11 @@ queueManagers:
 
     #Channel name of the queue manager, channel should be server-conn type.
     #This field is not required in case of transportType: Bindings
-    channelName: DEV.APP.SVRCONN
-    #"SYSTEM.ADMIN.SVRCONN"
+    channelName: DEV.ADMIN.SVRCONN
 
     #for user access level, please check "Access Permissions" section on the extensions page
     #comment out the username and password in case of transportType: Bindings.
-    username: "app"
+    username: "admin"
     password: "passw0rd"
 
     #Uncomment only if encryption of passwords is wanted.
