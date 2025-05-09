@@ -255,13 +255,13 @@
                     <!-- Compile integration tests (src/integrationTest/java) using Java 11 -->
                     <execution>
                         <id>compile-integration-tests</id>
-                        <phase>test-compile</phase>
+                        <phase>compile</phase>
                         <goals>
                             <goal>compile</goal>
                         </goals>
                         <configuration>
-                            <source>11</source>
-                            <target>11</target>
+                            <source>1.8</source>
+                            <target>1.8</target>
                             <includes>
                                 <include>**/integrationTest/**/*.java</include>
                             </includes>
@@ -451,9 +451,9 @@
                 <version>3.2.5</version>
                 <configuration>
                     <argLine>-Xmx1024m</argLine>
-                    <excludes>
-                        <exclude>**/*IntegrationTest.java</exclude>
-                    </excludes>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
                 </configuration>
             </plugin>
             <!--  add "integrationTest" as a new test source root -->
