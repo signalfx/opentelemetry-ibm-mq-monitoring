@@ -25,7 +25,6 @@ import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.common.WMQUtil;
 import com.splunk.ibm.mq.config.QueueManager;
@@ -85,20 +84,13 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     // manager password.
     String encryptionKey = (String) configMap.get("encryptionKey");
     try {
-      WMQContext auth = new WMQContext(queueManager, encryptionKey);
-      Hashtable env = auth.getMQEnvironment();
-      try {
-        ibmQueueManager = new MQQueueManager(queueManager.getName(), env);
-      } catch (MQException mqe) {
-        logger.error(mqe.getMessage(), mqe);
-        throw new TaskExecutionException(mqe.getMessage());
-      }
+      ibmQueueManager = createMQQueueManager(encryptionKey, queueManager);
       logger.debug(
           "MQQueueManager connection initiated for queueManager {} in thread {}",
           queueManagerTobeDisplayed,
           Thread.currentThread().getName());
       heartBeatMetricValue = BigDecimal.ONE;
-      agent = initPCFMesageAgent(ibmQueueManager);
+      agent = initPCFMessageAgent(queueManager, ibmQueueManager);
       extractAndReportMetrics(ibmQueueManager, agent);
     } catch (Exception e) {
       logger.error("Error in run of " + Thread.currentThread().getName(), e);
@@ -117,8 +109,21 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     }
   }
 
-  private PCFMessageAgent initPCFMesageAgent(MQQueueManager ibmQueueManager) {
-    PCFMessageAgent agent = null;
+  public static MQQueueManager createMQQueueManager(
+      String encryptionKey, QueueManager queueManager) {
+    WMQContext auth = new WMQContext(queueManager, encryptionKey);
+    Hashtable env = auth.getMQEnvironment();
+    try {
+      return new MQQueueManager(queueManager.getName(), env);
+    } catch (MQException mqe) {
+      logger.error(mqe.getMessage(), mqe);
+      throw new RuntimeException(mqe.getMessage());
+    }
+  }
+
+  public static PCFMessageAgent initPCFMessageAgent(
+      QueueManager queueManager, MQQueueManager ibmQueueManager) {
+    PCFMessageAgent agent;
     try {
       if (!Strings.isNullOrEmpty(queueManager.getModelQueueName())
           && !Strings.isNullOrEmpty(queueManager.getReplyQueuePrefix())) {
@@ -144,6 +149,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
           Thread.currentThread().getName());
     } catch (MQDataException mqe) {
       logger.error(mqe.getMessage(), mqe);
+      throw new RuntimeException(mqe);
     }
     return agent;
   }
