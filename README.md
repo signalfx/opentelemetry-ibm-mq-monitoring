@@ -65,7 +65,7 @@ java \
    -Djavax.net.ssl.trustStore=key.jks \
    -Djavax.net.ssl.trustStorePassword=<password> \
    -cp target/ibm-mq-monitoring-extension-opentelemetry.jar:lib/com.ibm.mq.allclient.jar \
-   com.appdynamics.extensions.opentelemetry.Main \
+   com.splunk.ibm.mq.opentelemetry.Main \
    ./my-config.yml
 ```
 

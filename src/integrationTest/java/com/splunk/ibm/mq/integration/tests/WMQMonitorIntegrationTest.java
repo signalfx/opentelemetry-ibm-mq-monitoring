@@ -16,8 +16,8 @@
 package com.splunk.ibm.mq.integration.tests;
 
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.opentelemetry.OpenTelemetryMetricWriteHelper;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
+import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
