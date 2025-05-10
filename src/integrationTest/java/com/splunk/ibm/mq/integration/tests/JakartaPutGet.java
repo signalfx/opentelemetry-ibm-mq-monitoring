@@ -57,7 +57,7 @@ import org.slf4j.LoggerFactory;
  */
 public class JakartaPutGet {
 
-    private static final Logger logger = LoggerFactory.getLogger(JakartaPutGet.class);
+  private static final Logger logger = LoggerFactory.getLogger(JakartaPutGet.class);
 
   public static void createQueue(QueueManager manager, String name) {
     MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager, null);
