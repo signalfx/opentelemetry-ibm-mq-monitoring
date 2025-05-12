@@ -108,12 +108,14 @@ class WMQMonitorIntegrationTest {
     ObjectMapper mapper = new ObjectMapper();
     QueueManager qManager = mapper.convertValue(queueManagerConfig, QueueManager.class);
     configureQueueManager(qManager);
+    Thread.sleep(10000);
 
     // try to login with a bad password:
     JakartaPutGet.tryLoginWithBadPassword(qManager);
 
     // create a queue and fill it up past its capacity.
     JakartaPutGet.createQueue(qManager, "smallqueue", 10);
+    Thread.sleep(10000);
 
     JakartaPutGet.sendMessages(qManager, "smallqueue", 1);
     Thread.sleep(1000);
@@ -122,6 +124,7 @@ class WMQMonitorIntegrationTest {
     JakartaPutGet.sendMessages(qManager, "smallqueue", 5);
 
     JakartaPutGet.runPutGet(qManager, "myqueue", 10, 1);
+    Thread.sleep(10000);
 
     service.submit(() -> JakartaPutGet.runPutGet(qManager, "myqueue", 1000000, 100));
   }
