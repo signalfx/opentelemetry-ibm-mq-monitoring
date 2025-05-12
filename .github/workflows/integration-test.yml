@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       ibm-mq:
-        image: icr.io/ibm-messaging/mq:9.3.4.0-r1-amd64
+        image: icr.io/ibm-messaging/mq:9.4.2.1-r1
         ports:
           - 1414:1414
           - 9443:9443
@@ -48,27 +48,6 @@ jobs:
             sleep 5
           done
           docker exec ibm-mq-test dspmq
-
-      - name: Create test queues and channel
-        run: |
-          docker exec ibm-mq-test bash -c "echo '
-            DEFINE QLOCAL(DEV.QUEUE.1) REPLACE
-            DEFINE CHANNEL(DEV.APP.SVRCONN) CHLTYPE(SVRCONN) TRPTYPE(TCP) SSLCAUTH(OPTIONAL) REPLACE
-          ' | runmqsc QM1"
-
-      - name: Allow app user access to channel
-        run: |
-          docker exec ibm-mq-test bash -c "echo 'ALTER QMGR CHLAUTH(DISABLED)' | runmqsc QM1"
-          docker exec ibm-mq-test bash -c "echo 'DISPLAY CHL(*)' | runmqsc QM1"
-
-      - name: Grant MQ permissions to app user
-        run: |
-          docker exec ibm-mq-test setmqaut -m QM1 -t qmgr -p app +all +connect +inq
-          docker exec ibm-mq-test setmqaut -m QM1 -t queue -n '**' -p app +all +put +get +inq +browse
-          docker exec ibm-mq-test setmqaut -m QM1 -t topic -n '**' -p app +all
-          docker exec ibm-mq-test setmqaut -m QM1 -t authinfo -n '**' -p app +all
-          docker exec ibm-mq-test setmqaut -m QM1 -t chl -n '**' -p app +all
-        # docker exec ibm-mq-test setmqaut -m QM1 -t chl -n 'DEV.APP.SVRCONN' -p app +all +alladm +allmqi
 
       - name: Run Integration Tests
         run: |
