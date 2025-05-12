@@ -124,9 +124,6 @@ class WMQMonitorIntegrationTest {
     JakartaPutGet.runPutGet(qManager, "myqueue", 10, 1);
 
     service.submit(() -> JakartaPutGet.runPutGet(qManager, "myqueue", 1000000, 100));
-
-    // Give some time for MQ to log all the events.
-    Thread.sleep(10000);
   }
 
   private static void configureQueueManager(QueueManager manager) {
