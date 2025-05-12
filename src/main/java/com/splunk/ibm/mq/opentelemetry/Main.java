@@ -48,7 +48,7 @@ public class Main {
 
     int numberOfThreads = 1;
     int taskDelaySeconds = 60;
-    int initialDelaySeconds = 10;
+    int initialDelaySeconds = 0;
     if (config.get("taskSchedule") instanceof Map) {
       Map taskSchedule = (Map) config.get("taskSchedule");
       numberOfThreads = YmlUtils.getInt(taskSchedule.get("numberOfThreads"), numberOfThreads);
