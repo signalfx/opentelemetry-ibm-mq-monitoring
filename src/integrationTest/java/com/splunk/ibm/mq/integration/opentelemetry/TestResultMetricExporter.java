@@ -20,7 +20,9 @@ import io.opentelemetry.sdk.metrics.InstrumentType;
 import io.opentelemetry.sdk.metrics.data.AggregationTemporality;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,15 +31,23 @@ public class TestResultMetricExporter implements MetricExporter {
 
   private final Logger logger = LoggerFactory.getLogger(TestResultMetricExporter.class);
 
+  private final List<MetricData> exportedMetrics = new ArrayList<>();
+
   @Override
   public AggregationTemporality getAggregationTemporality(InstrumentType instrumentType) {
     return AggregationTemporality.DELTA;
+  }
+
+  public List<MetricData> getExportedMetrics() {
+    return exportedMetrics;
   }
 
   @Override
   public CompletableResultCode export(Collection<MetricData> metrics) {
     // Initial commit only does logging
     metrics.forEach(metricData -> logger.info("Exported metric: {}", metricData));
+
+    exportedMetrics.addAll(metrics);
 
     return CompletableResultCode.ofSuccess();
   }
