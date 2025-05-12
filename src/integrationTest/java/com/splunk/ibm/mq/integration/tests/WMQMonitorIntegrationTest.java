@@ -201,9 +201,6 @@ class WMQMonitorIntegrationTest {
         PeriodicMetricReader.builder(testExporter)
             .setExecutor(Executors.newScheduledThreadPool(1))
             .build();
-    SdkMeterProvider meterProvider =
-        SdkMeterProvider.builder().registerMetricReader(reader).build();
-    OpenTelemetrySdk sdk = OpenTelemetrySdk.builder().setMeterProvider(meterProvider).build();
     Map<String, SdkMeterProvider> providers = Main.createSdkMeterProviders(reader, "QM1");
     Map<String, Meter> meters = new HashMap<>();
     for (Map.Entry<String, SdkMeterProvider> e : providers.entrySet()) {
