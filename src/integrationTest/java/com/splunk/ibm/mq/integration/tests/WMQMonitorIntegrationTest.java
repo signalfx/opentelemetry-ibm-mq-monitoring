@@ -15,20 +15,31 @@
  */
 package com.splunk.ibm.mq.integration.tests;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.yml.YmlReader;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ibm.mq.MQQueueManager;
+import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.headers.pcf.PCFException;
+import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFMessageAgent;
+import com.ibm.mq.pcf.CMQC;
+import com.splunk.ibm.mq.WMQMonitorTask;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import io.opentelemetry.sdk.metrics.data.MetricData;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.jetbrains.annotations.NotNull;
@@ -77,9 +88,49 @@ class WMQMonitorIntegrationTest {
         (Map<String, ?>) ((List) config.get("queueManagers")).get(0);
     ObjectMapper mapper = new ObjectMapper();
     QueueManager qManager = mapper.convertValue(queueManagerConfig, QueueManager.class);
+    configureQueueManager(qManager);
     JakartaPutGet.runPutGet(qManager, "myqueue", 10, 1);
 
     service.submit(() -> JakartaPutGet.runPutGet(qManager, "myqueue", 1000000, 100));
+  }
+
+  private static void configureQueueManager(QueueManager manager) {
+    MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager, null);
+    PCFMessageAgent agent = WMQMonitorTask.initPCFMesageAgent(manager, ibmQueueManager);
+    PCFMessage request = new PCFMessage(CMQCFC.MQCMD_CHANGE_Q_MGR);
+    // turn on emitting authority events
+    request.addParameter(CMQC.MQIA_AUTHORITY_EVENT, CMQCFC.MQEVR_ENABLED);
+    // turn on emitting configuration events
+    request.addParameter(CMQC.MQIA_CONFIGURATION_EVENT, CMQCFC.MQEVR_ENABLED);
+    // turn on emitting channel auto-definition events
+    request.addParameter(CMQC.MQIA_CHANNEL_AUTO_DEF_EVENT, CMQCFC.MQEVR_ENABLED);
+    // turn on emitting channel events
+    request.addParameter(CMQC.MQIA_CHANNEL_EVENT, CMQCFC.MQEVR_ENABLED);
+    // turn on emitting command events
+    request.addParameter(CMQC.MQIA_COMMAND_EVENT, CMQCFC.MQEVR_ENABLED);
+    // turn on emitting inhibit events
+    request.addParameter(CMQC.MQIA_INHIBIT_EVENT, CMQCFC.MQEVR_ENABLED);
+    // turn on emitting local events
+    request.addParameter(CMQC.MQIA_LOCAL_EVENT, CMQCFC.MQEVR_ENABLED);
+    // turn on emitting performance events
+    request.addParameter(CMQC.MQIA_PERFORMANCE_EVENT, CMQCFC.MQEVR_ENABLED);
+    // turn on emitting remote events
+    request.addParameter(CMQC.MQIA_REMOTE_EVENT, CMQCFC.MQEVR_ENABLED);
+    // turn on emitting SSL events
+    request.addParameter(CMQC.MQIA_SSL_EVENT, CMQCFC.MQEVR_ENABLED);
+    // turn on emitting start/stop events
+    request.addParameter(CMQC.MQIA_START_STOP_EVENT, CMQCFC.MQEVR_ENABLED);
+    try {
+      agent.send(request);
+    } catch (Exception e) {
+      if (e instanceof PCFException) {
+        PCFMessage[] msgs = (PCFMessage[]) ((PCFException) e).exceptionSource;
+        for (PCFMessage msg : msgs) {
+          logger.error(msg.toString());
+        }
+      }
+      throw new RuntimeException(e);
+    }
   }
 
   @AfterAll
@@ -96,6 +147,13 @@ class WMQMonitorIntegrationTest {
 
     TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper);
     monitor.testrun();
+    List<MetricData> data = testExporter.getExportedMetrics();
+    Set<String> metricNames = new HashSet<>();
+    for (MetricData metricData : data) {
+      metricNames.add(metricData.getName());
+    }
+    // this value is read from the configuration queue.
+    assertThat(metricNames).contains("mq.manager.max.handles");
   }
 
   @Test
