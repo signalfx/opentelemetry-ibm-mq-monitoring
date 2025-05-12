@@ -37,6 +37,7 @@ public class QueueManager {
   private String modelQueueName;
   private String configurationQueueName = "SYSTEM.ADMIN.CONFIG.EVENT";
   private String performanceEventsQueueName = "SYSTEM.ADMIN.PERFM.EVENT";
+  private String queueManagerEventsQueueName = "SYSTEM.ADMIN.QMGR.EVENT";
   private long consumeConfigurationEventInterval;
   private boolean refreshQueueManagerConfigurationEnabled;
   private long consumePerformanceEventInterval;
@@ -259,5 +260,13 @@ public class QueueManager {
 
   public void setPerformanceEventsQueueName(String performanceEventsQueueName) {
     this.performanceEventsQueueName = performanceEventsQueueName;
+  }
+
+  public String getQueueManagerEventsQueueName() {
+    return this.queueManagerEventsQueueName;
+  }
+
+  public void setQueueManagerEventsQueueName(String queueManagerEventsQueueName) {
+    this.queueManagerEventsQueueName = queueManagerEventsQueueName;
   }
 }
