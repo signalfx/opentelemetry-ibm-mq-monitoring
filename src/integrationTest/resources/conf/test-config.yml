@@ -329,6 +329,9 @@ mqMetrics:
             alias: "Max Handles"
             ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MAX_HANDLES"
 
+  # Sets up reading performance events from the performance events queue.
+  - metricsType: "performanceMetrics"
+
 #Run it as a scheduled task instead of running every minute.
 #If you want to run this every minute, comment this out
 #taskSchedule:

@@ -175,19 +175,4 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
     logger.debug(
         "Time taken to publish metrics for configuration events is {} milliseconds", exitTime);
   }
-
-  private String getMetricsName(String qmNameToBeDisplayed, String... pathelements) {
-    StringBuilder pathBuilder =
-        new StringBuilder(monitorContextConfig.getMetricPrefix())
-            .append("|")
-            .append(qmNameToBeDisplayed)
-            .append("|");
-    for (int i = 0; i < pathelements.length; i++) {
-      pathBuilder.append(pathelements[i]);
-      if (i != pathelements.length - 1) {
-        pathBuilder.append("|");
-      }
-    }
-    return pathBuilder.toString();
-  }
 }
