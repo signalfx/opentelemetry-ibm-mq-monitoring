@@ -179,6 +179,7 @@ class MQOtelTranslator {
               put("Message Retry Count", "mq.message.retry.count");
               put("Message Received Count", "mq.message.received.count");
               put("Message Sent", "mq.message.sent.count");
+              put("ActiveChannelsCount", "mq.channels.active.count");
             }
           },
           segments -> {

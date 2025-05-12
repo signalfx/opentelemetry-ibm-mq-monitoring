@@ -17,6 +17,7 @@ package com.splunk.ibm.mq.integration.tests;
 
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.constants.CMQXC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
@@ -59,22 +60,62 @@ public class JakartaPutGet {
 
   private static final Logger logger = LoggerFactory.getLogger(JakartaPutGet.class);
 
-  public static void createQueue(QueueManager manager, String name) {
-    MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager, null);
-    PCFMessageAgent agent = WMQMonitorTask.initPCFMesageAgent(manager, ibmQueueManager);
-    PCFMessage request = new PCFMessage(CMQCFC.MQCMD_CREATE_Q);
-    request.addParameter(com.ibm.mq.constants.CMQC.MQCA_Q_NAME, name);
-    request.addParameter(CMQC.MQIA_Q_TYPE, CMQC.MQQT_LOCAL);
-    try {
-      agent.send(request);
-    } catch (PCFException e) {
-      if (e.reasonCode == CMQCFC.MQRCCF_OBJECT_ALREADY_EXISTS) {
-        return;
+  public static void createQueue(QueueManager manager, String name, String channelName) {
+      MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager, null);
+      PCFMessageAgent agent = WMQMonitorTask.initPCFMesageAgent(manager, ibmQueueManager);
+      {
+          PCFMessage request = new PCFMessage(CMQCFC.MQCMD_CREATE_Q);
+          request.addParameter(com.ibm.mq.constants.CMQC.MQCA_Q_NAME, name);
+          request.addParameter(CMQC.MQIA_Q_TYPE, CMQC.MQQT_LOCAL);
+          try {
+              agent.send(request);
+          } catch (PCFException e) {
+              if (e.reasonCode != CMQCFC.MQRCCF_OBJECT_ALREADY_EXISTS) {
+                  throw new RuntimeException(e);
+              }
+          } catch (Exception e) {
+              throw new RuntimeException(e);
+          }
       }
-      throw new RuntimeException(e);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+      {
+          PCFMessage request = new PCFMessage(CMQCFC.MQCMD_CREATE_CHANNEL);
+          request.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, channelName);
+          request.addParameter(CMQCFC.MQIACH_CHANNEL_TYPE, CMQXC.MQCHT_SVRCONN);
+          request.addParameter(CMQCFC.MQCACH_MCA_USER_ID, "app");
+          try {
+              PCFMessage[] responses = agent.send(request);
+          } catch (PCFException e) {
+              if (e.reasonCode != CMQCFC.MQRCCF_OBJECT_ALREADY_EXISTS) {
+                  throw new RuntimeException(e);
+              }
+          } catch (Exception e) {
+              throw new RuntimeException(e);
+          }
+      }
+      {
+          // SET CHLAUTH('mychannel') TYPE(USERMAP) CLNTUSER('admin') USERSRC(MAP) MCAUSER('admin') DESCR('rule') ACTION(ADD)
+          PCFMessage request = new PCFMessage(CMQCFC.MQCMD_SET_CHLAUTH_REC);
+          request.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, channelName);
+          request.addParameter(CMQCFC.MQIACF_CHLAUTH_TYPE, CMQCFC.MQCAUT_USERMAP);
+          request.addParameter(CMQCFC.MQIACH_USER_SOURCE, CMQC.MQUSRC_MAP);
+          request.addParameter(CMQCFC.MQCACH_MCA_USER_ID, "mqm");
+          request.addParameter(CMQCFC.MQCACH_CLIENT_USER_ID, "app");
+          request.addParameter(CMQCFC.MQIACF_ACTION, CMQCFC.MQACT_REPLACE);
+
+          try {
+              PCFMessage[] responses = agent.send(request);
+          } catch (PCFException e) {
+              if (e.reasonCode != CMQCFC.MQRCCF_CHLAUTH_ALREADY_EXISTS) {
+                  throw new RuntimeException(e);
+              }
+          } catch (Exception e) {
+              throw new RuntimeException(e);
+          }
+      }
+      {
+          // setmqaut -m QM1 -n "DEV.AUTHINFO" -t authinfo -p "admin" +chg +dlt +dsp
+
+      }
   }
 
   /**
@@ -86,7 +127,7 @@ public class JakartaPutGet {
   public static void runPutGet(
       QueueManager manager, String queueName, int numberOfMessages, int sleepIntervalMs) {
 
-    createQueue(manager, queueName);
+    createQueue(manager, queueName, "mychannel");
     JMSContext context = null;
     try {
       // Create a connection factory
