@@ -63,7 +63,8 @@ public class Main {
       initialDelaySeconds =
           YmlUtils.getInt(taskSchedule.get("initialDelaySeconds"), initialDelaySeconds);
     }
-    Thread.UncaughtExceptionHandler handler = (t, e) -> logger.error("Unhandled exception in thread pool", e);
+    Thread.UncaughtExceptionHandler handler =
+        (t, e) -> logger.error("Unhandled exception in thread pool", e);
     final ScheduledExecutorService service =
         Executors.newScheduledThreadPool(
             numberOfThreads,
