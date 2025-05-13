@@ -227,6 +227,7 @@ class MQOtelTranslator {
           new HashMap<String, String>() {
             {
               put("ActiveChannelsCount", "mq.active.channels");
+              put("Active Channel Instances", "mq.active.channels.instances");
             }
           },
           segments -> {

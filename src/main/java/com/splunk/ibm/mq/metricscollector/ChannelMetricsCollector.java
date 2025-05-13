@@ -15,8 +15,10 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
+import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
+import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
+
 import com.appdynamics.extensions.metrics.Metric;
-import com.splunk.ibm.mq.config.ExcludeFilters;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
@@ -25,17 +27,14 @@ import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.splunk.ibm.mq.config.ExcludeFilters;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
-import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** This class is responsible for channel metric collection. */
 public final class ChannelMetricsCollector implements MetricsPublisher {

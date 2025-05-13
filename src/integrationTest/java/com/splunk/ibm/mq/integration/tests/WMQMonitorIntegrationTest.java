@@ -207,6 +207,8 @@ class WMQMonitorIntegrationTest {
     for (MetricData metricData : data) {
       metricNames.add(metricData.getName());
     }
+
+    assertThat(metricNames).contains("mq.active.channels.instances");
     // this value is read from the configuration queue.
     assertThat(metricNames).contains("mq.manager.max.handles");
     // this value is read from the queue manager events, for unauthorized events.

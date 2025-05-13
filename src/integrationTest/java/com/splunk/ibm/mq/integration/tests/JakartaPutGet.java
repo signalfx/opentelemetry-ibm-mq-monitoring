@@ -17,11 +17,12 @@ package com.splunk.ibm.mq.integration.tests;
 
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
+import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.ibm.mq.pcf.CMQC;
 import com.ibm.msg.client.jakarta.jms.JmsConnectionFactory;
 import com.ibm.msg.client.jakarta.jms.JmsFactoryFactory;
 import com.ibm.msg.client.jakarta.wmq.WMQConstants;
@@ -84,6 +85,12 @@ public class JakartaPutGet {
       throw new RuntimeException(e);
     } catch (Exception e) {
       throw new RuntimeException(e);
+    } finally {
+      try {
+        agent.disconnect();
+      } catch (MQDataException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 
@@ -128,9 +135,6 @@ public class JakartaPutGet {
         message.setIntProperty(WMQConstants.JMS_IBM_CHARACTER_SET, 37);
         JMSProducer producer = context.createProducer();
         producer.send(destination, message);
-
-        JMSConsumer consumer = context.createConsumer(destination); // autoclosable
-        String response = consumer.receiveBody(String.class, 15000); // in ms or 15 seconds
 
         Thread.sleep(sleepIntervalMs);
       }
