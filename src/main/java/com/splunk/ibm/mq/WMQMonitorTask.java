@@ -302,7 +302,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     MetricsCollectorContext collectorContext =
         new MetricsCollectorContext(queueMetrics, queueManager, agent, metricWriteHelper);
     JobSubmitterContext jobSubmitterContext =
-        new JobSubmitterContext(monitorContextConfig, collectorContext, this.pendingJobs);
+        new JobSubmitterContext(monitorContextConfig, collectorContext);
     MetricsPublisher queueMetricsCollector =
         new QueueMetricsCollector(queueMetrics, sharedState, jobSubmitterContext);
     pendingJobs.add(queueMetricsCollector);
@@ -344,7 +344,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     MetricsCollectorContext context =
         new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
     JobSubmitterContext jobSubmitterContext =
-        new JobSubmitterContext(monitorContextConfig, context, this.pendingJobs);
+        new JobSubmitterContext(monitorContextConfig, context);
     MetricsPublisher metricsCollector = collectorConstructor.apply(jobSubmitterContext);
     pendingJobs.add(metricsCollector);
   }

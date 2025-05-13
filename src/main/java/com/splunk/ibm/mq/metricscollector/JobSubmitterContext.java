@@ -17,9 +17,8 @@ package com.splunk.ibm.mq.metricscollector;
 
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
-import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * JobSubmitterContext is a bundle class used by MetricsPublisher instances in order to bundle
@@ -29,24 +28,20 @@ public final class JobSubmitterContext {
 
   private final MonitorContextConfiguration monitorContextConfig;
   private final MetricsCollectorContext collectorContext;
-  private final List<MetricsPublisher> pendingJobs;
 
   public JobSubmitterContext(
-      MonitorContextConfiguration monitorContextConfig,
-      MetricsCollectorContext collectorContext,
-      List<MetricsPublisher> pendingJobs) {
+      MonitorContextConfiguration monitorContextConfig, MetricsCollectorContext collectorContext) {
     this.monitorContextConfig = monitorContextConfig;
     this.collectorContext = collectorContext;
-    this.pendingJobs = pendingJobs;
   }
 
   String getMetricPrefix() {
     return monitorContextConfig.getMetricPrefix();
   }
 
-  Future<?> submitPublishJob(String name, MetricsPublisher publisher) {
-    MetricsPublisherJob job = new MetricsPublisherJob(publisher, null);
-    return monitorContextConfig.getContext().getExecutorService().submit(name, job);
+  void submitPublishJob(MetricsPublisher publisher, CountDownLatch latch) {
+    MetricsPublisherJob job = new MetricsPublisherJob(publisher, latch);
+    monitorContextConfig.getContext().getExecutorService().execute(publisher.getName(), job);
   }
 
   int getConfigInt(String key, int defaultValue) {
