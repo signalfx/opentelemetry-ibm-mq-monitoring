@@ -153,12 +153,17 @@ class WMQMonitorIntegrationTest {
 
   @AfterAll
   public static void stopSendingClientMessages() throws Exception {
+    QueueManager qManager = getQueueManagerConfig();
+    configureQueueManager(qManager);
+
     service.shutdown();
   }
 
   @BeforeEach
   void setUpEvents() throws Exception {
     QueueManager qManager = getQueueManagerConfig();
+    // try to login with a bad password:
+    JakartaPutGet.tryLoginWithBadPassword(qManager);
 
     JakartaPutGet.sendMessages(qManager, "smallqueue", 1);
     Thread.sleep(1000);
@@ -203,6 +208,8 @@ class WMQMonitorIntegrationTest {
     }
     // this value is read from the configuration queue.
     assertThat(metricNames).contains("mq.manager.max.handles");
+    // this value is read from the queue manager events, for unauthorized events.
+    assertThat(metricNames).contains("mq.unauthorized.event");
     // this value is read from the performance event queue.
     assertThat(metricNames).contains("mq.queue.depth.full.event");
     // this value is read from the performance event queue.

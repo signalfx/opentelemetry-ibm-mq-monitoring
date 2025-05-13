@@ -254,4 +254,45 @@ public class JakartaPutGet {
       }
     }
   }
+
+  public static void tryLoginWithBadPassword(QueueManager manager) {
+
+    JMSContext context = null;
+    try {
+      // Create a connection factory
+      JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.JAKARTA_WMQ_PROVIDER);
+      JmsConnectionFactory cf = ff.createConnectionFactory();
+
+      // Set the properties
+      cf.setStringProperty(WMQConstants.WMQ_HOST_NAME, manager.getHost());
+      cf.setIntProperty(WMQConstants.WMQ_PORT, manager.getPort());
+      cf.setStringProperty(WMQConstants.WMQ_CHANNEL, manager.getChannelName());
+      cf.setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT);
+      cf.setStringProperty(WMQConstants.WMQ_QUEUE_MANAGER, manager.getName());
+      cf.setStringProperty(WMQConstants.WMQ_APPLICATIONNAME, "Bad Password");
+      cf.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, true);
+      cf.setStringProperty(WMQConstants.USERID, manager.getUsername());
+      cf.setStringProperty(WMQConstants.PASSWORD, "badpassword");
+      // cf.setStringProperty(WMQConstants.WMQ_SSL_CIPHER_SUITE, "*TLS12ORHIGHER");
+      // cf.setIntProperty(MQConstants.CERTIFICATE_VALIDATION_POLICY,
+      // MQConstants.MQ_CERT_VAL_POLICY_NONE);
+
+      // Create Jakarta objects
+      context = cf.createContext();
+    } catch (JMSException e) {
+      throw new RuntimeException(e);
+    } catch (JMSRuntimeException e) {
+      if (e.getCause() instanceof MQException) {
+        MQException mqe = (MQException) e.getCause();
+        if (mqe.getReason() == 2035) { // bad password
+          return;
+        }
+      }
+      throw new RuntimeException(e);
+    } finally {
+      if (context != null) {
+        context.close();
+      }
+    }
+  }
 }
