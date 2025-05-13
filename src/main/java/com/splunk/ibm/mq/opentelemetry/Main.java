@@ -15,8 +15,6 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
-import com.appdynamics.extensions.util.YmlUtils;
-import com.appdynamics.extensions.yml.YmlReader;
 import com.singularity.ee.agent.systemagent.api.TaskExecutionContext;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import com.splunk.ibm.mq.WMQMonitor;
@@ -28,10 +26,7 @@ import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
-import java.io.File;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,104 +38,92 @@ import org.slf4j.LoggerFactory;
 
 public class Main {
 
-  private static final Logger logger = LoggerFactory.getLogger(Main.class);
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-  public static void main(String[] args) {
-    if (args.length == 0) {
-      System.err.println("Usage: Main <config-file>");
-      System.exit(1);
-    }
+  public static void main(String[] args) throws Exception {
+        if (args.length == 0) {
+            System.err.println("Usage: Main <config-file>");
+            System.exit(1);
+        }
 
-    String configFile = args[0];
-    Map<String, ?> config = YmlReader.readFromFileAsMap(new File(configFile));
-    int numberOfThreads = 1;
-    int taskDelaySeconds = 60;
-    int initialDelaySeconds = 0;
-    if (config.get("taskSchedule") instanceof Map) {
-      Map taskSchedule = (Map) config.get("taskSchedule");
-      numberOfThreads = YmlUtils.getInt(taskSchedule.get("numberOfThreads"), numberOfThreads);
-      taskDelaySeconds = YmlUtils.getInt(taskSchedule.get("taskDelaySeconds"), taskDelaySeconds);
-      initialDelaySeconds =
-          YmlUtils.getInt(taskSchedule.get("initialDelaySeconds"), initialDelaySeconds);
-    }
-    Thread.UncaughtExceptionHandler handler =
-        (t, e) -> logger.error("Unhandled exception in thread pool", e);
-    final ScheduledExecutorService service =
-        Executors.newScheduledThreadPool(
-            numberOfThreads,
-            r -> {
-              Thread thread = new Thread(r);
-              thread.setUncaughtExceptionHandler(handler);
-              return thread;
-            });
+        String configFile = args[0];
 
-    Config.setUpSSLConnection(config);
+        ConfigWrapper config = ConfigWrapper.parse(configFile);
 
-    OtlpGrpcMetricExporter exporter = Config.createOtlpGrpcMetricsExporter(config);
+      Thread.UncaughtExceptionHandler handler =
+              (t, e) -> logger.error("Unhandled exception in thread pool", e);
+      final ScheduledExecutorService service =
+              Executors.newScheduledThreadPool(
+                      config.getNumberOfThreads(),
+                      r -> {
+                          Thread thread = new Thread(r);
+                          thread.setUncaughtExceptionHandler(handler);
+                          return thread;
+                      });
 
-    MetricReader reader =
-        PeriodicMetricReader.builder(exporter)
-            .setExecutor(service)
-            .setInterval(Duration.of(taskDelaySeconds, ChronoUnit.SECONDS))
-            .build();
+        Config.setUpSSLConnection(config._exposed());
 
-    List<String> queueManagerNames = new ArrayList<>();
-    for (Object queueManagerConfig : (List) config.get("queueManagers")) {
-      String queueManagerName = (String) ((Map<String, ?>) queueManagerConfig).get("name");
-      queueManagerNames.add(queueManagerName);
-    }
-    Map<String, SdkMeterProvider> providers =
-        createSdkMeterProviders(reader, queueManagerNames.toArray(new String[0]));
-    Map<String, Meter> meters = new HashMap<>();
-    for (Map.Entry<String, SdkMeterProvider> e : providers.entrySet()) {
-      meters.put(e.getKey(), e.getValue().get("opentelemetry.io/mq"));
-    }
+        OtlpGrpcMetricExporter exporter = Config.createOtlpGrpcMetricsExporter(config._exposed());
 
-    WMQMonitor monitor = new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter, meters));
-    TaskExecutionContext taskExecCtx = new TaskExecutionContext();
+        MetricReader reader =
+                PeriodicMetricReader.builder(exporter)
+                        .setExecutor(service)
+                        .setInterval(config.getTaskDelay())
+                        .build();
 
-    try {
+        List<String> queueManagerNames = config.getQueueManagerNames();
+        Map<String, SdkMeterProvider> providers = createSdkMeterProviders(reader, queueManagerNames);
+        Map<String, Meter> meters = new HashMap<>();
+        for (Map.Entry<String, SdkMeterProvider> e : providers.entrySet()) {
+            meters.put(e.getKey(), e.getValue().get("opentelemetry.io/mq"));
+        }
 
-      service.scheduleAtFixedRate(
-          () -> {
-            try {
-              Map<String, String> taskArguments = new HashMap<>();
-              taskArguments.put("config-file", configFile);
-              monitor.execute(taskArguments, taskExecCtx);
-            } catch (TaskExecutionException e) {
-              throw new RuntimeException(e);
+        WMQMonitor monitor = new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter, meters));
+        TaskExecutionContext taskExecCtx = new TaskExecutionContext();
+
+        try {
+
+            service.scheduleAtFixedRate(
+                    () -> {
+                        try {
+                            Map<String, String> taskArguments = new HashMap<>();
+                            taskArguments.put("config-file", configFile);
+                            monitor.execute(taskArguments, taskExecCtx);
+                        } catch (TaskExecutionException e) {
+                            throw new RuntimeException(e);
+                        }
+                    },
+                    config.getTaskInitialDelaySeconds(),
+                    config.getTaskDelaySeconds(),
+                    TimeUnit.SECONDS);
+
+            Runtime.getRuntime()
+                    .addShutdownHook(
+                            new Thread(
+                                    () -> {
+                                        service.shutdown();
+                                        exporter.shutdown();
+                                    }));
+        } finally {
+            for (SdkMeterProvider c : providers.values()) {
+                c.close();
             }
-          },
-          initialDelaySeconds,
-          taskDelaySeconds,
-          TimeUnit.SECONDS);
-
-      Runtime.getRuntime()
-          .addShutdownHook(
-              new Thread(
-                  () -> {
-                    service.shutdown();
-                    exporter.shutdown();
-                  }));
-    } finally {
-      for (SdkMeterProvider c : providers.values()) {
-        c.close();
-      }
+        }
     }
-  }
 
-  public static Map<String, SdkMeterProvider> createSdkMeterProviders(
-      MetricReader reader, String... queueManagerNames) {
-    Map<String, SdkMeterProvider> providers = new HashMap<>();
-    for (String q : queueManagerNames) {
-      Attributes attrs = Attributes.of(AttributeKey.stringKey("queue.manager"), q);
-      SdkMeterProvider meterProvider =
-          SdkMeterProvider.builder()
-              .registerMetricReader(reader)
-              .setResource(Resource.create(attrs))
-              .build();
-      providers.put(q, meterProvider);
+    public static Map<String, SdkMeterProvider> createSdkMeterProviders(
+            MetricReader reader, List<String> queueManagerNames) {
+        Map<String, SdkMeterProvider> providers = new HashMap<>();
+        for (String queueManagerName : queueManagerNames) {
+            Attributes attrs = Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName);
+            SdkMeterProvider meterProvider =
+                    SdkMeterProvider.builder()
+                            .registerMetricReader(reader)
+                            //TODO: We should not be making multiple resources. :(
+                            .setResource(Resource.create(attrs))
+                            .build();
+            providers.put(queueManagerName, meterProvider);
+        }
+        return providers;
     }
-    return providers;
-  }
 }
