@@ -181,7 +181,6 @@ class WMQMonitorIntegrationTest {
   @Test
   void test_monitor_with_full_config() throws Exception {
     logger.info("\n\n\n\n\n\nRunning test: test_monitor_with_full_config");
-
     TestResultMetricExporter testExporter = new TestResultMetricExporter();
     MetricReader reader =
         PeriodicMetricReader.builder(testExporter)
@@ -221,7 +220,6 @@ class WMQMonitorIntegrationTest {
   @Test
   void test_wmqmonitor() throws Exception {
     logger.info("\n\n\n\n\n\nRunning test: test_wmqmonitor");
-
     TestResultMetricExporter testExporter = new TestResultMetricExporter();
     MetricReader reader =
         PeriodicMetricReader.builder(testExporter)
