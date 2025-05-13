@@ -99,36 +99,6 @@ class WMQMonitorIntegrationTest {
     return file.getAbsolutePath();
   }
 
-  @BeforeAll
-  public static void sendClientMessages() throws Exception {
-    String configFile = getConfigFile("conf/test-config.yml");
-    Map<String, ?> config = YmlReader.readFromFileAsMap(new File(configFile));
-    Map<String, ?> queueManagerConfig =
-        (Map<String, ?>) ((List) config.get("queueManagers")).get(0);
-    ObjectMapper mapper = new ObjectMapper();
-    QueueManager qManager = mapper.convertValue(queueManagerConfig, QueueManager.class);
-    configureQueueManager(qManager);
-    Thread.sleep(10000);
-
-    // try to login with a bad password:
-    JakartaPutGet.tryLoginWithBadPassword(qManager);
-
-    // create a queue and fill it up past its capacity.
-    JakartaPutGet.createQueue(qManager, "smallqueue", 10);
-    Thread.sleep(10000);
-
-    JakartaPutGet.sendMessages(qManager, "smallqueue", 1);
-    Thread.sleep(1000);
-    JakartaPutGet.sendMessages(qManager, "smallqueue", 8);
-    Thread.sleep(1000);
-    JakartaPutGet.sendMessages(qManager, "smallqueue", 5);
-
-    JakartaPutGet.runPutGet(qManager, "myqueue", 10, 1);
-    Thread.sleep(10000);
-
-    service.submit(() -> JakartaPutGet.runPutGet(qManager, "myqueue", 1000000, 100));
-  }
-
   private static void configureQueueManager(QueueManager manager) {
     MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager, null);
     PCFMessageAgent agent = WMQMonitorTask.initPCFMesageAgent(manager, ibmQueueManager);
@@ -183,21 +153,17 @@ class WMQMonitorIntegrationTest {
 
   @AfterAll
   public static void stopSendingClientMessages() throws Exception {
-    String configFile = getConfigFile("conf/test-config.yml");
-    Map<String, ?> config = YmlReader.readFromFileAsMap(new File(configFile));
-    Map<String, ?> queueManagerConfig =
-        (Map<String, ?>) ((List) config.get("queueManagers")).get(0);
-    ObjectMapper mapper = new ObjectMapper();
-    QueueManager qManager = mapper.convertValue(queueManagerConfig, QueueManager.class);
+    QueueManager qManager = getQueueManagerConfig();
     configureQueueManager(qManager);
-    // clear the full queue.
-    JakartaPutGet.readMessages(qManager, "smallqueue");
+
     service.shutdown();
   }
 
   @BeforeEach
   void setUpEvents() throws Exception {
     QueueManager qManager = getQueueManagerConfig();
+    // try to login with a bad password:
+    JakartaPutGet.tryLoginWithBadPassword(qManager);
 
     JakartaPutGet.sendMessages(qManager, "smallqueue", 1);
     Thread.sleep(1000);
@@ -215,6 +181,7 @@ class WMQMonitorIntegrationTest {
   @Test
   void test_monitor_with_full_config() throws Exception {
     logger.info("\n\n\n\n\n\nRunning test: test_monitor_with_full_config");
+
     TestResultMetricExporter testExporter = new TestResultMetricExporter();
     MetricReader reader =
         PeriodicMetricReader.builder(testExporter)
@@ -254,6 +221,7 @@ class WMQMonitorIntegrationTest {
   @Test
   void test_wmqmonitor() throws Exception {
     logger.info("\n\n\n\n\n\nRunning test: test_wmqmonitor");
+
     TestResultMetricExporter testExporter = new TestResultMetricExporter();
     MetricReader reader =
         PeriodicMetricReader.builder(testExporter)
