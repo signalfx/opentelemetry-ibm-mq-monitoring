@@ -169,7 +169,8 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     // Step 1: Retrieve metrics from configuration
     Map<String, Map<String, WMQMetricOverride>> metricsMap =
         WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
-    CountDownLatch countDownLatch = new CountDownLatch(metricsMap.size());
+    CountDownLatch countDownLatch =
+        new CountDownLatch(metricsMap.size() + 2); // queue manager and channel metrics have 2 jobs
 
     // Step 2: Inquire each metric type
     inquireQueueMangerMetrics(
