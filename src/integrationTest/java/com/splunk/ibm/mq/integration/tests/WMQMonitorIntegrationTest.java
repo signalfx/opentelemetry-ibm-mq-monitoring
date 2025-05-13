@@ -152,6 +152,8 @@ class WMQMonitorIntegrationTest {
     for (MetricData metricData : data) {
       metricNames.add(metricData.getName());
     }
+    // this value is read from the active channels count:
+    assertThat(metricNames).contains("mq.manager.active.channels");
     // this value is read from the configuration queue.
     assertThat(metricNames).contains("mq.manager.max.handles");
   }

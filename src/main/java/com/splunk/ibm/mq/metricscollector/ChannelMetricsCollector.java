@@ -106,7 +106,10 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
                       metricCreator.createMetric(
                           metrickey, metricVal, wmqOverride, channelName, metrickey);
                   responseMetrics.add(metric);
-                  if ("Status".equals(metrickey) && metricVal == 3) {
+                  if ("Status".equals(metrickey)
+                      && metricVal != CMQCFC.MQCHS_RETRYING
+                      && metricVal != CMQCFC.MQCHS_STOPPED
+                      && metricVal != CMQCFC.MQCHS_STARTING) {
                     activeChannels.add(channelName);
                   }
                 });
