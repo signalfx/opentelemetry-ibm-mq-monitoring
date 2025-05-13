@@ -18,12 +18,15 @@ package com.splunk.ibm.mq.opentelemetry;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.metrics.transformers.Transformer;
+import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +36,12 @@ public class OpenTelemetryMetricWriteHelper extends MetricWriteHelper {
       LoggerFactory.getLogger(OpenTelemetryMetricWriteHelper.class);
 
   private final MetricExporter exporter;
+  private final Map<String, Meter> meters;
 
-  public OpenTelemetryMetricWriteHelper(MetricExporter otlpGrpcMetricExporter) {
+  public OpenTelemetryMetricWriteHelper(
+      MetricExporter otlpGrpcMetricExporter, Map<String, Meter> meters) {
     this.exporter = otlpGrpcMetricExporter;
+    this.meters = meters;
   }
 
   @Override
@@ -56,6 +62,11 @@ public class OpenTelemetryMetricWriteHelper extends MetricWriteHelper {
 
   public void exportMetrics(Collection<MetricData> metrics) {
     this.exporter.export(metrics);
+  }
+
+  @Nullable
+  public Meter getMeter(String queueManager) {
+    return this.meters.get(queueManager);
   }
 
   @Override

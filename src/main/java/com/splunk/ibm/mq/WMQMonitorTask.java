@@ -38,6 +38,7 @@ import com.splunk.ibm.mq.metricscollector.MetricCreator;
 import com.splunk.ibm.mq.metricscollector.MetricsCollectorContext;
 import com.splunk.ibm.mq.metricscollector.MetricsPublisher;
 import com.splunk.ibm.mq.metricscollector.MetricsPublisherJob;
+import com.splunk.ibm.mq.metricscollector.PerformanceEventQueueCollector;
 import com.splunk.ibm.mq.metricscollector.QueueCollectorSharedState;
 import com.splunk.ibm.mq.metricscollector.QueueManagerMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.QueueMetricsCollector;
@@ -195,6 +196,8 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
     inquireConfigurationMetrics(
         metricsMap.get(Constants.METRIC_TYPE_CONFIGURATION), countDownLatch, mqQueueManager, agent);
+
+    inquirePerformanceMetrics(countDownLatch, mqQueueManager);
 
     // Step 3: Await all jobs to complete
     try {
@@ -406,6 +409,19 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
         .getContext()
         .getExecutorService()
         .execute("ConfigurationMetricsCollector", job);
+  }
+
+  // Inquire performance-specific metrics
+  private void inquirePerformanceMetrics(
+      CountDownLatch countDownLatch, MQQueueManager mqQueueManager) {
+
+    PerformanceEventQueueCollector collector =
+        new PerformanceEventQueueCollector(mqQueueManager, queueManager, metricWriteHelper);
+    Runnable job = new MetricsPublisherJob(collector, countDownLatch);
+    monitorContextConfig
+        .getContext()
+        .getExecutorService()
+        .execute("PerformanceMetricsCollector", job);
   }
 
   /** Destroy the agent and disconnect from queue manager */

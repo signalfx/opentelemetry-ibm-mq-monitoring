@@ -19,6 +19,7 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -47,7 +48,10 @@ public class WMQUtil {
     //
     for (Map mqMetric : mqMetrics) {
       String metricType = (String) mqMetric.get("metricsType");
-      List includeMetrics = (List) ((Map) mqMetric.get("metrics")).get("include");
+      List includeMetrics =
+          mqMetric.get("metrics") == null
+              ? Collections.emptyList()
+              : (List) ((Map) mqMetric.get("metrics")).get("include");
       Map<String, WMQMetricOverride> metricToReport = Maps.newHashMap();
       if (includeMetrics != null) {
         metricToReport = gatherMetricNamesByApplyingIncludeFilter(includeMetrics);

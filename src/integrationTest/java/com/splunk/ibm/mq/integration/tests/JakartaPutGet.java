@@ -15,6 +15,7 @@
  */
 package com.splunk.ibm.mq.integration.tests;
 
+import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
@@ -31,6 +32,7 @@ import jakarta.jms.JMSConsumer;
 import jakarta.jms.JMSContext;
 import jakarta.jms.JMSException;
 import jakarta.jms.JMSProducer;
+import jakarta.jms.JMSRuntimeException;
 import jakarta.jms.TextMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,12 +61,20 @@ public class JakartaPutGet {
 
   private static final Logger logger = LoggerFactory.getLogger(JakartaPutGet.class);
 
-  public static void createQueue(QueueManager manager, String name) {
+  public static void createQueue(QueueManager manager, String name, int maxDepth) {
     MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager, null);
     PCFMessageAgent agent = WMQMonitorTask.initPCFMesageAgent(manager, ibmQueueManager);
     PCFMessage request = new PCFMessage(CMQCFC.MQCMD_CREATE_Q);
     request.addParameter(com.ibm.mq.constants.CMQC.MQCA_Q_NAME, name);
     request.addParameter(CMQC.MQIA_Q_TYPE, CMQC.MQQT_LOCAL);
+
+    request.addParameter(CMQC.MQIA_MAX_Q_DEPTH, maxDepth);
+    // these parameters are indicated in percentage of max depth.
+    request.addParameter(CMQC.MQIA_Q_DEPTH_HIGH_LIMIT, 75);
+    request.addParameter(CMQC.MQIA_Q_DEPTH_LOW_LIMIT, 20);
+    request.addParameter(CMQC.MQIA_Q_DEPTH_HIGH_EVENT, CMQCFC.MQEVR_ENABLED);
+    request.addParameter(CMQC.MQIA_Q_DEPTH_LOW_EVENT, CMQCFC.MQEVR_ENABLED);
+    request.addParameter(CMQC.MQIA_Q_DEPTH_MAX_EVENT, CMQCFC.MQEVR_ENABLED);
     try {
       agent.send(request);
     } catch (PCFException e) {
@@ -86,7 +96,7 @@ public class JakartaPutGet {
   public static void runPutGet(
       QueueManager manager, String queueName, int numberOfMessages, int sleepIntervalMs) {
 
-    createQueue(manager, queueName);
+    createQueue(manager, queueName, 100000);
     JMSContext context = null;
     try {
       // Create a connection factory
@@ -109,7 +119,6 @@ public class JakartaPutGet {
 
       // Create Jakarta objects
       context = cf.createContext();
-      logger.info("About to create queue {}", queueName);
       Destination destination = context.createQueue("queue:///" + queueName);
 
       for (int i = 0; i < numberOfMessages; i++) {
@@ -128,6 +137,117 @@ public class JakartaPutGet {
 
     } catch (JMSException | InterruptedException jmsex) {
       throw new RuntimeException(jmsex);
+    } finally {
+      if (context != null) {
+        context.close();
+      }
+    }
+  }
+
+  /**
+   * Send a number of messages to the queue.
+   *
+   * @param manager Queue manager configuration
+   * @param queueName Queue that the application uses to put and get messages to and from
+   * @param numberOfMessages Number of messages to send
+   */
+  public static void sendMessages(QueueManager manager, String queueName, int numberOfMessages) {
+
+    createQueue(manager, queueName, 1000);
+    JMSContext context = null;
+    try {
+      // Create a connection factory
+      JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.JAKARTA_WMQ_PROVIDER);
+      JmsConnectionFactory cf = ff.createConnectionFactory();
+
+      // Set the properties
+      cf.setStringProperty(WMQConstants.WMQ_HOST_NAME, manager.getHost());
+      cf.setIntProperty(WMQConstants.WMQ_PORT, manager.getPort());
+      cf.setStringProperty(WMQConstants.WMQ_CHANNEL, manager.getChannelName());
+      cf.setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT);
+      cf.setStringProperty(WMQConstants.WMQ_QUEUE_MANAGER, manager.getName());
+      cf.setStringProperty(WMQConstants.WMQ_APPLICATIONNAME, "Message Sender");
+      cf.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, true);
+      cf.setStringProperty(WMQConstants.USERID, manager.getUsername());
+      cf.setStringProperty(WMQConstants.PASSWORD, manager.getPassword());
+      // cf.setStringProperty(WMQConstants.WMQ_SSL_CIPHER_SUITE, "*TLS12ORHIGHER");
+      // cf.setIntProperty(MQConstants.CERTIFICATE_VALIDATION_POLICY,
+      // MQConstants.MQ_CERT_VAL_POLICY_NONE);
+
+      // Create Jakarta objects
+      context = cf.createContext();
+      Destination destination = context.createQueue("queue:///" + queueName);
+
+      for (int i = 0; i < numberOfMessages; i++) {
+        long uniqueNumber = System.currentTimeMillis() % 1000;
+        TextMessage message =
+            context.createTextMessage("Your lucky number today is " + uniqueNumber);
+        message.setIntProperty(WMQConstants.JMS_IBM_CHARACTER_SET, 37);
+        JMSProducer producer = context.createProducer();
+        producer.send(destination, message);
+      }
+
+    } catch (JMSException e) {
+      throw new RuntimeException(e);
+    } catch (JMSRuntimeException e) {
+      if (e.getCause() instanceof MQException) {
+        MQException mqe = (MQException) e.getCause();
+        if (mqe.getReason() == 2053) { // queue is full
+          return;
+        }
+      }
+      throw new RuntimeException(e);
+    } finally {
+      if (context != null) {
+        context.close();
+      }
+    }
+  }
+
+  /**
+   * Reads all the messages of the queue.
+   *
+   * @param manager Queue manager configuration
+   * @param queueName Queue that the application uses to put and get messages to and from
+   */
+  public static void readMessages(QueueManager manager, String queueName) {
+    JMSContext context = null;
+    try {
+      // Create a connection factory
+      JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.JAKARTA_WMQ_PROVIDER);
+      JmsConnectionFactory cf = ff.createConnectionFactory();
+
+      // Set the properties
+      cf.setStringProperty(WMQConstants.WMQ_HOST_NAME, manager.getHost());
+      cf.setIntProperty(WMQConstants.WMQ_PORT, manager.getPort());
+      cf.setStringProperty(WMQConstants.WMQ_CHANNEL, manager.getChannelName());
+      cf.setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT);
+      cf.setStringProperty(WMQConstants.WMQ_QUEUE_MANAGER, manager.getName());
+      cf.setStringProperty(WMQConstants.WMQ_APPLICATIONNAME, "Message Receiver");
+      cf.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, true);
+      cf.setStringProperty(WMQConstants.USERID, manager.getUsername());
+      cf.setStringProperty(WMQConstants.PASSWORD, manager.getPassword());
+      // cf.setStringProperty(WMQConstants.WMQ_SSL_CIPHER_SUITE, "*TLS12ORHIGHER");
+      // cf.setIntProperty(MQConstants.CERTIFICATE_VALIDATION_POLICY,
+      // MQConstants.MQ_CERT_VAL_POLICY_NONE);
+
+      // Create Jakarta objects
+      context = cf.createContext();
+      Destination destination = context.createQueue("queue:///" + queueName);
+
+      JMSConsumer consumer = context.createConsumer(destination); // autoclosable
+      while (consumer.receiveBody(String.class, 100) != null) {}
+
+    } catch (JMSException e) {
+      throw new RuntimeException(e);
+    } catch (JMSRuntimeException e) {
+      if (e.getCause() instanceof MQException) {
+        MQException mqe = (MQException) e.getCause();
+        if (mqe.getReason() == CMQC.MQRC_NO_MSG_AVAILABLE) { // out of messages, we read them all.
+          return;
+        }
+      }
+      throw new RuntimeException(e);
     } finally {
       if (context != null) {
         context.close();

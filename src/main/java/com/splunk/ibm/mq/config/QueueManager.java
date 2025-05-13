@@ -36,8 +36,10 @@ public class QueueManager {
   private String replyQueuePrefix;
   private String modelQueueName;
   private String configurationQueueName = "SYSTEM.ADMIN.CONFIG.EVENT";
+  private String performanceEventsQueueName = "SYSTEM.ADMIN.PERFM.EVENT";
   private long consumeConfigurationEventInterval;
   private boolean refreshQueueManagerConfigurationEnabled;
+  private long consumePerformanceEventInterval;
 
   private ResourceFilters queueFilters;
   private ResourceFilters channelFilters;
@@ -249,5 +251,13 @@ public class QueueManager {
   public void setRefreshQueueManagerConfigurationEnabled(
       boolean refreshQueueManagerConfigurationEnabled) {
     this.refreshQueueManagerConfigurationEnabled = refreshQueueManagerConfigurationEnabled;
+  }
+
+  public String getPerformanceEventsQueueName() {
+    return performanceEventsQueueName;
+  }
+
+  public void setPerformanceEventsQueueName(String performanceEventsQueueName) {
+    this.performanceEventsQueueName = performanceEventsQueueName;
   }
 }
