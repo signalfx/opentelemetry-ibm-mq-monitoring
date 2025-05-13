@@ -106,6 +106,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
                       metricCreator.createMetric(
                           metrickey, metricVal, wmqOverride, channelName, metrickey);
                   responseMetrics.add(metric);
+                  // We follow the definition of active channel as documented in https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
                   if ("Status".equals(metrickey)
                       && metricVal != CMQCFC.MQCHS_RETRYING
                       && metricVal != CMQCFC.MQCHS_STOPPED
