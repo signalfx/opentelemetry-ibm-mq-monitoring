@@ -33,7 +33,6 @@ import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.Main;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
@@ -52,7 +51,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +77,16 @@ class WMQMonitorIntegrationTest {
             return thread;
           });
 
+  private static QueueManager getQueueManagerConfig() throws URISyntaxException {
+    String configFile = getConfigFile("conf/test-config.yml");
+    Map<String, ?> config = YmlReader.readFromFileAsMap(new File(configFile));
+    Map<String, ?> queueManagerConfig =
+        (Map<String, ?>) ((List) config.get("queueManagers")).get(0);
+    ObjectMapper mapper = new ObjectMapper();
+    QueueManager qManager = mapper.convertValue(queueManagerConfig, QueueManager.class);
+    return qManager;
+  }
+
   @NotNull
   private static String getConfigFile(String resourcePath) throws URISyntaxException {
     URL resource = WMQMonitorIntegrationTest.class.getClassLoader().getResource(resourcePath);
@@ -86,30 +97,6 @@ class WMQMonitorIntegrationTest {
     File file = Paths.get(resource.toURI()).toFile();
     logger.info("Config file: {}", file.getAbsolutePath());
     return file.getAbsolutePath();
-  }
-
-  @BeforeAll
-  public static void sendClientMessages() throws Exception {
-    String configFile = getConfigFile("conf/test-config.yml");
-    Map<String, ?> config = YmlReader.readFromFileAsMap(new File(configFile));
-    Map<String, ?> queueManagerConfig =
-        (Map<String, ?>) ((List) config.get("queueManagers")).get(0);
-    ObjectMapper mapper = new ObjectMapper();
-    QueueManager qManager = mapper.convertValue(queueManagerConfig, QueueManager.class);
-    configureQueueManager(qManager);
-
-    // create a queue and fill it up past its capacity.
-    JakartaPutGet.createQueue(qManager, "smallqueue", 10);
-
-    JakartaPutGet.sendMessages(qManager, "smallqueue", 1);
-    Thread.sleep(1000);
-    JakartaPutGet.sendMessages(qManager, "smallqueue", 8);
-    Thread.sleep(1000);
-    JakartaPutGet.sendMessages(qManager, "smallqueue", 5);
-
-    JakartaPutGet.runPutGet(qManager, "myqueue", 10, 1);
-
-    service.submit(() -> JakartaPutGet.runPutGet(qManager, "myqueue", 1000000, 100));
   }
 
   private static void configureQueueManager(QueueManager manager) {
@@ -151,9 +138,39 @@ class WMQMonitorIntegrationTest {
     }
   }
 
+  @BeforeAll
+  public static void sendClientMessages() throws Exception {
+    QueueManager qManager = getQueueManagerConfig();
+    configureQueueManager(qManager);
+
+    // create a queue and fill it up past its capacity.
+    JakartaPutGet.createQueue(qManager, "smallqueue", 10);
+
+    JakartaPutGet.runPutGet(qManager, "myqueue", 10, 1);
+
+    service.submit(() -> JakartaPutGet.runPutGet(qManager, "myqueue", 1000000, 100));
+  }
+
   @AfterAll
   public static void stopSendingClientMessages() throws Exception {
     service.shutdown();
+  }
+
+  @BeforeEach
+  void setUpEvents() throws Exception {
+    QueueManager qManager = getQueueManagerConfig();
+
+    JakartaPutGet.sendMessages(qManager, "smallqueue", 1);
+    Thread.sleep(1000);
+    JakartaPutGet.sendMessages(qManager, "smallqueue", 8);
+    Thread.sleep(1000);
+    JakartaPutGet.sendMessages(qManager, "smallqueue", 5);
+  }
+
+  @AfterEach
+  void clearQueue() throws Exception {
+    // clear the full queue.
+    JakartaPutGet.readMessages(getQueueManagerConfig(), "smallqueue");
   }
 
   @Test

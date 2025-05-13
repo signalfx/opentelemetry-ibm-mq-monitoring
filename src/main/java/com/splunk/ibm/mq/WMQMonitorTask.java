@@ -413,8 +413,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
 
   // Inquire performance-specific metrics
   private void inquirePerformanceMetrics(
-      CountDownLatch countDownLatch,
-      MQQueueManager mqQueueManager) {
+      CountDownLatch countDownLatch, MQQueueManager mqQueueManager) {
 
     PerformanceEventQueueCollector collector =
         new PerformanceEventQueueCollector(mqQueueManager, queueManager, metricWriteHelper);

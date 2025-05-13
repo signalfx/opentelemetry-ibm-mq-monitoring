@@ -203,4 +203,55 @@ public class JakartaPutGet {
       }
     }
   }
+
+  /**
+   * Reads all the messages of the queue.
+   *
+   * @param manager Queue manager configuration
+   * @param queueName Queue that the application uses to put and get messages to and from
+   */
+  public static void readMessages(QueueManager manager, String queueName) {
+    JMSContext context = null;
+    try {
+      // Create a connection factory
+      JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.JAKARTA_WMQ_PROVIDER);
+      JmsConnectionFactory cf = ff.createConnectionFactory();
+
+      // Set the properties
+      cf.setStringProperty(WMQConstants.WMQ_HOST_NAME, manager.getHost());
+      cf.setIntProperty(WMQConstants.WMQ_PORT, manager.getPort());
+      cf.setStringProperty(WMQConstants.WMQ_CHANNEL, manager.getChannelName());
+      cf.setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT);
+      cf.setStringProperty(WMQConstants.WMQ_QUEUE_MANAGER, manager.getName());
+      cf.setStringProperty(WMQConstants.WMQ_APPLICATIONNAME, "Message Receiver");
+      cf.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, true);
+      cf.setStringProperty(WMQConstants.USERID, manager.getUsername());
+      cf.setStringProperty(WMQConstants.PASSWORD, manager.getPassword());
+      // cf.setStringProperty(WMQConstants.WMQ_SSL_CIPHER_SUITE, "*TLS12ORHIGHER");
+      // cf.setIntProperty(MQConstants.CERTIFICATE_VALIDATION_POLICY,
+      // MQConstants.MQ_CERT_VAL_POLICY_NONE);
+
+      // Create Jakarta objects
+      context = cf.createContext();
+      Destination destination = context.createQueue("queue:///" + queueName);
+
+      JMSConsumer consumer = context.createConsumer(destination); // autoclosable
+      while (consumer.receiveBody(String.class, 100) != null) {}
+
+    } catch (JMSException e) {
+      throw new RuntimeException(e);
+    } catch (JMSRuntimeException e) {
+      if (e.getCause() instanceof MQException) {
+        MQException mqe = (MQException) e.getCause();
+        if (mqe.getReason() == CMQC.MQRC_NO_MSG_AVAILABLE) { // out of messages, we read them all.
+          return;
+        }
+      }
+      throw new RuntimeException(e);
+    } finally {
+      if (context != null) {
+        context.close();
+      }
+    }
+  }
 }
