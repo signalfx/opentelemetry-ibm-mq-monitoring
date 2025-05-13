@@ -63,6 +63,7 @@ public class OpenTelemetryMetricWriteHelper extends MetricWriteHelper {
     this.exporter.export(metrics);
   }
 
+  @Nullable
   public Meter getMeter(String queueManager) {
     return this.meters.get(queueManager);
   }
