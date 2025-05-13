@@ -17,7 +17,6 @@ package com.splunk.ibm.mq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.MQException;
@@ -37,11 +36,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class ReadConfigurationEventQueueCollector implements MetricsPublisher {
 
   private static final Logger logger =
-      ExtensionsLoggerFactory.getLogger(ReadConfigurationEventQueueCollector.class);
+      LoggerFactory.getLogger(ReadConfigurationEventQueueCollector.class);
   private final MetricWriteHelper metricWriteHelper;
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;

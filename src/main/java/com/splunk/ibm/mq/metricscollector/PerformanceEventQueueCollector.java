@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQGetMessageOptions;
 import com.ibm.mq.MQMessage;
@@ -24,6 +23,7 @@ import com.ibm.mq.MQQueue;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.MQConstants;
+import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
@@ -32,12 +32,13 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import java.io.IOException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+// Captures metrics from events logged to the queue manager performance event queue.
 public final class PerformanceEventQueueCollector implements MetricsPublisher {
 
   private static final Logger logger =
-      ExtensionsLoggerFactory.getLogger(PerformanceEventQueueCollector.class);
-  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
+      LoggerFactory.getLogger(PerformanceEventQueueCollector.class);
   private final QueueManager queueManager;
   private final MQQueueManager mqQueueManager;
   private final LongCounter fullQueueDepthCounter;
@@ -54,21 +55,22 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
     }
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;
-    this.metricWriteHelper = (OpenTelemetryMetricWriteHelper) metricWriteHelper;
+    OpenTelemetryMetricWriteHelper openTelemetryMetricWriteHelper =
+        (OpenTelemetryMetricWriteHelper) metricWriteHelper;
     this.fullQueueDepthCounter =
-        this.metricWriteHelper
+        openTelemetryMetricWriteHelper
             .getMeter(queueManager.getName())
             .counterBuilder("mq.queue.depth.full.event")
             .setUnit("1")
             .build();
     this.highQueueDepthCounter =
-        this.metricWriteHelper
+        openTelemetryMetricWriteHelper
             .getMeter(queueManager.getName())
             .counterBuilder("mq.queue.depth.high.event")
             .setUnit("1")
             .build();
     this.lowQueueDepthCounter =
-        this.metricWriteHelper
+        openTelemetryMetricWriteHelper
             .getMeter(queueManager.getName())
             .counterBuilder("mq.queue.depth.low.event")
             .setUnit("1")
@@ -89,32 +91,8 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
           MQMessage message = new MQMessage();
 
           queue.get(message, getOptions);
-          PCFMessage received = new PCFMessage(message);
-          switch (received.getReason()) {
-            case CMQC.MQRC_Q_FULL:
-              {
-                String queueName = received.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
-                fullQueueDepthCounter.add(
-                    1, Attributes.of(AttributeKey.stringKey("queue.name"), queueName));
-              }
-              break;
-            case CMQC.MQRC_Q_DEPTH_HIGH:
-              {
-                String queueName = received.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
-                highQueueDepthCounter.add(
-                    1, Attributes.of(AttributeKey.stringKey("queue.name"), queueName));
-              }
-              break;
-            case CMQC.MQRC_Q_DEPTH_LOW:
-              {
-                String queueName = received.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
-                lowQueueDepthCounter.add(
-                    1, Attributes.of(AttributeKey.stringKey("queue.name"), queueName));
-              }
-              break;
-            default:
-              logger.debug("Unknown event reason {}", received.getReason());
-          }
+          PCFMessage receivedMsg = new PCFMessage(message);
+          incrementCounterByEventType(receivedMsg);
 
         } catch (MQException e) {
           if (e.reasonCode != MQConstants.MQRC_NO_MSG_AVAILABLE) {
@@ -130,6 +108,34 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
       if (queue != null) {
         queue.close();
       }
+    }
+  }
+
+  private void incrementCounterByEventType(PCFMessage receivedMsg) throws PCFException {
+    switch (receivedMsg.getReason()) {
+      case CMQC.MQRC_Q_FULL:
+        {
+          String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
+          fullQueueDepthCounter.add(
+              1, Attributes.of(AttributeKey.stringKey("queue.name"), queueName));
+        }
+        break;
+      case CMQC.MQRC_Q_DEPTH_HIGH:
+        {
+          String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
+          highQueueDepthCounter.add(
+              1, Attributes.of(AttributeKey.stringKey("queue.name"), queueName));
+        }
+        break;
+      case CMQC.MQRC_Q_DEPTH_LOW:
+        {
+          String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
+          lowQueueDepthCounter.add(
+              1, Attributes.of(AttributeKey.stringKey("queue.name"), queueName));
+        }
+        break;
+      default:
+        logger.debug("Unknown event reason {}", receivedMsg.getReason());
     }
   }
 
