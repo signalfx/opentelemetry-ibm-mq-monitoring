@@ -35,9 +35,9 @@ import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.common.WMQUtil;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,7 +85,7 @@ public class TopicMetricsCollectorTest {
         new MetricsCollectorContext(
             topicMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
     JobSubmitterContext jobContext =
-        new JobSubmitterContext(monitorContextConfig, mock(CountDownLatch.class), collectorContext);
+        new JobSubmitterContext(monitorContextConfig, collectorContext, new ArrayList<>());
     classUnderTest = new TopicMetricsCollector(jobContext);
 
     when(pcfMessageAgent.send(any(PCFMessage.class)))

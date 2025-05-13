@@ -38,7 +38,9 @@ public final class MetricsPublisherJob implements Runnable {
     } catch (Exception e) {
       logger.error("Error executing " + delegate.getClass().getSimpleName(), e);
     } finally {
-      latch.countDown();
+      if (latch != null) {
+        latch.countDown();
+      }
     }
   }
 }

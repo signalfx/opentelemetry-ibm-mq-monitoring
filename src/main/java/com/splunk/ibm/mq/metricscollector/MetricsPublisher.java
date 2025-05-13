@@ -18,4 +18,8 @@ package com.splunk.ibm.mq.metricscollector;
 public interface MetricsPublisher {
 
   void publishMetrics();
+
+  default String getName() {
+    return this.getClass().getSimpleName();
+  }
 }

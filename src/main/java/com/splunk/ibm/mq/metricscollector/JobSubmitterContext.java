@@ -17,8 +17,8 @@ package com.splunk.ibm.mq.metricscollector;
 
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 
 /**
@@ -28,16 +28,16 @@ import java.util.concurrent.Future;
 public final class JobSubmitterContext {
 
   private final MonitorContextConfiguration monitorContextConfig;
-  private final CountDownLatch countDownLatch;
   private final MetricsCollectorContext collectorContext;
+  private final List<MetricsPublisher> pendingJobs;
 
   public JobSubmitterContext(
       MonitorContextConfiguration monitorContextConfig,
-      CountDownLatch countDownLatch,
-      MetricsCollectorContext collectorContext) {
+      MetricsCollectorContext collectorContext,
+      List<MetricsPublisher> pendingJobs) {
     this.monitorContextConfig = monitorContextConfig;
-    this.countDownLatch = countDownLatch;
     this.collectorContext = collectorContext;
+    this.pendingJobs = pendingJobs;
   }
 
   String getMetricPrefix() {
@@ -45,7 +45,7 @@ public final class JobSubmitterContext {
   }
 
   Future<?> submitPublishJob(String name, MetricsPublisher publisher) {
-    MetricsPublisherJob job = new MetricsPublisherJob(publisher, countDownLatch);
+    MetricsPublisherJob job = new MetricsPublisherJob(publisher, null);
     return monitorContextConfig.getContext().getExecutorService().submit(name, job);
   }
 

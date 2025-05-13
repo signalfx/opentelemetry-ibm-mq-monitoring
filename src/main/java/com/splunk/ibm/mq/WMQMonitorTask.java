@@ -46,6 +46,7 @@ import com.splunk.ibm.mq.metricscollector.QueueMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.ReadConfigurationEventQueueCollector;
 import com.splunk.ibm.mq.metricscollector.TopicMetricsCollector;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
@@ -64,6 +65,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
   private final MonitorContextConfiguration monitorContextConfig;
   private final Map<String, ?> configMap;
   private final MetricWriteHelper metricWriteHelper;
+  private List<MetricsPublisher> pendingJobs = new ArrayList<>();
 
   public WMQMonitorTask(
       TasksExecutionServiceProvider tasksExecutionServiceProvider,
@@ -169,41 +171,40 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     // Step 1: Retrieve metrics from configuration
     Map<String, Map<String, WMQMetricOverride>> metricsMap =
         WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
-    CountDownLatch countDownLatch =
-        new CountDownLatch(metricsMap.size() + 2); // queue manager and channel metrics have 2 jobs
+    pendingJobs.clear();
 
     // Step 2: Inquire each metric type
-    inquireQueueMangerMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER), countDownLatch, agent);
+    inquireQueueMangerMetrics(metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER), agent);
 
-    inquireChannelMetrics(metricsMap.get(Constants.METRIC_TYPE_CHANNEL), countDownLatch, agent);
+    inquireChannelMetrics(metricsMap.get(Constants.METRIC_TYPE_CHANNEL), agent);
 
     inquireQueueMetrics(
         metricsMap.get(Constants.METRIC_TYPE_QUEUE),
         QueueCollectorSharedState.getInstance(),
-        countDownLatch,
         agent);
 
     inquireListenerMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_LISTENER),
-        ListenerMetricsCollector::new,
-        countDownLatch,
-        agent);
+        metricsMap.get(Constants.METRIC_TYPE_LISTENER), ListenerMetricsCollector::new, agent);
 
     inquireTopicMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_TOPIC),
-        TopicMetricsCollector::new,
-        countDownLatch,
-        agent);
+        metricsMap.get(Constants.METRIC_TYPE_TOPIC), TopicMetricsCollector::new, agent);
 
     inquireConfigurationMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_CONFIGURATION), countDownLatch, mqQueueManager, agent);
+        metricsMap.get(Constants.METRIC_TYPE_CONFIGURATION), mqQueueManager, agent);
 
-    inquirePerformanceMetrics(countDownLatch, mqQueueManager);
+    inquirePerformanceMetrics(mqQueueManager);
 
-    inquireQueueManagerEventsMetrics(countDownLatch, mqQueueManager);
+    inquireQueueManagerEventsMetrics(mqQueueManager);
 
-    // Step 3: Await all jobs to complete
+    // Step 3: enqueue all jobs
+    CountDownLatch countDownLatch = new CountDownLatch(pendingJobs.size());
+    for (MetricsPublisher collector : pendingJobs) {
+      Runnable job = new MetricsPublisherJob(collector, countDownLatch);
+      monitorContextConfig.getContext().getExecutorService().execute(collector.getName(), job);
+    }
+    pendingJobs.clear();
+
+    // Step 4: Await all jobs to complete
     try {
       countDownLatch.await();
     } catch (InterruptedException e) {
@@ -212,9 +213,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
   }
 
   private void inquireQueueMangerMetrics(
-      Map<String, WMQMetricOverride> metricsToReport,
-      CountDownLatch countDownLatch,
-      PCFMessageAgent agent) {
+      Map<String, WMQMetricOverride> metricsToReport, PCFMessageAgent agent) {
     if (metricsToReport == null) {
       logger.warn("No metrics to report for type Queue Manager.");
       return;
@@ -224,23 +223,13 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
         groupMetricsByCommand(metricsToReport);
 
     processMetricType(
-        metricsByCommand,
-        "MQCMD_INQUIRE_Q_MGR_STATUS",
-        QueueManagerMetricsCollector::new,
-        countDownLatch,
-        agent);
+        metricsByCommand, "MQCMD_INQUIRE_Q_MGR_STATUS", QueueManagerMetricsCollector::new, agent);
     processMetricType(
-        metricsByCommand,
-        "MQCMD_INQUIRE_Q_MGR",
-        InquireQueueManagerCmdCollector::new,
-        countDownLatch,
-        agent);
+        metricsByCommand, "MQCMD_INQUIRE_Q_MGR", InquireQueueManagerCmdCollector::new, agent);
   }
 
   private void inquireChannelMetrics(
-      Map<String, WMQMetricOverride> metricsToReport,
-      CountDownLatch countDownLatch,
-      PCFMessageAgent agent) {
+      Map<String, WMQMetricOverride> metricsToReport, PCFMessageAgent agent) {
     if (metricsToReport == null) {
       logger.warn("No metrics to report for type Channel.");
       return;
@@ -250,17 +239,9 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
         groupMetricsByCommand(metricsToReport);
 
     processMetricType(
-        metricsByCommand,
-        "MQCMD_INQUIRE_CHANNEL_STATUS",
-        ChannelMetricsCollector::new,
-        countDownLatch,
-        agent);
+        metricsByCommand, "MQCMD_INQUIRE_CHANNEL_STATUS", ChannelMetricsCollector::new, agent);
     processMetricType(
-        metricsByCommand,
-        "MQCMD_INQUIRE_CHANNEL",
-        InquireChannelCmdCollector::new,
-        countDownLatch,
-        agent);
+        metricsByCommand, "MQCMD_INQUIRE_CHANNEL", InquireChannelCmdCollector::new, agent);
   }
 
   // Helper to process general metric types
@@ -269,16 +250,11 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
       String primaryCommand,
       BiFunction<MetricsCollectorContext, MetricCreator, MetricsPublisher>
           primaryCollectorConstructor,
-      CountDownLatch countDownLatch,
       PCFMessageAgent agent) {
 
     if (metricsByCommand.containsKey(primaryCommand)) {
       submitJob(
-          metricsByCommand.get(primaryCommand),
-          primaryCollectorConstructor,
-          primaryCommand,
-          countDownLatch,
-          agent);
+          metricsByCommand.get(primaryCommand), primaryCollectorConstructor, primaryCommand, agent);
     }
   }
 
@@ -287,7 +263,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
       Map<String, WMQMetricOverride> metrics,
       BiFunction<MetricsCollectorContext, MetricCreator, MetricsPublisher> collectorConstructor,
       String commandType,
-      CountDownLatch countDownLatch,
       PCFMessageAgent agent) {
 
     MetricCreator metricCreator =
@@ -295,8 +270,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     MetricsCollectorContext context =
         new MetricsCollectorContext(metrics, queueManager, agent, metricWriteHelper);
     MetricsPublisher collector = collectorConstructor.apply(context, metricCreator);
-    Runnable job = new MetricsPublisherJob(collector, countDownLatch);
-    monitorContextConfig.getContext().getExecutorService().execute(commandType, job);
+    pendingJobs.add(collector);
   }
 
   // Helper to group metrics by IBM command
@@ -318,7 +292,6 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
   private void inquireQueueMetrics(
       Map<String, WMQMetricOverride> queueMetrics,
       QueueCollectorSharedState sharedState,
-      CountDownLatch countDownLatch,
       PCFMessageAgent agent) {
 
     if (queueMetrics == null) {
@@ -329,18 +302,16 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     MetricsCollectorContext collectorContext =
         new MetricsCollectorContext(queueMetrics, queueManager, agent, metricWriteHelper);
     JobSubmitterContext jobSubmitterContext =
-        new JobSubmitterContext(monitorContextConfig, countDownLatch, collectorContext);
+        new JobSubmitterContext(monitorContextConfig, collectorContext, this.pendingJobs);
     MetricsPublisher queueMetricsCollector =
         new QueueMetricsCollector(queueMetrics, sharedState, jobSubmitterContext);
-    Runnable job = new MetricsPublisherJob(queueMetricsCollector, countDownLatch);
-    monitorContextConfig.getContext().getExecutorService().execute("QueueMetricsCollector", job);
+    pendingJobs.add(queueMetricsCollector);
   }
 
   // Inquire for listener metrics
   private void inquireListenerMetrics(
       Map<String, WMQMetricOverride> metricsToReport,
       BiFunction<MetricsCollectorContext, MetricCreator, MetricsPublisher> collectorConstructor,
-      CountDownLatch countDownLatch,
       PCFMessageAgent agent) {
 
     if (metricsToReport == null) {
@@ -356,18 +327,13 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
             queueManager,
             ListenerMetricsCollector.ARTIFACT);
     MetricsPublisher metricsCollector = collectorConstructor.apply(context, metricCreator);
-    Runnable job = new MetricsPublisherJob(metricsCollector, countDownLatch);
-    monitorContextConfig
-        .getContext()
-        .getExecutorService()
-        .execute(ListenerMetricsCollector.ARTIFACT, job);
+    pendingJobs.add(metricsCollector);
   }
 
   // Inquire for topic metrics
   private void inquireTopicMetrics(
       Map<String, WMQMetricOverride> metricsToReport,
       Function<JobSubmitterContext, MetricsPublisher> collectorConstructor,
-      CountDownLatch countDownLatch,
       PCFMessageAgent agent) {
 
     if (metricsToReport == null) {
@@ -378,17 +344,14 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     MetricsCollectorContext context =
         new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
     JobSubmitterContext jobSubmitterContext =
-        new JobSubmitterContext(monitorContextConfig, countDownLatch, context);
+        new JobSubmitterContext(monitorContextConfig, context, this.pendingJobs);
     MetricsPublisher metricsCollector = collectorConstructor.apply(jobSubmitterContext);
-    Runnable job = new MetricsPublisherJob(metricsCollector, countDownLatch);
-    // not sure why the name is always 'null'.  might have to revisit
-    monitorContextConfig.getContext().getExecutorService().execute(null, job);
+    pendingJobs.add(metricsCollector);
   }
 
   // Inquire configuration-specific metrics
   private void inquireConfigurationMetrics(
       Map<String, WMQMetricOverride> configurationMetricsToReport,
-      CountDownLatch countDownLatch,
       MQQueueManager mqQueueManager,
       PCFMessageAgent agent) {
 
@@ -408,37 +371,23 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
             queueManager,
             metricWriteHelper,
             metricCreator);
-    Runnable job = new MetricsPublisherJob(collector, countDownLatch);
-    monitorContextConfig
-        .getContext()
-        .getExecutorService()
-        .execute("ConfigurationMetricsCollector", job);
+    pendingJobs.add(collector);
   }
 
   // Inquire performance-specific metrics
-  private void inquirePerformanceMetrics(
-      CountDownLatch countDownLatch, MQQueueManager mqQueueManager) {
+  private void inquirePerformanceMetrics(MQQueueManager mqQueueManager) {
 
     PerformanceEventQueueCollector collector =
         new PerformanceEventQueueCollector(mqQueueManager, queueManager, metricWriteHelper);
-    Runnable job = new MetricsPublisherJob(collector, countDownLatch);
-    monitorContextConfig
-        .getContext()
-        .getExecutorService()
-        .execute("PerformanceMetricsCollector", job);
+    pendingJobs.add(collector);
   }
 
   // Inquire queue manager event specific metrics
-  private void inquireQueueManagerEventsMetrics(
-      CountDownLatch countDownLatch, MQQueueManager mqQueueManager) {
+  private void inquireQueueManagerEventsMetrics(MQQueueManager mqQueueManager) {
 
     QueueManagerEventCollector collector =
         new QueueManagerEventCollector(mqQueueManager, queueManager, metricWriteHelper);
-    Runnable job = new MetricsPublisherJob(collector, countDownLatch);
-    monitorContextConfig
-        .getContext()
-        .getExecutorService()
-        .execute("QueueManagerEventCollector", job);
+    pendingJobs.add(collector);
   }
 
   /** Destroy the agent and disconnect from queue manager */
