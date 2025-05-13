@@ -251,6 +251,7 @@ class MQOtelTranslator {
               put("Statistics Interval", "mq.manager.statistics.interval");
               put("Max Handles", "mq.manager.max.handles");
               put("Max Active Channels", "mq.manager.max.active.channels");
+              put("ActiveChannelsCount", "mq.manager.active.channels");
             }
           },
           segments -> {

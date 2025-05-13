@@ -88,6 +88,7 @@ public class JakartaPutGet {
 
     createQueue(manager, queueName);
     JMSContext context = null;
+    JMSContext senderContext = null;
     try {
       // Create a connection factory
       JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.JAKARTA_WMQ_PROVIDER);
@@ -109,19 +110,21 @@ public class JakartaPutGet {
 
       // Create Jakarta objects
       context = cf.createContext();
-      logger.info("About to create queue {}", queueName);
       Destination destination = context.createQueue("queue:///" + queueName);
+
+      JMSConsumer consumer = context.createConsumer(destination);
+      consumer.setMessageListener(message -> {});
+
+      senderContext = cf.createContext();
+      Destination senderDestination = senderContext.createQueue("queue:///" + queueName);
 
       for (int i = 0; i < numberOfMessages; i++) {
         long uniqueNumber = System.currentTimeMillis() % 1000;
         TextMessage message =
-            context.createTextMessage("Your lucky number today is " + uniqueNumber);
+            senderContext.createTextMessage("Your lucky number today is " + uniqueNumber);
         message.setIntProperty(WMQConstants.JMS_IBM_CHARACTER_SET, 37);
-        JMSProducer producer = context.createProducer();
-        producer.send(destination, message);
-
-        JMSConsumer consumer = context.createConsumer(destination); // autoclosable
-        String response = consumer.receiveBody(String.class, 15000); // in ms or 15 seconds
+        JMSProducer producer = senderContext.createProducer();
+        producer.send(senderDestination, message);
 
         Thread.sleep(sleepIntervalMs);
       }
@@ -131,6 +134,9 @@ public class JakartaPutGet {
     } finally {
       if (context != null) {
         context.close();
+      }
+      if (senderContext != null) {
+        senderContext.close();
       }
     }
   }
