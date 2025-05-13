@@ -34,6 +34,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// Reads queue manager events and counts them as metrics
 public final class QueueManagerEventCollector implements MetricsPublisher {
 
   private static final Logger logger = LoggerFactory.getLogger(QueueManagerEventCollector.class);
