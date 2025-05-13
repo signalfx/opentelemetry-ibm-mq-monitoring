@@ -24,6 +24,7 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.CMQXC;
 import com.ibm.mq.constants.MQConstants;
+import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
@@ -114,7 +115,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
                       metricCreator.createMetric(
                           metrickey, metricVal, wmqOverride, channelName, metrickey);
                   responseMetrics.add(metric);
-                  if ("Status".equals(metrickey) && metricVal == 3) {
+                  if ("Status".equals(metrickey) && metricVal != CMQCFC.MQCHS_RETRYING && metricVal != CMQCFC.MQCHS_STOPPED && metricVal != CMQCFC.MQCHS_STARTING) {
                     activeChannels.add(channelName);
                   }
                 });
@@ -147,25 +148,27 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
       }
     }
 
+    System.out.println("FOOOOO");
+    System.out.println(activeConnections);
     if (!activeConnections.isEmpty()) {
-      PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CONNECTION);
-      request.addParameter(
-          new MQCFIL(MQConstants.MQIACF_CHANNEL_ATTRS, new int[] {MQConstants.MQIACF_ALL}));
-      request.addParameter(MQConstants.MQBACF_GENERIC_CONNECTION_ID, "");
+      PCFMessage request = new PCFMessage(MQConstants.MQCMD_INQUIRE_CONNECTION);
+      request.addParameter(MQConstants.MQBACF_GENERIC_CONNECTION_ID, new byte[0]);
+      request.addParameter(MQConstants.MQIACF_CONN_INFO_TYPE, MQConstants.MQIACF_CONN_INFO_CONN);
+      request.addParameter(MQConstants.MQIACF_CONNECTION_ATTRS, new int[] { MQConstants.MQBACF_CONNECTION_ID });
       try {
         long startTime = System.currentTimeMillis();
         PCFMessage[] response = context.send(request);
         long endTime = System.currentTimeMillis() - startTime;
         logger.debug(
-            "PCF agent queue metrics query response for connections received in {} milliseconds",
-            endTime);
+          "PCF agent queue metrics query response for connections received in {} milliseconds",
+          endTime);
         if (response == null || response.length <= 0) {
           logger.warn("Unexpected Error while PCFMessage.send(), response is either null or empty");
           return;
         }
         for (PCFMessage pcfMessage : response) {
           String channelName =
-              pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
+            pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
           Integer count = activeConnections.get(channelName);
           if (count != null) {
             activeConnections.put(channelName, ++count);
@@ -175,19 +178,19 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
         for (Map.Entry<String, Integer> activeChannelConnections : activeConnections.entrySet()) {
           String metrickey = "Active Channel Instances";
           Metric metric =
-              metricCreator.createMetric(
-                  metrickey,
-                  activeChannelConnections.getValue(),
-                  null,
-                  activeChannelConnections.getKey(),
-                  metrickey);
+            metricCreator.createMetric(
+              metrickey,
+              activeChannelConnections.getValue(),
+              null,
+              activeChannelConnections.getKey(),
+              metrickey);
           responseMetrics.add(metric);
         }
         context.transformAndPrintMetrics(responseMetrics);
-      } catch (PCFException pcfe) {
-        logger.error(pcfe.getMessage(), pcfe);
+      } catch (MQDataException e) {
+        logger.error(e.getMessage(), e);
       } catch (Exception e) {
-        logger.error("Unexpected Error occoured while collecting metrics for connections ", e);
+        logger.error("Unexpected Error occurred while collecting metrics for connections ", e);
       }
     }
 

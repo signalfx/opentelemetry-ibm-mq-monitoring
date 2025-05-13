@@ -26,6 +26,7 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.ibm.msg.client.jakarta.jms.JmsConnectionFactory;
 import com.ibm.msg.client.jakarta.jms.JmsFactoryFactory;
 import com.ibm.msg.client.jakarta.wmq.WMQConstants;
+import com.ibm.msg.client.wmq.compat.jms.internal.JMSC;
 import com.splunk.ibm.mq.WMQMonitorTask;
 import com.splunk.ibm.mq.config.QueueManager;
 import jakarta.jms.Destination;
@@ -34,6 +35,8 @@ import jakarta.jms.JMSContext;
 import jakarta.jms.JMSException;
 import jakarta.jms.JMSProducer;
 import jakarta.jms.JMSRuntimeException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageListener;
 import jakarta.jms.TextMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,6 +108,7 @@ public class JakartaPutGet {
 
     createQueue(manager, queueName, 100000);
     JMSContext context = null;
+    JMSContext senderContext = null;
     try {
       // Create a connection factory
       JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.JAKARTA_WMQ_PROVIDER);
@@ -128,13 +132,20 @@ public class JakartaPutGet {
       context = cf.createContext();
       Destination destination = context.createQueue("queue:///" + queueName);
 
+      JMSConsumer consumer = context.createConsumer(destination);
+      consumer.setMessageListener(message -> {
+      });
+
+      senderContext = cf.createContext();
+      Destination senderDestination = senderContext.createQueue("queue:///" + queueName);
+
       for (int i = 0; i < numberOfMessages; i++) {
         long uniqueNumber = System.currentTimeMillis() % 1000;
         TextMessage message =
-            context.createTextMessage("Your lucky number today is " + uniqueNumber);
+          senderContext.createTextMessage("Your lucky number today is " + uniqueNumber);
         message.setIntProperty(WMQConstants.JMS_IBM_CHARACTER_SET, 37);
-        JMSProducer producer = context.createProducer();
-        producer.send(destination, message);
+        JMSProducer producer = senderContext.createProducer();
+        producer.send(senderDestination, message);
 
         Thread.sleep(sleepIntervalMs);
       }
@@ -144,6 +155,9 @@ public class JakartaPutGet {
     } finally {
       if (context != null) {
         context.close();
+      }
+      if (senderContext != null) {
+        senderContext.close();
       }
     }
   }
