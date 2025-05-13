@@ -38,8 +38,12 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Main {
+
+  private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
   public static void main(String[] args) {
     if (args.length == 0) {
@@ -59,7 +63,16 @@ public class Main {
       initialDelaySeconds =
           YmlUtils.getInt(taskSchedule.get("initialDelaySeconds"), initialDelaySeconds);
     }
-    final ScheduledExecutorService service = Executors.newScheduledThreadPool(numberOfThreads);
+    Thread.UncaughtExceptionHandler handler =
+        (t, e) -> logger.error("Unhandled exception in thread pool", e);
+    final ScheduledExecutorService service =
+        Executors.newScheduledThreadPool(
+            numberOfThreads,
+            r -> {
+              Thread thread = new Thread(r);
+              thread.setUncaughtExceptionHandler(handler);
+              return thread;
+            });
 
     Config.setUpSSLConnection(config);
 
