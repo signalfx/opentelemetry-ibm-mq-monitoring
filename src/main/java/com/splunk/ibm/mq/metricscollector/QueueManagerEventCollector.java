@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQGetMessageOptions;
 import com.ibm.mq.MQMessage;
@@ -33,12 +32,11 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
 import java.io.IOException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public final class QueueManagerEventCollector implements MetricsPublisher {
 
-  private static final Logger logger =
-      ExtensionsLoggerFactory.getLogger(QueueManagerEventCollector.class);
-  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
+  private static final Logger logger = LoggerFactory.getLogger(QueueManagerEventCollector.class);
   private final QueueManager queueManager;
   private final MQQueueManager mqQueueManager;
   private final LongCounter authorityEventCounter;
@@ -53,9 +51,10 @@ public final class QueueManagerEventCollector implements MetricsPublisher {
     }
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;
-    this.metricWriteHelper = (OpenTelemetryMetricWriteHelper) metricWriteHelper;
+    OpenTelemetryMetricWriteHelper openTelemetryMetricWriteHelper =
+        (OpenTelemetryMetricWriteHelper) metricWriteHelper;
     this.authorityEventCounter =
-        this.metricWriteHelper
+        openTelemetryMetricWriteHelper
             .getMeter(queueManager.getName())
             .counterBuilder("mq.unauthorized.event")
             .setUnit("1")
