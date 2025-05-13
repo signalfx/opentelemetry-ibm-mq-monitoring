@@ -153,12 +153,17 @@ class WMQMonitorIntegrationTest {
 
   @AfterAll
   public static void stopSendingClientMessages() throws Exception {
+    QueueManager qManager = getQueueManagerConfig();
+    configureQueueManager(qManager);
+
     service.shutdown();
   }
 
   @BeforeEach
   void setUpEvents() throws Exception {
     QueueManager qManager = getQueueManagerConfig();
+    // try to login with a bad password:
+    JakartaPutGet.tryLoginWithBadPassword(qManager);
 
     JakartaPutGet.sendMessages(qManager, "smallqueue", 1);
     Thread.sleep(1000);
@@ -176,6 +181,7 @@ class WMQMonitorIntegrationTest {
   @Test
   void test_monitor_with_full_config() throws Exception {
     logger.info("\n\n\n\n\n\nRunning test: test_monitor_with_full_config");
+
     TestResultMetricExporter testExporter = new TestResultMetricExporter();
     MetricReader reader =
         PeriodicMetricReader.builder(testExporter)
@@ -203,6 +209,8 @@ class WMQMonitorIntegrationTest {
     }
     // this value is read from the configuration queue.
     assertThat(metricNames).contains("mq.manager.max.handles");
+    // this value is read from the queue manager events, for unauthorized events.
+    assertThat(metricNames).contains("mq.unauthorized.event");
     // this value is read from the performance event queue.
     assertThat(metricNames).contains("mq.queue.depth.full.event");
     // this value is read from the performance event queue.
@@ -213,6 +221,7 @@ class WMQMonitorIntegrationTest {
   @Test
   void test_wmqmonitor() throws Exception {
     logger.info("\n\n\n\n\n\nRunning test: test_wmqmonitor");
+
     TestResultMetricExporter testExporter = new TestResultMetricExporter();
     MetricReader reader =
         PeriodicMetricReader.builder(testExporter)
