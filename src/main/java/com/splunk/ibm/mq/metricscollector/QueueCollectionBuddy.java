@@ -206,7 +206,8 @@ final class QueueCollectionBuddy {
     PCFParameter pcfParam = pcfMessage.getParameter(wmqOverride.getConstantValue());
     if (pcfParam == null) {
       logger.warn(
-          "PCF parameter is null in response for Queue: {} for metric: {} in command {}",
+          "PCF parameter {} is null in response for Queue: {} for metric: {} in command {}",
+          wmqOverride.getConstantValue(),
           queueName,
           wmqOverride.getIbmCommand(),
           command);
