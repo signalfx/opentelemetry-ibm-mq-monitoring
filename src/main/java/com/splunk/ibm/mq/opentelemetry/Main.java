@@ -37,7 +37,9 @@ import org.slf4j.LoggerFactory;
 
 public class Main {
 
-  private static final Logger logger = LoggerFactory.getLogger(Main.class);public static void main(String[] args) throws Exception {
+  private static final Logger logger = LoggerFactory.getLogger(Main.class);
+
+  public static void main(String[] args) throws Exception {
     if (args.length == 0) {
       System.err.println("Usage: Main <config-file>");
       System.exit(1);
@@ -48,13 +50,15 @@ public class Main {
     ConfigWrapper config = ConfigWrapper.parse(configFile);
 
     Thread.UncaughtExceptionHandler handler =
-              (t, e) -> logger.error("Unhandled exception in thread pool", e);final ScheduledExecutorService service =
-        Executors.newScheduledThreadPool(config.getNumberOfThreads(),
-                      r -> {
-                          Thread thread = new Thread(r);
-                          thread.setUncaughtExceptionHandler(handler);
-                          return thread;
-                      });
+        (t, e) -> logger.error("Unhandled exception in thread pool", e);
+    final ScheduledExecutorService service =
+        Executors.newScheduledThreadPool(
+            config.getNumberOfThreads(),
+            r -> {
+              Thread thread = new Thread(r);
+              thread.setUncaughtExceptionHandler(handler);
+              return thread;
+            });
 
     Config.setUpSSLConnection(config._exposed());
 
