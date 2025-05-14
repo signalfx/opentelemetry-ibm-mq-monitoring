@@ -17,18 +17,19 @@ package com.splunk.ibm.mq.opentelemetry;
 
 import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_METRICS;
 
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
+import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporterBuilder;
 import io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil;
-import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
-import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporterBuilder;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
+import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.util.HashMap;
 import java.util.Map;
 
 /** Utilities reading configuration and create domain objects */
 class Config {
 
-  static OtlpGrpcMetricExporter createOtlpGrpcMetricsExporter(Map<String, ?> config) {
-    OtlpGrpcMetricExporterBuilder builder = OtlpGrpcMetricExporter.builder();
+  static MetricExporter createOtlpHttpMetricsExporter(Map<String, ?> config) {
+    OtlpHttpMetricExporterBuilder builder = OtlpHttpMetricExporter.builder();
 
     Map<String, String> props = new HashMap<>();
     if (config.get("otlpExporter") instanceof Map) {
@@ -40,6 +41,7 @@ class Config {
       }
     }
 
+    // TODO: Don't use internal classes from opentelemetry
     OtlpConfigUtil.configureOtlpExporterBuilder(
         DATA_TYPE_METRICS,
         DefaultConfigProperties.create(props),
