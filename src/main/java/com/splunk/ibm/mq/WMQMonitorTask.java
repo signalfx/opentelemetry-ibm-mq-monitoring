@@ -58,7 +58,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Encapsulates all metrics collection for all artifacts related to a queue manager. */
-public class WMQMonitorTask implements AMonitorTaskRunnable {
+public class WMQMonitorTask implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitorTask.class);
   private final QueueManager queueManager;
@@ -77,6 +77,7 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
     this.metricWriteHelper = tasksExecutionServiceProvider.getMetricWriteHelper();
   }
 
+  @Override
   public void run() {
     String queueManagerName = WMQUtil.getQueueManagerNameFromConfig(queueManager);
     logger.debug("WMQMonitor thread for queueManager {} started.", queueManagerName);
@@ -425,11 +426,5 @@ public class WMQMonitorTask implements AMonitorTaskRunnable {
             e);
       }
     }
-  }
-
-  public void onTaskComplete() {
-    logger.info(
-        "WebSphereMQ monitor thread completed for queueManager: {}",
-        WMQUtil.getQueueManagerNameFromConfig(queueManager));
   }
 }

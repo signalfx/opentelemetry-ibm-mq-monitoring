@@ -15,10 +15,7 @@
  */
 package com.splunk.ibm.mq;
 
-import com.appdynamics.extensions.ABaseMonitor;
-import com.appdynamics.extensions.Constants;
-import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.TasksExecutionServiceProvider;
+import com.appdynamics.extensions.*;
 import com.appdynamics.extensions.util.AssertUtils;
 import com.appdynamics.extensions.util.CryptoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,8 +61,19 @@ public class WMQMonitor extends ABaseMonitor {
       QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
       WMQMonitorTask wmqTask =
           new WMQMonitorTask(
-              tasksExecutionServiceProvider, this.getContextConfiguration(), qManager);
-      tasksExecutionServiceProvider.submit((String) queueManager.get("name"), wmqTask);
+              tasksExecutionServiceProvider, getContextConfiguration(), qManager);
+      AMonitorTaskRunnable taskRunnable = new AMonitorTaskRunnable() {
+        @Override
+        public void onTaskComplete() {
+          //NOP will remove this soon...
+        }
+
+        @Override
+        public void run() {
+          wmqTask.run();
+        }
+      };
+      tasksExecutionServiceProvider.submit((String) queueManager.get("name"), taskRunnable);
     }
   }
 
