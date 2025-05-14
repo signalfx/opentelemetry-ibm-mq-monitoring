@@ -27,6 +27,7 @@ import com.google.common.collect.Maps;
 import com.splunk.ibm.mq.config.QueueManager;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +35,13 @@ public class WMQMonitor extends ABaseMonitor {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitor.class);
 
-  private final MetricWriteHelper overrideHelper;
+  private final MetricWriteHelper metricWriteHelper;
+  private final ExecutorService threadPool;
 
-  public WMQMonitor(MetricWriteHelper overrideHelper) {
-    assert (overrideHelper != null);
-    this.overrideHelper = overrideHelper;
+  public WMQMonitor(ExecutorService threadPool, MetricWriteHelper metricWriteHelper) {
+    assert (metricWriteHelper != null);
+    this.threadPool = threadPool;
+    this.metricWriteHelper = metricWriteHelper;
   }
 
   protected String getDefaultMetricPrefix() {
@@ -51,21 +54,17 @@ public class WMQMonitor extends ABaseMonitor {
 
   protected void doRun(TasksExecutionServiceProvider IGNORED_DUE_TO_LOCAL_OVERRIDE) {
     List<Map> queueManagers =
-        (List<Map>) this.getContextConfiguration().getConfigYml().get("queueManagers");
+        (List<Map>) getContextConfiguration().getConfigYml().get("queueManagers");
     AssertUtils.assertNotNull(
         queueManagers, "The 'queueManagers' section in config.yml is not initialised");
-    ObjectMapper mapper = new ObjectMapper();
-    // we override this helper to pass in our opentelemetry helper instead.
 
-    TasksExecutionServiceProvider tasksExecutionServiceProvider =
-        new TasksExecutionServiceProvider(this, this.overrideHelper);
+    ObjectMapper mapper = new ObjectMapper();
 
     for (Map queueManager : queueManagers) {
       QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
-      WMQMonitorTask wmqTask =
-          new WMQMonitorTask(
-              tasksExecutionServiceProvider, this.getContextConfiguration(), qManager);
-      tasksExecutionServiceProvider.submit((String) queueManager.get("name"), wmqTask);
+      WMQMonitorTask task =
+          new WMQMonitorTask(metricWriteHelper, getContextConfiguration(), qManager);
+      threadPool.submit(new TaskJob((String) queueManager.get("name"), task));
     }
   }
 
@@ -151,5 +150,30 @@ public class WMQMonitor extends ABaseMonitor {
       return CryptoUtils.getPassword(cryptoMap);
     }
     return null;
+  }
+
+  private static final class TaskJob implements Runnable {
+
+    private final String name;
+    private final WMQMonitorTask task;
+
+    private TaskJob(String name, WMQMonitorTask task) {
+      this.name = name;
+      this.task = task;
+    }
+
+    @Override
+    public void run() {
+      try {
+        long startTime = System.currentTimeMillis();
+        task.run();
+        long diffTime = System.currentTimeMillis() - startTime;
+        if (diffTime > 60000L) {
+          logger.warn("{} Task took {} ms to complete", name, diffTime);
+        }
+      } catch (Exception e) {
+        logger.error("Error while running task name = " + name, e);
+      }
+    }
   }
 }
