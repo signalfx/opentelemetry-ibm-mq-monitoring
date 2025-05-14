@@ -73,14 +73,13 @@ public class Main {
       meters.put(e.getKey(), e.getValue().get("opentelemetry.io/mq"));
     }
 
-    WMQMonitor monitor = new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter, meters));
-    TaskExecutionContext taskExecCtx = new TaskExecutionContext();
-
     try {
-
       service.scheduleAtFixedRate(
           () -> {
             try {
+              WMQMonitor monitor =
+                  new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter, meters));
+              TaskExecutionContext taskExecCtx = new TaskExecutionContext();
               Map<String, String> taskArguments = new HashMap<>();
               taskArguments.put("config-file", configFile);
               monitor.execute(taskArguments, taskExecCtx);
