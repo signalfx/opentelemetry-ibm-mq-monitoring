@@ -45,6 +45,13 @@ public class Main {
       System.exit(1);
     }
 
+    try {
+      Main.class.getClassLoader().loadClass("com.ibm.mq.headers.MQDataException");
+    } catch (ClassNotFoundException e) {
+      System.err.println("IBM MQ jar is missing from classpath.");
+      System.exit(1);
+    }
+
     String configFile = args[0];
 
     ConfigWrapper config = ConfigWrapper.parse(configFile);
