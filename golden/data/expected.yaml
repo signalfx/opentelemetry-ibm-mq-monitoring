@@ -1,0 +1,1362 @@
+resourceMetrics:
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|MQCMD_INQUIRE_Q_MGR|Statistics Interval
+            gauge:
+              dataPoints:
+                - asInt: "1800"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: MQCMD_INQUIRE_Q_MGR
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.manager.statistics.interval
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|HighQDepth
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.high.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|MsgDeqCount
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.deq.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|MsgEnqCount
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.enq.count
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|HighQDepth
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.high.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|MsgDeqCount
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.deq.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|MsgEnqCount
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.enq.count
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|HighQDepth
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.high.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|MsgDeqCount
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.deq.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|MsgEnqCount
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.enq.count
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|HighQDepth
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.high.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|MsgDeqCount
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.deq.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|MsgEnqCount
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.enq.count
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|OnQTime_1
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: WebsphereMQ
+                    - key: queue.name
+                      value:
+                        stringValue: Queues
+                    - key: queue.type
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.onqtime.1
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|OnQTime_2
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: WebsphereMQ
+                    - key: queue.name
+                      value:
+                        stringValue: Queues
+                    - key: queue.type
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.onqtime.2
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|Current queue file size
+            gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.current.queue.filesize
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|OldestMsgAge
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.oldest.msg.age
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|Current maximum queue file size
+            gauge:
+              dataPoints:
+                - asInt: "2088960"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.current.max.queue.filesize
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|Uncommitted Messages
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.uncommitted.messages
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|OnQTime_1
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: WebsphereMQ
+                    - key: queue.name
+                      value:
+                        stringValue: Queues
+                    - key: queue.type
+                      value:
+                        stringValue: DEV.QUEUE.1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.onqtime.1
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|OnQTime_2
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: WebsphereMQ
+                    - key: queue.name
+                      value:
+                        stringValue: Queues
+                    - key: queue.type
+                      value:
+                        stringValue: DEV.QUEUE.1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.onqtime.2
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|Current queue file size
+            gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.current.queue.filesize
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|OldestMsgAge
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.oldest.msg.age
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|Current maximum queue file size
+            gauge:
+              dataPoints:
+                - asInt: "2088960"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.current.max.queue.filesize
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|Uncommitted Messages
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.uncommitted.messages
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|OnQTime_1
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: WebsphereMQ
+                    - key: queue.name
+                      value:
+                        stringValue: Queues
+                    - key: queue.type
+                      value:
+                        stringValue: DEV.QUEUE.2
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.onqtime.1
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|OnQTime_2
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: WebsphereMQ
+                    - key: queue.name
+                      value:
+                        stringValue: Queues
+                    - key: queue.type
+                      value:
+                        stringValue: DEV.QUEUE.2
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.onqtime.2
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|Current queue file size
+            gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.current.queue.filesize
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|OldestMsgAge
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.oldest.msg.age
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|Current maximum queue file size
+            gauge:
+              dataPoints:
+                - asInt: "2088960"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.current.max.queue.filesize
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|Uncommitted Messages
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.uncommitted.messages
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|OnQTime_1
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: WebsphereMQ
+                    - key: queue.name
+                      value:
+                        stringValue: Queues
+                    - key: queue.type
+                      value:
+                        stringValue: DEV.QUEUE.3
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.onqtime.1
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|OnQTime_2
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: WebsphereMQ
+                    - key: queue.name
+                      value:
+                        stringValue: Queues
+                    - key: queue.type
+                      value:
+                        stringValue: DEV.QUEUE.3
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.onqtime.2
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|Current queue file size
+            gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.current.queue.filesize
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|OldestMsgAge
+            gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.oldest.msg.age
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|Current maximum queue file size
+            gauge:
+              dataPoints:
+                - asInt: "2088960"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.current.max.queue.filesize
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|Uncommitted Messages
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.uncommitted.messages
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.APP.MODEL.QUEUE|model-normal|Max Queue Depth
+            gauge:
+              dataPoints:
+                - asInt: "5000"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.APP.MODEL.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: model-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.max.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.APP.MODEL.QUEUE|model-normal|Service Interval Event
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.APP.MODEL.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: model-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.service.interval.event
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.APP.MODEL.QUEUE|model-normal|Service Interval
+            gauge:
+              dataPoints:
+                - asInt: "999999999"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.APP.MODEL.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: model-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.service.interval
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|Current Queue Depth
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|Max Queue Depth
+            gauge:
+              dataPoints:
+                - asInt: "5000"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.max.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|Open Output Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.open.output.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|Open Input Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.open.input.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|Service Interval Event
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.service.interval.event
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.DEAD.LETTER.QUEUE|local-normal|Service Interval
+            gauge:
+              dataPoints:
+                - asInt: "999999999"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.service.interval
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|Current Queue Depth
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|Max Queue Depth
+            gauge:
+              dataPoints:
+                - asInt: "5000"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.max.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|Open Output Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.open.output.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|Open Input Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.open.input.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|Service Interval Event
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.service.interval.event
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.1|local-normal|Service Interval
+            gauge:
+              dataPoints:
+                - asInt: "999999999"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.service.interval
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|Current Queue Depth
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|Max Queue Depth
+            gauge:
+              dataPoints:
+                - asInt: "5000"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.max.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|Open Output Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.open.output.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|Open Input Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.open.input.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|Service Interval Event
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.service.interval.event
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.2|local-normal|Service Interval
+            gauge:
+              dataPoints:
+                - asInt: "999999999"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.service.interval
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|Current Queue Depth
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|Max Queue Depth
+            gauge:
+              dataPoints:
+                - asInt: "5000"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.max.queue.depth
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|Open Output Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.open.output.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|Open Input Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.open.input.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|Service Interval Event
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.service.interval.event
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Queues|DEV.QUEUE.3|local-normal|Service Interval
+            gauge:
+              dataPoints:
+                - asInt: "999999999"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.service.interval
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Topics|dev|Subscription Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: topic.name
+                      value:
+                        stringValue: dev
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.subscription.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Topics|dev|Publish Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: topic.name
+                      value:
+                        stringValue: dev
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.publish.count
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Topics|dev/|Subscription Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: topic.name
+                      value:
+                        stringValue: dev/
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.subscription.count
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|Topics|dev/|Publish Count
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                    - key: topic.name
+                      value:
+                        stringValue: dev/
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.publish.count
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|MQCMD_INQUIRE_CHANNEL_STATUS|ActiveChannelsCount
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: MQCMD_INQUIRE_CHANNEL_STATUS
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.manager.active.channels
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|MQCMD_INQUIRE_Q_MGR_STATUS|Restart Log Size
+            gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: MQCMD_INQUIRE_Q_MGR_STATUS
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.restart.log.size
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|MQCMD_INQUIRE_Q_MGR_STATUS|Reusable Log Size
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: MQCMD_INQUIRE_Q_MGR_STATUS
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.reusable.log.size
+            unit: "1"
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|MQCMD_INQUIRE_Q_MGR_STATUS|Archive Log Size
+            gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: MQCMD_INQUIRE_Q_MGR_STATUS
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.archive.log.size
+            unit: "1"
+        scope:
+          name: websphere/mq
+  - resource: {}
+    scopeMetrics:
+      - metrics:
+          - description: Server|Component:Test|Custom Metrics|WebsphereMQ|mqIT|HeartBeat
+            gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: mqIT
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.heartbeat
+            unit: "1"
+        scope:
+          name: websphere/mq
