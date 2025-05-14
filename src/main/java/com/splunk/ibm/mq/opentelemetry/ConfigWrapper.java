@@ -62,7 +62,7 @@ final class ConfigWrapper {
   List<String> getQueueManagerNames() {
     return getQueueManagers().stream()
         .map(o -> (Map<String, String>) o)
-        .map(x -> x.get("name)"))
+        .map(x -> x.get("name"))
         .collect(Collectors.toList());
   }
 
