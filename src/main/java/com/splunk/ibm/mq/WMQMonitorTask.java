@@ -15,9 +15,7 @@
  */
 package com.splunk.ibm.mq;
 
-import com.appdynamics.extensions.AMonitorTaskRunnable;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.TasksExecutionServiceProvider;
 import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.util.StringUtils;
 import com.google.common.base.Strings;
@@ -68,13 +66,13 @@ public class WMQMonitorTask implements Runnable {
   private List<MetricsPublisher> pendingJobs = new ArrayList<>();
 
   public WMQMonitorTask(
-      TasksExecutionServiceProvider tasksExecutionServiceProvider,
+      MetricWriteHelper metricWriteHelper,
       MonitorContextConfiguration monitorContextConfig,
       QueueManager queueManager) {
     this.monitorContextConfig = monitorContextConfig;
     this.queueManager = queueManager;
     this.configMap = monitorContextConfig.getConfigYml();
-    this.metricWriteHelper = tasksExecutionServiceProvider.getMetricWriteHelper();
+    this.metricWriteHelper = metricWriteHelper;
   }
 
   @Override

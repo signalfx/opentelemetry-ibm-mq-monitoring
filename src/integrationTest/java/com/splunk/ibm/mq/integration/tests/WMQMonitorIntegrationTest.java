@@ -196,7 +196,7 @@ class WMQMonitorIntegrationTest {
     MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter, meters);
     String configFile = getConfigFile("conf/test-config.yml");
 
-    TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper);
+    TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper, service);
     monitor.testrun();
 
     reader.forceFlush().join(5, TimeUnit.SECONDS);
@@ -238,7 +238,7 @@ class WMQMonitorIntegrationTest {
     MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter, meters);
     String configFile = getConfigFile("conf/test-queuemgr-config.yml");
 
-    TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper);
+    TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper, service);
     monitor.testrun();
   }
 }
