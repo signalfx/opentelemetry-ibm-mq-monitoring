@@ -40,7 +40,7 @@ services:
       --otlp-endpoint 0.0.0.0:4317
       --ignore-timestamp
       --ignore-start-timestamp
-      --timeout 1m
+      --timeout 2m
       --ignore-resource-metrics-order
       --ignore-scope-metrics-order
       --ignore-metrics-order

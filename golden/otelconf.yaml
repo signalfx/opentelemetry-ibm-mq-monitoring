@@ -17,6 +17,7 @@ exporters:
     sending_queue:
       enabled: false
 processors:
+  groupbyattrs:
   batch:
     send_batch_size: 5000
     timeout: 10s
@@ -27,6 +28,7 @@ service:
         - otlp
       processors:
         - batch
+        - groupbyattrs
       exporters:
         - debug
         - otlp

@@ -298,7 +298,7 @@ class MQOtelTranslator {
               res,
               scopeInfo,
               result.metricName,
-              metric.getMetricPath(),
+              "",
               "1",
               ImmutableGaugeData.create(Collections.singleton(pointData)));
 
