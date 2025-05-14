@@ -90,7 +90,6 @@ public class WMQMonitor extends ABaseMonitor {
     }
 
     String encryptionKey = (String) configProperties.get("encryptionKey");
-    logger.debug("Encryption key from config.yml set for ssl connection is {}", encryptionKey);
 
     configureTrustStore(sslConnection, encryptionKey);
     configureKeyStore(sslConnection, encryptionKey);
