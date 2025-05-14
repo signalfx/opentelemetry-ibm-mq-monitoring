@@ -80,7 +80,6 @@ public class WMQMonitor extends ABaseMonitor {
 
   @Override
   protected void initializeMoreStuff(Map<String, String> args) {
-    super.initializeMoreStuff(args);
     Map<String, ?> configProperties = this.getContextConfiguration().getConfigYml();
     Map<String, String> sslConnection = (Map<String, String>) configProperties.get("sslConnection");
 
