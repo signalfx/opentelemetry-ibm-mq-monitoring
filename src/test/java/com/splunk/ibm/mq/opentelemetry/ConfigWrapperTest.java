@@ -15,7 +15,7 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
-import static java.util.Collections.singletonList;
+import static java.util.Collections.singleton;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.io.FileNotFoundException;
@@ -36,7 +36,7 @@ class ConfigWrapperTest {
   @Test
   void testQueueManagerNames() throws FileNotFoundException {
     ConfigWrapper config = ConfigWrapper.parse(file);
-    assertThat(config.getQueueManagerNames()).isEqualTo(singletonList("QM1"));
+    assertThat(config.getQueueManagerNames()).isEqualTo(singleton("QM1"));
   }
 
   @Test

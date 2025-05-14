@@ -26,8 +26,8 @@ import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -48,14 +48,19 @@ public class Main {
     String configFile = args[0];
 
     ConfigWrapper config = ConfigWrapper.parse(configFile);
+    Collection<String> queueManagerNames = config.getQueueManagerNames();
+    if (queueManagerNames.isEmpty()) {
+      System.err.println("No queue managers configured in the configuration file. Exiting.");
+      System.exit(1);
+    }
 
-    Thread.UncaughtExceptionHandler handler =
-        (t, e) -> logger.error("Unhandled exception in thread pool", e);
     final ScheduledExecutorService service =
         Executors.newScheduledThreadPool(
             config.getNumberOfThreads(),
             r -> {
               Thread thread = new Thread(r);
+              Thread.UncaughtExceptionHandler handler =
+                  (t, e) -> logger.error("Unhandled exception in thread pool", e);
               thread.setUncaughtExceptionHandler(handler);
               return thread;
             });
@@ -70,7 +75,6 @@ public class Main {
             .setInterval(config.getTaskDelay())
             .build();
 
-    List<String> queueManagerNames = config.getQueueManagerNames();
     Map<String, SdkMeterProvider> providers = createSdkMeterProviders(reader, queueManagerNames);
     Map<String, Meter> meters = new HashMap<>();
     for (Map.Entry<String, SdkMeterProvider> e : providers.entrySet()) {
@@ -88,6 +92,10 @@ public class Main {
                   exporter.shutdown();
                 }));
 
+    logger.info(
+        "Scheduling execution of monitoring, with an initial delay of {} seconds and a periodical interval of {} seconds.",
+        config.getTaskInitialDelaySeconds(),
+        config.getTaskDelaySeconds());
     service.scheduleAtFixedRate(
         () -> {
           try {
@@ -107,7 +115,7 @@ public class Main {
   }
 
   public static Map<String, SdkMeterProvider> createSdkMeterProviders(
-      MetricReader reader, List<String> queueManagerNames) {
+      MetricReader reader, Collection<String> queueManagerNames) {
     Map<String, SdkMeterProvider> providers = new HashMap<>();
     for (String queueManagerName : queueManagerNames) {
       Attributes attrs = Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName);

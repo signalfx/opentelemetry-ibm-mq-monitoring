@@ -15,13 +15,17 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.splunk.ibm.mq.config.QueueManager;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.time.Duration;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Set;
 import org.yaml.snakeyaml.Yaml;
 
 /** Low-fi domain-specific yaml wrapper. */
@@ -31,16 +35,27 @@ final class ConfigWrapper {
   private static final int DEFAULT_DELAY_SECONDS = 60;
   private static final int DEFAULT_INITIAL_DELAY = 0;
 
-  private final Map<String, ?> config;
+  private static final ObjectMapper mapper = new ObjectMapper();
 
-  private ConfigWrapper(Map<String, ?> config) {
+  private final Map<String, ?> config;
+  private final Map<String, QueueManager> queueManagers;
+
+  private ConfigWrapper(Map<String, ?> config, Map<String, QueueManager> queueManagers) {
     this.config = config;
+    this.queueManagers = queueManagers;
   }
 
   static ConfigWrapper parse(String configFile) throws FileNotFoundException {
     Yaml yaml = new Yaml();
     Map<String, ?> config = yaml.load(new FileReader(configFile));
-    return new ConfigWrapper(config);
+    List<Map> queueManagers = (List<Map>) config.get("queueManagers");
+    Map<String, QueueManager> queueManagerMap = new LinkedHashMap<>();
+    for (Map queueManager : queueManagers) {
+      QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
+      queueManagerMap.put(qManager.getName(), qManager);
+    }
+
+    return new ConfigWrapper(config, queueManagerMap);
   }
 
   int getNumberOfThreads() {
@@ -59,15 +74,16 @@ final class ConfigWrapper {
     return defaultedInt(getTaskSchedule(), "initialDelaySeconds", DEFAULT_INITIAL_DELAY);
   }
 
-  List<String> getQueueManagerNames() {
-    return getQueueManagers().stream()
-        .map(o -> (Map<String, String>) o)
-        .map(x -> x.get("name"))
-        .collect(Collectors.toList());
+  Set<String> getQueueManagerNames() {
+    return queueManagers.keySet();
   }
 
-  private List<?> getQueueManagers() {
-    return (List<?>) config.get("queueManagers");
+  private Collection<QueueManager> getQueueManagers() {
+    return queueManagers.values();
+  }
+
+  public QueueManager getQueueManager(String name) {
+    return queueManagers.get(name);
   }
 
   private int defaultedInt(Map<String, ?> section, String key, int defaultValue) {
