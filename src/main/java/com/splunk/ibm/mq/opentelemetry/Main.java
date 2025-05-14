@@ -15,23 +15,17 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
-import com.appdynamics.extensions.util.YmlUtils;
-import com.appdynamics.extensions.yml.YmlReader;
 import com.singularity.ee.agent.systemagent.api.TaskExecutionContext;
 import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import com.splunk.ibm.mq.WMQMonitor;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
-import java.io.File;
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,65 +39,51 @@ public class Main {
 
   private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     if (args.length == 0) {
       System.err.println("Usage: Main <config-file>");
       System.exit(1);
     }
 
     String configFile = args[0];
-    Map<String, ?> config = YmlReader.readFromFileAsMap(new File(configFile));
-    int numberOfThreads = 1;
-    int taskDelaySeconds = 60;
-    int initialDelaySeconds = 0;
-    if (config.get("taskSchedule") instanceof Map) {
-      Map taskSchedule = (Map) config.get("taskSchedule");
-      numberOfThreads = YmlUtils.getInt(taskSchedule.get("numberOfThreads"), numberOfThreads);
-      taskDelaySeconds = YmlUtils.getInt(taskSchedule.get("taskDelaySeconds"), taskDelaySeconds);
-      initialDelaySeconds =
-          YmlUtils.getInt(taskSchedule.get("initialDelaySeconds"), initialDelaySeconds);
-    }
+
+    ConfigWrapper config = ConfigWrapper.parse(configFile);
+
     Thread.UncaughtExceptionHandler handler =
         (t, e) -> logger.error("Unhandled exception in thread pool", e);
     final ScheduledExecutorService service =
         Executors.newScheduledThreadPool(
-            numberOfThreads,
+            config.getNumberOfThreads(),
             r -> {
               Thread thread = new Thread(r);
               thread.setUncaughtExceptionHandler(handler);
               return thread;
             });
 
-    Config.setUpSSLConnection(config);
+    Config.setUpSSLConnection(config._exposed());
 
-    OtlpGrpcMetricExporter exporter = Config.createOtlpGrpcMetricsExporter(config);
+    MetricExporter exporter = Config.createOtlpHttpMetricsExporter(config._exposed());
 
     MetricReader reader =
         PeriodicMetricReader.builder(exporter)
             .setExecutor(service)
-            .setInterval(Duration.of(taskDelaySeconds, ChronoUnit.SECONDS))
+            .setInterval(config.getTaskDelay())
             .build();
 
-    List<String> queueManagerNames = new ArrayList<>();
-    for (Object queueManagerConfig : (List) config.get("queueManagers")) {
-      String queueManagerName = (String) ((Map<String, ?>) queueManagerConfig).get("name");
-      queueManagerNames.add(queueManagerName);
-    }
-    Map<String, SdkMeterProvider> providers =
-        createSdkMeterProviders(reader, queueManagerNames.toArray(new String[0]));
+    List<String> queueManagerNames = config.getQueueManagerNames();
+    Map<String, SdkMeterProvider> providers = createSdkMeterProviders(reader, queueManagerNames);
     Map<String, Meter> meters = new HashMap<>();
     for (Map.Entry<String, SdkMeterProvider> e : providers.entrySet()) {
       meters.put(e.getKey(), e.getValue().get("opentelemetry.io/mq"));
     }
 
-    WMQMonitor monitor = new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter, meters));
-    TaskExecutionContext taskExecCtx = new TaskExecutionContext();
-
     try {
-
       service.scheduleAtFixedRate(
           () -> {
             try {
+              WMQMonitor monitor =
+                  new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter, meters));
+              TaskExecutionContext taskExecCtx = new TaskExecutionContext();
               Map<String, String> taskArguments = new HashMap<>();
               taskArguments.put("config-file", configFile);
               monitor.execute(taskArguments, taskExecCtx);
@@ -111,8 +91,8 @@ public class Main {
               throw new RuntimeException(e);
             }
           },
-          initialDelaySeconds,
-          taskDelaySeconds,
+          config.getTaskInitialDelaySeconds(),
+          config.getTaskDelaySeconds(),
           TimeUnit.SECONDS);
 
       Runtime.getRuntime()
@@ -130,16 +110,17 @@ public class Main {
   }
 
   public static Map<String, SdkMeterProvider> createSdkMeterProviders(
-      MetricReader reader, String... queueManagerNames) {
+      MetricReader reader, List<String> queueManagerNames) {
     Map<String, SdkMeterProvider> providers = new HashMap<>();
-    for (String q : queueManagerNames) {
-      Attributes attrs = Attributes.of(AttributeKey.stringKey("queue.manager"), q);
+    for (String queueManagerName : queueManagerNames) {
+      Attributes attrs = Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName);
       SdkMeterProvider meterProvider =
           SdkMeterProvider.builder()
               .registerMetricReader(reader)
+              // TODO: We should not be making multiple resources. :(
               .setResource(Resource.create(attrs))
               .build();
-      providers.put(q, meterProvider);
+      providers.put(queueManagerName, meterProvider);
     }
     return providers;
   }

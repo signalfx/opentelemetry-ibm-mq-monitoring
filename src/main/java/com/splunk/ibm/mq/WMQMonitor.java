@@ -36,11 +36,8 @@ public class WMQMonitor extends ABaseMonitor {
 
   private final MetricWriteHelper overrideHelper;
 
-  public WMQMonitor() {
-    this(null);
-  }
-
   public WMQMonitor(MetricWriteHelper overrideHelper) {
+    assert (overrideHelper != null);
     this.overrideHelper = overrideHelper;
   }
 
@@ -52,16 +49,17 @@ public class WMQMonitor extends ABaseMonitor {
     return "WMQMonitor";
   }
 
-  protected void doRun(TasksExecutionServiceProvider tasksExecutionServiceProvider) {
+  protected void doRun(TasksExecutionServiceProvider IGNORED_DUE_TO_LOCAL_OVERRIDE) {
     List<Map> queueManagers =
         (List<Map>) this.getContextConfiguration().getConfigYml().get("queueManagers");
     AssertUtils.assertNotNull(
         queueManagers, "The 'queueManagers' section in config.yml is not initialised");
     ObjectMapper mapper = new ObjectMapper();
     // we override this helper to pass in our opentelemetry helper instead.
-    if (this.overrideHelper != null) {
-      tasksExecutionServiceProvider = new TasksExecutionServiceProvider(this, this.overrideHelper);
-    }
+
+    TasksExecutionServiceProvider tasksExecutionServiceProvider =
+        new TasksExecutionServiceProvider(this, this.overrideHelper);
+
     for (Map queueManager : queueManagers) {
       QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
       WMQMonitorTask wmqTask =
@@ -82,7 +80,6 @@ public class WMQMonitor extends ABaseMonitor {
 
   @Override
   protected void initializeMoreStuff(Map<String, String> args) {
-    super.initializeMoreStuff(args);
     Map<String, ?> configProperties = this.getContextConfiguration().getConfigYml();
     Map<String, String> sslConnection = (Map<String, String>) configProperties.get("sslConnection");
 
