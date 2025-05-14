@@ -65,13 +65,14 @@ public final class QueueMetricsCollector implements MetricsPublisher {
     List<Future> futures = Lists.newArrayList();
     Map<String, WMQMetricOverride> metricsForInquireQCmd =
         context.getMetricsForCommand(InquireQCmdCollector.COMMAND);
+    List<MetricsPublisher> publishers = Lists.newArrayList();
     if (!metricsForInquireQCmd.isEmpty()) {
       MetricsCollectorContext collectorContext = context.newCollectorContext(metricsForInquireQCmd);
       QueueCollectionBuddy queueBuddy =
           new QueueCollectionBuddy(
               collectorContext, sharedState, metricCreator, InquireQCmdCollector.COMMAND);
       MetricsPublisher publisher = new InquireQCmdCollector(collectorContext, queueBuddy);
-      futures.add(context.submitPublishJob("InquireQCmdCollector", publisher));
+      publishers.add(publisher);
     }
     Map<String, WMQMetricOverride> metricsForInquireQStatusCmd =
         context.getMetricsForCommand(InquireQStatusCmdCollector.COMMAND);
@@ -82,7 +83,7 @@ public final class QueueMetricsCollector implements MetricsPublisher {
           new QueueCollectionBuddy(
               collectorContext, sharedState, metricCreator, InquireQStatusCmdCollector.COMMAND);
       MetricsPublisher publisher = new InquireQStatusCmdCollector(collectorContext, queueBuddy);
-      futures.add(context.submitPublishJob("InquireQStatusCmdCollector", publisher));
+      publishers.add(publisher);
     }
     Map<String, WMQMetricOverride> metricsForResetQStatsCmd =
         context.getMetricsForCommand(ResetQStatsCmdCollector.COMMAND);
@@ -93,19 +94,19 @@ public final class QueueMetricsCollector implements MetricsPublisher {
           new QueueCollectionBuddy(
               collectorContext, sharedState, metricCreator, ResetQStatsCmdCollector.COMMAND);
       MetricsPublisher collector = new ResetQStatsCmdCollector(collectorContext, queueBuddy);
-      futures.add(context.submitPublishJob("ResetQStatsCmdCollector", collector));
+      publishers.add(collector);
     }
-    for (Future<?> future : futures) {
-      try {
-        int timeout = context.getConfigInt("queueMetricsCollectionTimeoutInSeconds", 20);
-        future.get(timeout, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
-        logger.error("The thread was interrupted ", e);
-      } catch (ExecutionException e) {
-        logger.error("Something unforeseen has happened ", e);
-      } catch (TimeoutException e) {
-        logger.error("Thread timed out ", e);
-      }
+
+    CountDownLatch latch = new CountDownLatch(publishers.size());
+    for (MetricsPublisher publisher : publishers) {
+      context.submitPublishJob(publisher, latch);
+    }
+
+    try {
+      int timeout = context.getConfigInt("queueMetricsCollectionTimeoutInSeconds", 20);
+      latch.await(timeout, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      logger.error("The thread was interrupted ", e);
     }
   }
 

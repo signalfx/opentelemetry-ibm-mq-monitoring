@@ -19,10 +19,8 @@ import com.google.common.collect.Lists;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +35,7 @@ public final class TopicMetricsCollector implements MetricsPublisher {
   @Override
   public void publishMetrics() {
     logger.info("Collecting Topic metrics...");
-    List<Future<?>> futures = Lists.newArrayList();
+    List<MetricsPublisher> publishers = Lists.newArrayList();
 
     //  to query the current status of topics, which is essential for monitoring and managing the
     // publish/subscribe environment in IBM MQ.
@@ -49,19 +47,17 @@ public final class TopicMetricsCollector implements MetricsPublisher {
           context.newCollectorContext(metricsForInquireTStatusCmd);
       InquireTStatusCmdCollector metricsPublisher =
           new InquireTStatusCmdCollector(collectorContext, metricCreator);
-      futures.add(context.submitPublishJob("Topic Status Cmd Collector", metricsPublisher));
+      publishers.add(metricsPublisher);
     }
-    for (Future<?> future : futures) {
-      try {
-        int timeout = context.getConfigInt("topicMetricsCollectionTimeoutInSeconds", 20);
-        future.get(timeout, TimeUnit.SECONDS);
-      } catch (InterruptedException e) {
-        logger.error("The thread was interrupted ", e);
-      } catch (ExecutionException e) {
-        logger.error("Something unforeseen has happened ", e);
-      } catch (TimeoutException e) {
-        logger.error("Thread timed out ", e);
-      }
+    CountDownLatch latch = new CountDownLatch(publishers.size());
+    for (MetricsPublisher publisher : publishers) {
+      context.submitPublishJob(publisher, latch);
+    }
+    try {
+      int timeout = context.getConfigInt("topicMetricsCollectionTimeoutInSeconds", 20);
+      latch.await(timeout, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      logger.error("The thread was interrupted ", e);
     }
   }
 }
