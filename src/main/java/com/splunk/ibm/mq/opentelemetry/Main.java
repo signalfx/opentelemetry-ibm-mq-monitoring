@@ -77,36 +77,33 @@ public class Main {
       meters.put(e.getKey(), e.getValue().get("opentelemetry.io/mq"));
     }
 
-    try {
-      service.scheduleAtFixedRate(
-          () -> {
-            try {
-              WMQMonitor monitor =
-                  new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter, meters));
-              TaskExecutionContext taskExecCtx = new TaskExecutionContext();
-              Map<String, String> taskArguments = new HashMap<>();
-              taskArguments.put("config-file", configFile);
-              monitor.execute(taskArguments, taskExecCtx);
-            } catch (TaskExecutionException e) {
-              throw new RuntimeException(e);
-            }
-          },
-          config.getTaskInitialDelaySeconds(),
-          config.getTaskDelaySeconds(),
-          TimeUnit.SECONDS);
+    Runtime.getRuntime()
+        .addShutdownHook(
+            new Thread(
+                () -> {
+                  for (SdkMeterProvider c : providers.values()) {
+                    c.close();
+                  }
+                  service.shutdown();
+                  exporter.shutdown();
+                }));
 
-      Runtime.getRuntime()
-          .addShutdownHook(
-              new Thread(
-                  () -> {
-                    service.shutdown();
-                    exporter.shutdown();
-                  }));
-    } finally {
-      for (SdkMeterProvider c : providers.values()) {
-        c.close();
-      }
-    }
+    service.scheduleAtFixedRate(
+        () -> {
+          try {
+            WMQMonitor monitor =
+                new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter, meters));
+            TaskExecutionContext taskExecCtx = new TaskExecutionContext();
+            Map<String, String> taskArguments = new HashMap<>();
+            taskArguments.put("config-file", configFile);
+            monitor.execute(taskArguments, taskExecCtx);
+          } catch (TaskExecutionException e) {
+            throw new RuntimeException(e);
+          }
+        },
+        config.getTaskInitialDelaySeconds(),
+        config.getTaskDelaySeconds(),
+        TimeUnit.SECONDS);
   }
 
   public static Map<String, SdkMeterProvider> createSdkMeterProviders(
