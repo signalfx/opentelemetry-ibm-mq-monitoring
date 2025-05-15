@@ -18,10 +18,9 @@ package com.splunk.ibm.mq.integration.tests;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.util.AssertUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.splunk.ibm.mq.WMQMonitor;
 import com.splunk.ibm.mq.WMQMonitorTask;
 import com.splunk.ibm.mq.config.QueueManager;
-import java.util.HashMap;
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -32,17 +31,17 @@ import java.util.concurrent.ExecutorService;
  * facilitates custom configuration through a test configuration file and a test metric write
  * helper.
  */
-class TestWMQMonitor extends WMQMonitor {
+class TestWMQMonitor {
 
   private final MetricWriteHelper metricWriteHelper;
+  private final ConfigWrapper config;
+  private final ExecutorService threadPool;
 
   TestWMQMonitor(
-      String testConfigFile, MetricWriteHelper metricWriteHelper, ExecutorService service) {
-    super(service, metricWriteHelper);
+      ConfigWrapper config, MetricWriteHelper metricWriteHelper, ExecutorService service) {
+    this.config = config;
     this.metricWriteHelper = metricWriteHelper;
-    Map<String, String> args = new HashMap<>();
-    args.put("config-file", testConfigFile);
-    initialize(args);
+    this.threadPool = service;
   }
 
   /**
@@ -53,18 +52,17 @@ class TestWMQMonitor extends WMQMonitor {
    * MetricWriteHelper if provided, initializes a TasksExecutionServiceProvider, and executes the
    * WMQMonitorTask
    */
-  void testrun() {
-    List<Map> queueManagers =
-        (List<Map>) this.getContextConfiguration().getConfigYml().get("queueManagers");
+  void runTest() {
+    List<Map<String, ?>> queueManagers = config.getQueueManagers();
     AssertUtils.assertNotNull(
         queueManagers, "The 'queueManagers' section in config.yml is not initialised");
     ObjectMapper mapper = new ObjectMapper();
     // we override this helper to pass in our opentelemetry helper instead.
     if (metricWriteHelper != null) {
-      for (Map queueManager : queueManagers) {
+      for (Map<String, ?> queueManager : queueManagers) {
         QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
         WMQMonitorTask wmqTask =
-            new WMQMonitorTask(metricWriteHelper, getContextConfiguration(), qManager);
+            new WMQMonitorTask(config, metricWriteHelper, qManager, threadPool);
         wmqTask.run();
       }
     }

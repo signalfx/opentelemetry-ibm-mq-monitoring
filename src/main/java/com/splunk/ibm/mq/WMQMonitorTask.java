@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq;
 
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.util.StringUtils;
 import com.google.common.base.Strings;
 import com.ibm.mq.MQException;
@@ -43,6 +42,7 @@ import com.splunk.ibm.mq.metricscollector.QueueManagerMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.QueueMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.ReadConfigurationEventQueueCollector;
 import com.splunk.ibm.mq.metricscollector.TopicMetricsCollector;
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,6 +50,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -60,19 +61,20 @@ public class WMQMonitorTask implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitorTask.class);
   private final QueueManager queueManager;
-  private final MonitorContextConfiguration monitorContextConfig;
-  private final Map<String, ?> configMap;
+  private final ConfigWrapper config;
   private final MetricWriteHelper metricWriteHelper;
-  private List<MetricsPublisher> pendingJobs = new ArrayList<>();
+  private final List<MetricsPublisher> pendingJobs = new ArrayList<>();
+  private final ExecutorService threadPool;
 
   public WMQMonitorTask(
+      ConfigWrapper config,
       MetricWriteHelper metricWriteHelper,
-      MonitorContextConfiguration monitorContextConfig,
-      QueueManager queueManager) {
-    this.monitorContextConfig = monitorContextConfig;
+      QueueManager queueManager,
+      ExecutorService threadPool) {
+    this.config = config;
     this.queueManager = queueManager;
-    this.configMap = monitorContextConfig.getConfigYml();
     this.metricWriteHelper = metricWriteHelper;
+    this.threadPool = threadPool;
   }
 
   @Override
@@ -85,7 +87,7 @@ public class WMQMonitorTask implements Runnable {
     BigDecimal heartBeatMetricValue = BigDecimal.ZERO;
     // encryptionKey is a global setting; it is needed to allow decrypting the queue manager
     // password.
-    String encryptionKey = (String) configMap.get("encryptionKey");
+    String encryptionKey = config.getEncryptionKey();
     try {
       ibmQueueManager = connectToQueueManager(queueManager, encryptionKey);
       heartBeatMetricValue = BigDecimal.ONE;
@@ -102,8 +104,7 @@ public class WMQMonitorTask implements Runnable {
     } finally {
       cleanUp(ibmQueueManager, agent);
       metricWriteHelper.printMetric(
-          StringUtils.concatMetricPath(
-              monitorContextConfig.getMetricPrefix(), queueManagerName, "HeartBeat"),
+          StringUtils.concatMetricPath(config.getMetricPrefix(), queueManagerName, "HeartBeat"),
           heartBeatMetricValue,
           "AVG.AVG.IND");
       long endTime = System.currentTimeMillis() - startTime;
@@ -168,8 +169,7 @@ public class WMQMonitorTask implements Runnable {
 
   private void extractAndReportMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
     // Step 1: Retrieve metrics from configuration
-    Map<String, Map<String, WMQMetricOverride>> metricsMap =
-        WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
+    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
     pendingJobs.clear();
 
     // Step 2: Inquire each metric type
@@ -199,7 +199,7 @@ public class WMQMonitorTask implements Runnable {
     CountDownLatch countDownLatch = new CountDownLatch(pendingJobs.size());
     for (MetricsPublisher collector : pendingJobs) {
       Runnable job = new MetricsPublisherJob(collector, countDownLatch);
-      monitorContextConfig.getContext().getExecutorService().execute(collector.getName(), job);
+      threadPool.submit(new TaskJob(collector.getName(), job));
     }
     pendingJobs.clear();
 
@@ -265,7 +265,7 @@ public class WMQMonitorTask implements Runnable {
       PCFMessageAgent agent) {
 
     MetricCreator metricCreator =
-        new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager, commandType);
+        new MetricCreator(config.getMetricPrefix(), queueManager, commandType);
     MetricsCollectorContext context =
         new MetricsCollectorContext(metrics, queueManager, agent, metricWriteHelper);
     MetricsPublisher collector = collectorConstructor.apply(context, metricCreator);
@@ -301,7 +301,7 @@ public class WMQMonitorTask implements Runnable {
     MetricsCollectorContext collectorContext =
         new MetricsCollectorContext(queueMetrics, queueManager, agent, metricWriteHelper);
     JobSubmitterContext jobSubmitterContext =
-        new JobSubmitterContext(monitorContextConfig, collectorContext);
+        new JobSubmitterContext(collectorContext, threadPool, config);
     MetricsPublisher queueMetricsCollector =
         new QueueMetricsCollector(queueMetrics, sharedState, jobSubmitterContext);
     pendingJobs.add(queueMetricsCollector);
@@ -322,9 +322,7 @@ public class WMQMonitorTask implements Runnable {
         new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
     MetricCreator metricCreator =
         new MetricCreator(
-            monitorContextConfig.getMetricPrefix(),
-            queueManager,
-            ListenerMetricsCollector.ARTIFACT);
+            config.getMetricPrefix(), queueManager, ListenerMetricsCollector.ARTIFACT);
     MetricsPublisher metricsCollector = collectorConstructor.apply(context, metricCreator);
     pendingJobs.add(metricsCollector);
   }
@@ -342,8 +340,7 @@ public class WMQMonitorTask implements Runnable {
 
     MetricsCollectorContext context =
         new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
-    JobSubmitterContext jobSubmitterContext =
-        new JobSubmitterContext(monitorContextConfig, context);
+    JobSubmitterContext jobSubmitterContext = new JobSubmitterContext(context, threadPool, config);
     MetricsPublisher metricsCollector = collectorConstructor.apply(jobSubmitterContext);
     pendingJobs.add(metricsCollector);
   }
@@ -359,12 +356,10 @@ public class WMQMonitorTask implements Runnable {
       return;
     }
 
-    MetricCreator metricCreator =
-        new MetricCreator(monitorContextConfig.getMetricPrefix(), queueManager);
+    MetricCreator metricCreator = new MetricCreator(config.getMetricPrefix(), queueManager);
     ReadConfigurationEventQueueCollector collector =
         new ReadConfigurationEventQueueCollector(
             configurationMetricsToReport,
-            monitorContextConfig,
             agent,
             mqQueueManager,
             queueManager,

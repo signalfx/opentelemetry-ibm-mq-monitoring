@@ -15,8 +15,6 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
-import com.singularity.ee.agent.systemagent.api.TaskExecutionContext;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import com.splunk.ibm.mq.WMQMonitor;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -97,16 +95,9 @@ public class Main {
 
     service.scheduleAtFixedRate(
         () -> {
-          try {
-            WMQMonitor monitor =
-                new WMQMonitor(service, new OpenTelemetryMetricWriteHelper(exporter, meters));
-            TaskExecutionContext taskExecCtx = new TaskExecutionContext();
-            Map<String, String> taskArguments = new HashMap<>();
-            taskArguments.put("config-file", configFile);
-            monitor.execute(taskArguments, taskExecCtx);
-          } catch (TaskExecutionException e) {
-            throw new RuntimeException(e);
-          }
+          WMQMonitor monitor =
+              new WMQMonitor(config, service, new OpenTelemetryMetricWriteHelper(exporter, meters));
+          monitor.run();
         },
         config.getTaskInitialDelaySeconds(),
         config.getTaskDelaySeconds(),

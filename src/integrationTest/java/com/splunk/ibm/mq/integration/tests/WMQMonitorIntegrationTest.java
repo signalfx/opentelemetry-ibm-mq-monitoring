@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.yml.YmlReader;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.constants.CMQC;
@@ -31,6 +30,7 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.WMQMonitorTask;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.Main;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import io.opentelemetry.api.metrics.Meter;
@@ -66,7 +66,7 @@ class WMQMonitorIntegrationTest {
 
   private static final ExecutorService service =
       Executors.newFixedThreadPool(
-          1,
+          4, /* one gets burned with our @BeforeAll message uzi, 4 is faster than 2 */
           r -> {
             Thread thread = new Thread(r);
             thread.setUncaughtExceptionHandler(
@@ -75,17 +75,16 @@ class WMQMonitorIntegrationTest {
                   fail(e.getMessage());
                 });
             thread.setDaemon(true);
+            thread.setName("WMQMonitorIntegrationTest");
             return thread;
           });
 
-  private static QueueManager getQueueManagerConfig() throws URISyntaxException {
+  private static QueueManager getQueueManagerConfig() throws Exception {
     String configFile = getConfigFile("conf/test-config.yml");
-    Map<String, ?> config = YmlReader.readFromFileAsMap(new File(configFile));
-    Map<String, ?> queueManagerConfig =
-        (Map<String, ?>) ((List) config.get("queueManagers")).get(0);
+    ConfigWrapper wrapper = ConfigWrapper.parse(configFile);
+    Map<String, ?> queueManagerConfig = wrapper.getQueueManagers().get(0);
     ObjectMapper mapper = new ObjectMapper();
-    QueueManager qManager = mapper.convertValue(queueManagerConfig, QueueManager.class);
-    return qManager;
+    return mapper.convertValue(queueManagerConfig, QueueManager.class);
   }
 
   @NotNull
@@ -196,8 +195,9 @@ class WMQMonitorIntegrationTest {
     MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter, meters);
     String configFile = getConfigFile("conf/test-config.yml");
 
-    TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper, service);
-    monitor.testrun();
+    ConfigWrapper config = ConfigWrapper.parse(configFile);
+    TestWMQMonitor monitor = new TestWMQMonitor(config, metricWriteHelper, service);
+    monitor.runTest();
 
     reader.forceFlush().join(5, TimeUnit.SECONDS);
     for (SdkMeterProvider provider : providers.values()) {
@@ -237,8 +237,9 @@ class WMQMonitorIntegrationTest {
     }
     MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter, meters);
     String configFile = getConfigFile("conf/test-queuemgr-config.yml");
+    ConfigWrapper config = ConfigWrapper.parse(configFile);
 
-    TestWMQMonitor monitor = new TestWMQMonitor(configFile, metricWriteHelper, service);
-    monitor.testrun();
+    TestWMQMonitor monitor = new TestWMQMonitor(config, metricWriteHelper, service);
+    monitor.runTest();
   }
 }
