@@ -150,7 +150,7 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
       readEvents(performanceEventsQueueName);
     } catch (Exception e) {
       logger.error(
-          "Unexpected Error occurred while collecting performance events for queue "
+          "Unexpected error occurred while collecting performance events for queue "
               + performanceEventsQueueName,
           e);
     }

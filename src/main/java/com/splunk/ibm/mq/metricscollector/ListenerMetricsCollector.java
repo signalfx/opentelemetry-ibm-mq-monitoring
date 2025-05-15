@@ -18,9 +18,12 @@ package com.splunk.ibm.mq.metricscollector;
 import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.splunk.ibm.mq.config.ExcludeFilters;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,46 +79,49 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
             "sending PCF agent request to query metrics for generic listener {}",
             listenerGenericName);
         long startTime = System.currentTimeMillis();
-        PCFMessage[] response = context.send(request);
+        List<PCFMessage> response = context.send(request);
         long endTime = System.currentTimeMillis() - startTime;
         logger.debug(
             "PCF agent listener metrics query response for generic listener {} received in {} milliseconds",
             listenerGenericName,
             endTime);
-        if (response == null || response.length <= 0) {
-          logger.debug(
-              "Unexpected Error while PCFMessage.send(), response is either null or empty");
+        if (response.isEmpty()) {
+          logger.debug("Unexpected error while PCFMessage.send(), response is empty");
           return;
         }
-        for (PCFMessage pcfMessage : response) {
-          String listenerName =
-              pcfMessage.getStringParameterValue(CMQCFC.MQCACH_LISTENER_NAME).trim();
-          Set<ExcludeFilters> excludeFilters = context.getListenerExcludeFilters();
-          if (!ExcludeFilters.isExcluded(
-              listenerName, excludeFilters)) { // check for exclude filters
-            logger.debug("Pulling out metrics for listener name {}", listenerName);
-            List<Metric> responseMetrics = Lists.newArrayList();
-            context.forEachMetric(
-                (metricKey, wmqOverride) -> {
-                  int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                  Metric metric =
-                      metricCreator.createMetric(
-                          metricKey, metricVal, wmqOverride, listenerName, metricKey);
-                  responseMetrics.add(metric);
-                });
-            context.transformAndPrintMetrics(responseMetrics);
-          } else {
-            logger.debug("Listener name {} is excluded.", listenerName);
-          }
+
+        List<PCFMessage> messages =
+            MessageFilter.ofKind("listener")
+                .excluding(context.getListenerExcludeFilters())
+                .withResourceExtractor(MessageBuddy::listenerName)
+                .filter(response);
+
+        for (PCFMessage message : messages) {
+          String listenerName = MessageBuddy.listenerName(message);
+          logger.debug("Pulling out metrics for listener name {}", listenerName);
+          List<Metric> responseMetrics = getMetrics(message, listenerName);
+          context.transformAndPrintMetrics(responseMetrics);
         }
       } catch (Exception e) {
         logger.error(
-            "Unexpected Error occurred while collecting metrics for listener "
-                + listenerGenericName,
-            e);
+            "Unexpected error while collecting metrics for listener " + listenerGenericName, e);
       }
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug("Time taken to publish metrics for all listener is {} milliseconds", exitTime);
+  }
+
+  private @NotNull List<Metric> getMetrics(PCFMessage message, String listenerName)
+      throws PCFException {
+    List<Metric> responseMetrics = Lists.newArrayList();
+    context.forEachMetric(
+        (metricKey, wmqOverride) -> {
+          int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
+          Metric metric =
+              metricCreator.createMetric(
+                  metricKey, metricVal, wmqOverride, listenerName, metricKey);
+          responseMetrics.add(metric);
+        });
+    return responseMetrics;
   }
 }

@@ -23,9 +23,9 @@ import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.splunk.ibm.mq.config.ExcludeFilters;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 /** This class is responsible for channel inquiry metric collection. */
@@ -64,40 +64,28 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
             "sending PCF agent request to query metrics for generic channel {}",
             channelGenericName);
         long startTime = System.currentTimeMillis();
-        PCFMessage[] response = context.send(request);
+        List<PCFMessage> response = context.send(request);
         long endTime = System.currentTimeMillis() - startTime;
         logger.debug(
             "PCF agent queue metrics query response for generic queue {} received in {} milliseconds",
             channelGenericName,
             endTime);
-        if (response == null || response.length <= 0) {
-          logger.warn("Unexpected Error while PCFMessage.send(), response is either null or empty");
+        if (response.isEmpty()) {
+          logger.warn("Unexpected error while PCFMessage.send(), response is empty");
           return;
         }
-        for (PCFMessage pcfMessage : response) {
-          String channelName =
-              pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
-          Set<ExcludeFilters> excludeFilters = context.getChannelExcludeFilters();
-          if (!ExcludeFilters.isExcluded(
-              channelName, excludeFilters)) { // check for exclude filters
-            logger.debug("Pulling out metrics for channel name {}", channelName);
-            List<Metric> responseMetrics = Lists.newArrayList();
-            context.forEachMetric(
-                (metrickey, wmqOverride) -> {
-                  if (pcfMessage.getParameter(wmqOverride.getConstantValue()) == null) {
-                    logger.debug("Missing property {} on {}", metrickey, channelName);
-                    return;
-                  }
-                  int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                  Metric metric =
-                      metricCreator.createMetric(
-                          metrickey, metricVal, wmqOverride, channelName, metrickey);
-                  responseMetrics.add(metric);
-                });
-            context.transformAndPrintMetrics(responseMetrics);
-          } else {
-            logger.debug("Channel name {} is excluded.", channelName);
-          }
+
+        List<PCFMessage> messages =
+            MessageFilter.ofKind("channel")
+                .excluding(context.getChannelExcludeFilters())
+                .withResourceExtractor(MessageBuddy::channelName)
+                .filter(response);
+
+        for (PCFMessage message : messages) {
+          String channelName = MessageBuddy.channelName(message);
+          logger.debug("Pulling out metrics for channel name {}", channelName);
+          List<Metric> responseMetrics = getMetrics(message, channelName);
+          context.transformAndPrintMetrics(responseMetrics);
         }
       } catch (PCFException pcfe) {
         if (pcfe.getReason() == MQConstants.MQRCCF_CHL_STATUS_NOT_FOUND) {
@@ -115,12 +103,28 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
         logger.error(pcfe.getMessage(), pcfe);
       } catch (Exception e) {
         logger.error(
-            "Unexpected Error occoured while collecting metrics for channel " + channelGenericName,
-            e);
+            "Unexpected error while collecting metrics for channel " + channelGenericName, e);
       }
     }
 
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
+  }
+
+  private @NotNull List<Metric> getMetrics(PCFMessage message, String channelName)
+      throws PCFException {
+    List<Metric> responseMetrics = Lists.newArrayList();
+    context.forEachMetric(
+        (metrickey, wmqOverride) -> {
+          if (message.getParameter(wmqOverride.getConstantValue()) == null) {
+            logger.debug("Missing property {} on {}", metrickey, channelName);
+            return;
+          }
+          int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
+          Metric metric =
+              metricCreator.createMetric(metrickey, metricVal, wmqOverride, channelName, metrickey);
+          responseMetrics.add(metric);
+        });
+    return responseMetrics;
   }
 }

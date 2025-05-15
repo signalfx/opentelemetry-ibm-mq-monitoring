@@ -163,7 +163,7 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
 
     } catch (Exception e) {
       logger.error(
-          "Unexpected Error occurred while collecting configuration events for queue "
+          "Unexpected error occurred while collecting configuration events for queue "
               + configurationQueueName,
           e);
     }

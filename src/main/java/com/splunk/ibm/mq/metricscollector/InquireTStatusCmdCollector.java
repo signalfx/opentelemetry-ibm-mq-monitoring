@@ -24,7 +24,6 @@ import com.ibm.mq.headers.pcf.MQCFIN;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFParameter;
-import com.splunk.ibm.mq.config.ExcludeFilters;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -100,30 +99,31 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
         topicGenericName,
         command);
     long startTime = System.currentTimeMillis();
-    PCFMessage[] response = context.send(request);
+    List<PCFMessage> response = context.send(request);
     long endTime = System.currentTimeMillis() - startTime;
     logger.debug(
         "PCF agent topic metrics query response for generic topic {} for command {} received in {} milliseconds",
         topicGenericName,
         command,
         endTime);
-    if (response == null || response.length <= 0) {
+    if (response.isEmpty()) {
       logger.debug(
-          "Unexpected Error while PCFMessage.send() for command {}, response is either null or empty",
+          "Unexpected error while PCFMessage.send() for command {}, response is either null or empty",
           command);
       return;
     }
 
-    for (PCFMessage pcfMessage : response) {
-      String topicString = pcfMessage.getStringParameterValue(CMQC.MQCA_TOPIC_STRING).trim();
-      Set<ExcludeFilters> excludeFilters = context.getTopicExcludeFilters();
-      if (!ExcludeFilters.isExcluded(topicString, excludeFilters)) { // check for exclude filters
-        logger.debug("Pulling out metrics for topic name {} for command {}", topicString, command);
-        List<Metric> responseMetrics = extractMetrics(command, pcfMessage, topicString);
-        context.transformAndPrintMetrics(responseMetrics);
-      } else {
-        logger.debug("Topic name {} is excluded.", topicString);
-      }
+    List<PCFMessage> messages =
+        MessageFilter.ofKind("topic")
+            .excluding(context.getTopicExcludeFilters())
+            .withResourceExtractor(MessageBuddy::topicName)
+            .filter(response);
+
+    for (PCFMessage message : messages) {
+      String topicName = MessageBuddy.topicName(message);
+      logger.debug("Pulling out metrics for topic name {} for command {}", topicName, command);
+      List<Metric> responseMetrics = extractMetrics(command, message, topicName);
+      context.transformAndPrintMetrics(responseMetrics);
     }
   }
 
