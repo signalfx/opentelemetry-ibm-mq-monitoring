@@ -20,4 +20,8 @@ public class MessageBuddy {
   public static String listenerName(PCFMessage message) throws PCFException {
     return message.getStringParameterValue(CMQCFC.MQCACH_LISTENER_NAME).trim();
   }
+
+  public static String queueName(PCFMessage message) throws PCFException {
+    return message.getStringParameterValue(CMQC.MQCA_Q_NAME).trim();
+  }
 }

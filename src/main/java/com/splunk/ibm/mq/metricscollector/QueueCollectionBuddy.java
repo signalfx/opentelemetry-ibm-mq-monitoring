@@ -105,27 +105,28 @@ final class QueueCollectionBuddy {
           "Unexpected error while PCFMessage.send() for command {}, response is empty", command);
       return;
     }
-    for (PCFMessage pcfMessage : response) {
-      handleMessage(pcfMessage);
+
+    List<PCFMessage> messages = MessageFilter.ofKind("queue name")
+        .excluding(context.getQueueExcludeFilters())
+        .withResourceExtractor(MessageBuddy::queueName)
+        .filter(response);
+
+    for (PCFMessage message : messages) {
+      handleMessage(message);
     }
   }
 
   private void handleMessage(PCFMessage message) throws PCFException {
-    String queueName = message.getStringParameterValue(CMQC.MQCA_Q_NAME).trim();
+    String queueName = MessageBuddy.queueName(message);
     String queueType = getQueueTypeFromName(message, queueName);
     if (queueType == null) {
       logger.info("Unable to determine queue type for queue name = {}", queueName);
       return;
     }
 
-    Set<ExcludeFilters> excludeFilters = context.getQueueExcludeFilters();
-    if (!ExcludeFilters.isExcluded(queueName, excludeFilters)) { // check for exclude filters
-      logger.debug("Pulling out metrics for queue name {} for command {}", queueName, command);
-      List<Metric> responseMetrics = getMetrics(message, queueName, queueType);
-      context.transformAndPrintMetrics(responseMetrics);
-    } else {
-      logger.debug("Queue name {} is excluded.", queueName);
-    }
+    logger.debug("Pulling out metrics for queue name {} for command {}", queueName, command);
+    List<Metric> responseMetrics = getMetrics(message, queueName, queueType);
+    context.transformAndPrintMetrics(responseMetrics);
   }
 
   private String getQueueTypeFromName(PCFMessage message, String queueName) throws PCFException {
