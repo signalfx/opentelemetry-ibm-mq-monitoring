@@ -15,10 +15,8 @@
  */
 package com.splunk.ibm.mq;
 
-import com.appdynamics.extensions.ABaseMonitor;
 import com.appdynamics.extensions.Constants;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.TasksExecutionServiceProvider;
 import com.appdynamics.extensions.util.CryptoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
@@ -32,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WMQMonitor extends ABaseMonitor {
+public class WMQMonitor implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitor.class);
 
@@ -56,7 +54,10 @@ public class WMQMonitor extends ABaseMonitor {
     return "WMQMonitor";
   }
 
-  protected void doRun(TasksExecutionServiceProvider IGNORED_DUE_TO_LOCAL_OVERRIDE) {
+  @Override
+  public void run() {
+    configureSecurity();
+
     List<Map<String, ?>> queueManagers = getQueueManagers();
     ObjectMapper mapper = new ObjectMapper();
 
@@ -65,11 +66,6 @@ public class WMQMonitor extends ABaseMonitor {
       WMQMonitorTask task = new WMQMonitorTask(config, metricWriteHelper, qManager, threadPool);
       threadPool.submit(new TaskJob((String) queueManager.get("name"), task));
     }
-  }
-
-  @Override
-  protected List<Map<String, ?>> getServers() {
-    return getQueueManagers();
   }
 
   @NotNull
@@ -82,8 +78,7 @@ public class WMQMonitor extends ABaseMonitor {
     return queueManagers;
   }
 
-  @Override
-  protected void initializeMoreStuff(Map<String, String> args) {
+  private void configureSecurity() {
     Map<String, String> sslConnection = config.getSslConnection();
     if (sslConnection.isEmpty()) {
       logger.debug(

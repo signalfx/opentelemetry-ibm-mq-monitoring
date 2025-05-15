@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.splunk.ibm.mq.WMQMonitorTask;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -39,15 +38,10 @@ class TestWMQMonitor {
   private final ExecutorService threadPool;
 
   TestWMQMonitor(
-      ConfigWrapper config,
-      String testConfigFile,
-      MetricWriteHelper metricWriteHelper,
-      ExecutorService service) {
+      ConfigWrapper config, MetricWriteHelper metricWriteHelper, ExecutorService service) {
     this.config = config;
     this.metricWriteHelper = metricWriteHelper;
     this.threadPool = service;
-    Map<String, String> args = new HashMap<>();
-    args.put("config-file", testConfigFile);
   }
 
   /**

@@ -196,7 +196,7 @@ class WMQMonitorIntegrationTest {
     String configFile = getConfigFile("conf/test-config.yml");
 
     ConfigWrapper config = ConfigWrapper.parse(configFile);
-    TestWMQMonitor monitor = new TestWMQMonitor(config, configFile, metricWriteHelper, service);
+    TestWMQMonitor monitor = new TestWMQMonitor(config, metricWriteHelper, service);
     monitor.runTest();
 
     reader.forceFlush().join(5, TimeUnit.SECONDS);
@@ -239,7 +239,7 @@ class WMQMonitorIntegrationTest {
     String configFile = getConfigFile("conf/test-queuemgr-config.yml");
     ConfigWrapper config = ConfigWrapper.parse(configFile);
 
-    TestWMQMonitor monitor = new TestWMQMonitor(config, configFile, metricWriteHelper, service);
+    TestWMQMonitor monitor = new TestWMQMonitor(config, metricWriteHelper, service);
     monitor.runTest();
   }
 }
