@@ -24,7 +24,6 @@ import com.ibm.mq.headers.pcf.MQCFIN;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFParameter;
-import com.splunk.ibm.mq.config.ExcludeFilters;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -114,16 +113,16 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
       return;
     }
 
-    for (PCFMessage pcfMessage : response) {
-      String topicString = pcfMessage.getStringParameterValue(CMQC.MQCA_TOPIC_STRING).trim();
-      Set<ExcludeFilters> excludeFilters = context.getTopicExcludeFilters();
-      if (!ExcludeFilters.isExcluded(topicString, excludeFilters)) { // check for exclude filters
-        logger.debug("Pulling out metrics for topic name {} for command {}", topicString, command);
-        List<Metric> responseMetrics = extractMetrics(command, pcfMessage, topicString);
-        context.transformAndPrintMetrics(responseMetrics);
-      } else {
-        logger.debug("Topic name {} is excluded.", topicString);
-      }
+    List<PCFMessage> messages = MessageFilter.ofKind("topic name")
+        .excluding(context.getChannelExcludeFilters())
+        .withResourceExtractor(MessageBuddy::topicName)
+        .filter(response);
+
+    for (PCFMessage message : messages) {
+      String topicName = MessageBuddy.topicName(message);
+      logger.debug("Pulling out metrics for topic name {} for command {}", topicName, command);
+      List<Metric> responseMetrics = extractMetrics(command, message, topicName);
+      context.transformAndPrintMetrics(responseMetrics);
     }
   }
 
