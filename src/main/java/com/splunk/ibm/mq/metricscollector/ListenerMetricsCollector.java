@@ -18,10 +18,12 @@ package com.splunk.ibm.mq.metricscollector;
 import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,15 +99,7 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
         for (PCFMessage message : messages) {
           String listenerName = MessageBuddy.listenerName(message);
           logger.debug("Pulling out metrics for listener name {}", listenerName);
-          List<Metric> responseMetrics = Lists.newArrayList();
-          context.forEachMetric(
-              (metricKey, wmqOverride) -> {
-                int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
-                Metric metric =
-                    metricCreator.createMetric(
-                        metricKey, metricVal, wmqOverride, listenerName, metricKey);
-                responseMetrics.add(metric);
-              });
+          List<Metric> responseMetrics = getMetrics(message, listenerName);
           context.transformAndPrintMetrics(responseMetrics);
         }
       } catch (Exception e) {
@@ -115,5 +109,19 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug("Time taken to publish metrics for all listener is {} milliseconds", exitTime);
+  }
+
+  private @NotNull List<Metric> getMetrics(PCFMessage message, String listenerName)
+      throws PCFException {
+    List<Metric> responseMetrics = Lists.newArrayList();
+    context.forEachMetric(
+        (metricKey, wmqOverride) -> {
+          int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
+          Metric metric =
+              metricCreator.createMetric(
+                  metricKey, metricVal, wmqOverride, listenerName, metricKey);
+          responseMetrics.add(metric);
+        });
+    return responseMetrics;
   }
 }

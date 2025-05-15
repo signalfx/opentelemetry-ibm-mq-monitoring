@@ -25,6 +25,7 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 /** This class is responsible for channel inquiry metric collection. */
@@ -83,19 +84,7 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
         for (PCFMessage message : messages) {
           String channelName = MessageBuddy.channelName(message);
           logger.debug("Pulling out metrics for channel name {}", channelName);
-          List<Metric> responseMetrics = Lists.newArrayList();
-          context.forEachMetric(
-              (metrickey, wmqOverride) -> {
-                if (message.getParameter(wmqOverride.getConstantValue()) == null) {
-                  logger.debug("Missing property {} on {}", metrickey, channelName);
-                  return;
-                }
-                int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
-                Metric metric =
-                    metricCreator.createMetric(
-                        metrickey, metricVal, wmqOverride, channelName, metrickey);
-                responseMetrics.add(metric);
-              });
+          List<Metric> responseMetrics = getMetrics(message, channelName);
           context.transformAndPrintMetrics(responseMetrics);
         }
       } catch (PCFException pcfe) {
@@ -120,5 +109,22 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
 
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
+  }
+
+  private @NotNull List<Metric> getMetrics(PCFMessage message, String channelName)
+      throws PCFException {
+    List<Metric> responseMetrics = Lists.newArrayList();
+    context.forEachMetric(
+        (metrickey, wmqOverride) -> {
+          if (message.getParameter(wmqOverride.getConstantValue()) == null) {
+            logger.debug("Missing property {} on {}", metrickey, channelName);
+            return;
+          }
+          int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
+          Metric metric =
+              metricCreator.createMetric(metrickey, metricVal, wmqOverride, channelName, metrickey);
+          responseMetrics.add(metric);
+        });
+    return responseMetrics;
   }
 }

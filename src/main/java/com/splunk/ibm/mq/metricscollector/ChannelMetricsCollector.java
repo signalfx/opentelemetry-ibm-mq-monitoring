@@ -27,6 +27,7 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,23 +104,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
           String channelName = MessageBuddy.channelName(message);
 
           logger.debug("Pulling out metrics for channel name {}", channelName);
-          List<Metric> responseMetrics = Lists.newArrayList();
-          context.forEachMetric(
-              (metrickey, wmqOverride) -> {
-                int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
-                Metric metric =
-                    metricCreator.createMetric(
-                        metrickey, metricVal, wmqOverride, channelName, metrickey);
-                responseMetrics.add(metric);
-                // We follow the definition of active channel as documented in
-                // https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
-                if ("Status".equals(metrickey)
-                    && metricVal != CMQCFC.MQCHS_RETRYING
-                    && metricVal != CMQCFC.MQCHS_STOPPED
-                    && metricVal != CMQCFC.MQCHS_STARTING) {
-                  activeChannels.add(channelName);
-                }
-              });
+          List<Metric> responseMetrics = getMetrics(message, channelName, activeChannels);
           context.transformAndPrintMetrics(responseMetrics);
         }
       } catch (PCFException pcfe) {
@@ -151,5 +136,26 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
 
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
+  }
+
+  private @NotNull List<Metric> getMetrics(
+      PCFMessage message, String channelName, List<String> activeChannels) throws PCFException {
+    List<Metric> responseMetrics = Lists.newArrayList();
+    context.forEachMetric(
+        (metrickey, wmqOverride) -> {
+          int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
+          Metric metric =
+              metricCreator.createMetric(metrickey, metricVal, wmqOverride, channelName, metrickey);
+          responseMetrics.add(metric);
+          // We follow the definition of active channel as documented in
+          // https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
+          if ("Status".equals(metrickey)
+              && metricVal != CMQCFC.MQCHS_RETRYING
+              && metricVal != CMQCFC.MQCHS_STOPPED
+              && metricVal != CMQCFC.MQCHS_STARTING) {
+            activeChannels.add(channelName);
+          }
+        });
+    return responseMetrics;
   }
 }
