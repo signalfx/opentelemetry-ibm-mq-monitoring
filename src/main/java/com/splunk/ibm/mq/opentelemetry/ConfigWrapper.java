@@ -15,6 +15,11 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
+import static java.util.Collections.emptyList;
+
+import com.appdynamics.extensions.util.StringUtils;
+import com.splunk.ibm.mq.common.WMQUtil;
+import com.splunk.ibm.mq.config.WMQMetricOverride;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.time.Duration;
@@ -22,10 +27,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
 
 /** Low-fi domain-specific yaml wrapper. */
-final class ConfigWrapper {
+public final class ConfigWrapper {
 
   private static final int DEFAULT_THREADS = 1;
   private static final int DEFAULT_DELAY_SECONDS = 60;
@@ -37,13 +44,13 @@ final class ConfigWrapper {
     this.config = config;
   }
 
-  static ConfigWrapper parse(String configFile) throws FileNotFoundException {
+  public static ConfigWrapper parse(String configFile) throws FileNotFoundException {
     Yaml yaml = new Yaml();
     Map<String, ?> config = yaml.load(new FileReader(configFile));
     return new ConfigWrapper(config);
   }
 
-  int getNumberOfThreads() {
+  public int getNumberOfThreads() {
     return defaultedInt(getTaskSchedule(), "numberOfThreads", DEFAULT_THREADS);
   }
 
@@ -59,6 +66,7 @@ final class ConfigWrapper {
     return defaultedInt(getTaskSchedule(), "initialDelaySeconds", DEFAULT_INITIAL_DELAY);
   }
 
+  @NotNull
   List<String> getQueueManagerNames() {
     return getQueueManagers().stream()
         .map(o -> (Map<String, String>) o)
@@ -66,8 +74,48 @@ final class ConfigWrapper {
         .collect(Collectors.toList());
   }
 
-  private List<?> getQueueManagers() {
-    return (List<?>) config.get("queueManagers");
+  @NotNull
+  public List<Map<String, ?>> getQueueManagers() {
+    List<Map<String, ?>> result = (List<Map<String, ?>>) config.get("queueManagers");
+    if (result == null) {
+      return emptyList();
+    }
+    return result;
+  }
+
+  @NotNull
+  public Map<String, String> getSslConnection() {
+    Map<String, String> result = (Map<String, String>) config.get("sslConnection");
+    if (result == null) {
+      return Collections.emptyMap();
+    }
+    return result;
+  }
+
+  @Nullable
+  public String getEncryptionKey() {
+    return (String) config.get("encryptionKey");
+  }
+
+  public String getMetricPrefix() {
+    String result = (String) config.get("metricPrefix");
+    if (result == null) {
+      return null;
+    }
+    return StringUtils.trim(result.trim(), "|");
+  }
+
+  public Map<String, Map<String, WMQMetricOverride>> getMQMetrics() {
+    List<Map> mqMetrics = (List<Map>) config.get("mqMetrics");
+    return WMQUtil.getMetricsToReportFromConfigYml(mqMetrics);
+  }
+
+  public int getInt(String key, int defaultValue) {
+    Object result = config.get(key);
+    if (result == null) {
+      return defaultValue;
+    }
+    return (Integer) result;
   }
 
   private int defaultedInt(Map<String, ?> section, String key, int defaultValue) {

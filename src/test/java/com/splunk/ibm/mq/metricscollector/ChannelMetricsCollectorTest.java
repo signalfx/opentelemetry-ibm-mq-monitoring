@@ -74,7 +74,7 @@ class ChannelMetricsCollectorTest {
     monitorContextConfig =
         new MonitorContextConfiguration(
             "WMQMonitor",
-            "Custom Metrics|WMQMonitor|",
+            "IGNORED DUE TO EXISTING IN CONFIG, DON'T BELIEVE THE HYPE",
             PathResolver.resolveDirectory(ChannelMetricsCollectorTest.class),
             aMonitorJob);
     monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");

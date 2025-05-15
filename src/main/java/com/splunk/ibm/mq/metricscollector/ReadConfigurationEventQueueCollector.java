@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.MQException;
@@ -45,7 +44,6 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
   private final MetricWriteHelper metricWriteHelper;
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
-  private final MonitorContextConfiguration monitorContextConfig;
   private final MQQueueManager mqQueueManager;
   private final Map<String, WMQMetricOverride> metricsToReport;
   private final long bootTime;
@@ -53,14 +51,12 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
 
   public ReadConfigurationEventQueueCollector(
       Map<String, WMQMetricOverride> metricsToReport,
-      MonitorContextConfiguration monitorContextConfig,
       PCFMessageAgent agent,
       MQQueueManager mqQueueManager,
       QueueManager queueManager,
       MetricWriteHelper metricWriteHelper,
       MetricCreator metricCreator) {
     this.metricsToReport = metricsToReport;
-    this.monitorContextConfig = monitorContextConfig;
     this.agent = agent;
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;
