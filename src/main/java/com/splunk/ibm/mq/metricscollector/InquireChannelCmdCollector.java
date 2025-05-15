@@ -27,9 +27,7 @@ import java.util.List;
 import java.util.Set;
 import org.slf4j.Logger;
 
-/**
- * This class is responsible for channel inquiry metric collection.
- */
+/** This class is responsible for channel inquiry metric collection. */
 public final class InquireChannelCmdCollector implements MetricsPublisher {
 
   public static final Logger logger =
@@ -59,7 +57,7 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CHANNEL);
       request.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, channelGenericName);
       request.addParameter(
-          new MQCFIL(MQConstants.MQIACF_CHANNEL_ATTRS, new int[]{MQConstants.MQIACF_ALL}));
+          new MQCFIL(MQConstants.MQIACF_CHANNEL_ATTRS, new int[] {MQConstants.MQIACF_ALL}));
       try {
         logger.debug(
             "sending PCF agent request to query metrics for generic channel {}",
@@ -76,10 +74,11 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
           return;
         }
 
-        List<PCFMessage> messages = MessageFilter.ofKind("channel")
-            .excluding(context.getChannelExcludeFilters())
-            .withResourceExtractor(MessageBuddy::channelName)
-            .filter(response);
+        List<PCFMessage> messages =
+            MessageFilter.ofKind("channel")
+                .excluding(context.getChannelExcludeFilters())
+                .withResourceExtractor(MessageBuddy::channelName)
+                .filter(response);
 
         for (PCFMessage message : messages) {
           String channelName = MessageBuddy.channelName(message);

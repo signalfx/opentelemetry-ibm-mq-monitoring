@@ -152,5 +152,4 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
   }
-
 }

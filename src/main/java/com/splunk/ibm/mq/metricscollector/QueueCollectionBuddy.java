@@ -24,12 +24,10 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.*;
-import com.splunk.ibm.mq.config.ExcludeFilters;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,10 +104,11 @@ final class QueueCollectionBuddy {
       return;
     }
 
-    List<PCFMessage> messages = MessageFilter.ofKind("queue")
-        .excluding(context.getQueueExcludeFilters())
-        .withResourceExtractor(MessageBuddy::queueName)
-        .filter(response);
+    List<PCFMessage> messages =
+        MessageFilter.ofKind("queue")
+            .excluding(context.getQueueExcludeFilters())
+            .withResourceExtractor(MessageBuddy::queueName)
+            .filter(response);
 
     for (PCFMessage message : messages) {
       handleMessage(message);

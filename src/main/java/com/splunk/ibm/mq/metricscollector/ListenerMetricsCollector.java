@@ -38,8 +38,7 @@ import org.slf4j.LoggerFactory;
  * information such as: - listener is running or stopped - port number and transport type - last
  * error codes - associated command server •
  *
- * <p>It utilizes WMQMetricOverride to map metrics from the configuration to their IBM MQ
- * constants.
+ * <p>It utilizes WMQMetricOverride to map metrics from the configuration to their IBM MQ constants.
  */
 public final class ListenerMetricsCollector implements MetricsPublisher {
 
@@ -89,10 +88,11 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
           return;
         }
 
-        List<PCFMessage> messages = MessageFilter.ofKind("listener")
-            .excluding(context.getListenerExcludeFilters())
-            .withResourceExtractor(MessageBuddy::listenerName)
-            .filter(response);
+        List<PCFMessage> messages =
+            MessageFilter.ofKind("listener")
+                .excluding(context.getListenerExcludeFilters())
+                .withResourceExtractor(MessageBuddy::listenerName)
+                .filter(response);
 
         for (PCFMessage message : messages) {
           String listenerName = MessageBuddy.listenerName(message);

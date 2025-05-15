@@ -97,5 +97,4 @@ public final class QueueMetricsCollector implements MetricsPublisher {
       logger.error("The thread was interrupted ", e);
     }
   }
-
 }
