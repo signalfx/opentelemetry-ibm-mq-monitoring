@@ -15,10 +15,12 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
+import com.splunk.ibm.mq.TaskJob;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 
 /**
  * JobSubmitterContext is a bundle class used by MetricsPublisher instances in order to bundle
@@ -26,35 +28,30 @@ import java.util.concurrent.CountDownLatch;
  */
 public final class JobSubmitterContext {
 
-  private final MonitorContextConfiguration monitorContextConfig;
   private final MetricsCollectorContext collectorContext;
+  private final ConfigWrapper config;
+  private final ExecutorService threadPool;
 
   public JobSubmitterContext(
-      MonitorContextConfiguration monitorContextConfig, MetricsCollectorContext collectorContext) {
-    this.monitorContextConfig = monitorContextConfig;
+      MetricsCollectorContext collectorContext, ExecutorService threadPool, ConfigWrapper config) {
     this.collectorContext = collectorContext;
-  }
-
-  String getMetricPrefix() {
-    return monitorContextConfig.getMetricPrefix();
+    this.config = config;
+    this.threadPool = threadPool;
   }
 
   void submitPublishJob(MetricsPublisher publisher, CountDownLatch latch) {
     MetricsPublisherJob job = new MetricsPublisherJob(publisher, latch);
-    monitorContextConfig.getContext().getExecutorService().execute(publisher.getName(), job);
-  }
-
-  int getConfigInt(String key, int defaultValue) {
-    Object result = monitorContextConfig.getConfigYml().get(key);
-    if (result == null) {
-      return defaultValue;
-    }
-    return (Integer) result;
+    Runnable wrappedJob = new TaskJob(publisher.getName(), job);
+    threadPool.submit(wrappedJob);
   }
 
   MetricCreator newMetricCreator(String firstPathComponent) {
     return new MetricCreator(
-        getMetricPrefix(), collectorContext.getQueueManagerName(), firstPathComponent);
+        config.getMetricPrefix(), collectorContext.getQueueManagerName(), firstPathComponent);
+  }
+
+  public int getConfigInt(String key, int defaultValue) {
+    return config.getInt(key, defaultValue);
   }
 
   MetricsCollectorContext newCollectorContext(Map<String, WMQMetricOverride> newMetrics) {

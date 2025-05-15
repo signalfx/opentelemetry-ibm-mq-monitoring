@@ -15,30 +15,35 @@
  */
 package com.splunk.ibm.mq;
 
-import com.appdynamics.extensions.ABaseMonitor;
 import com.appdynamics.extensions.Constants;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.TasksExecutionServiceProvider;
-import com.appdynamics.extensions.util.AssertUtils;
 import com.appdynamics.extensions.util.CryptoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.splunk.ibm.mq.config.QueueManager;
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WMQMonitor extends ABaseMonitor {
+public class WMQMonitor implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitor.class);
 
-  private final MetricWriteHelper overrideHelper;
+  private final MetricWriteHelper metricWriteHelper;
+  private final ExecutorService threadPool;
+  private final ConfigWrapper config;
 
-  public WMQMonitor(MetricWriteHelper overrideHelper) {
-    assert (overrideHelper != null);
-    this.overrideHelper = overrideHelper;
+  public WMQMonitor(
+      ConfigWrapper config, ExecutorService threadPool, MetricWriteHelper metricWriteHelper) {
+    assert (metricWriteHelper != null);
+    this.config = config;
+    this.threadPool = threadPool;
+    this.metricWriteHelper = metricWriteHelper;
   }
 
   protected String getDefaultMetricPrefix() {
@@ -49,47 +54,39 @@ public class WMQMonitor extends ABaseMonitor {
     return "WMQMonitor";
   }
 
-  protected void doRun(TasksExecutionServiceProvider IGNORED_DUE_TO_LOCAL_OVERRIDE) {
-    List<Map> queueManagers =
-        (List<Map>) this.getContextConfiguration().getConfigYml().get("queueManagers");
-    AssertUtils.assertNotNull(
-        queueManagers, "The 'queueManagers' section in config.yml is not initialised");
+  @Override
+  public void run() {
+    configureSecurity();
+
+    List<Map<String, ?>> queueManagers = getQueueManagers();
     ObjectMapper mapper = new ObjectMapper();
-    // we override this helper to pass in our opentelemetry helper instead.
 
-    TasksExecutionServiceProvider tasksExecutionServiceProvider =
-        new TasksExecutionServiceProvider(this, this.overrideHelper);
-
-    for (Map queueManager : queueManagers) {
+    for (Map<String, ?> queueManager : queueManagers) {
       QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
-      WMQMonitorTask wmqTask =
-          new WMQMonitorTask(
-              tasksExecutionServiceProvider, this.getContextConfiguration(), qManager);
-      tasksExecutionServiceProvider.submit((String) queueManager.get("name"), wmqTask);
+      WMQMonitorTask task = new WMQMonitorTask(config, metricWriteHelper, qManager, threadPool);
+      threadPool.submit(new TaskJob((String) queueManager.get("name"), task));
     }
   }
 
-  @Override
-  protected List<Map<String, ?>> getServers() {
-    List<Map<String, ?>> queueManagers =
-        (List<Map<String, ?>>) getContextConfiguration().getConfigYml().get("queueManagers");
-    AssertUtils.assertNotNull(
-        queueManagers, "The 'queueManagers' section in config.yml is not initialised");
+  @NotNull
+  private List<Map<String, ?>> getQueueManagers() {
+    List<Map<String, ?>> queueManagers = config.getQueueManagers();
+    if (queueManagers.isEmpty()) {
+      throw new IllegalStateException(
+          "The 'queueManagers' section in config.yml is empty or otherwise incorrect.");
+    }
     return queueManagers;
   }
 
-  @Override
-  protected void initializeMoreStuff(Map<String, String> args) {
-    Map<String, ?> configProperties = this.getContextConfiguration().getConfigYml();
-    Map<String, String> sslConnection = (Map<String, String>) configProperties.get("sslConnection");
-
-    if (sslConnection == null) {
+  private void configureSecurity() {
+    Map<String, String> sslConnection = config.getSslConnection();
+    if (sslConnection.isEmpty()) {
       logger.debug(
           "ssl truststore and keystore are not configured in config.yml, if SSL is enabled, pass them as jvm args");
       return;
     }
 
-    String encryptionKey = (String) configProperties.get("encryptionKey");
+    String encryptionKey = config.getEncryptionKey();
 
     configureTrustStore(sslConnection, encryptionKey);
     configureKeyStore(sslConnection, encryptionKey);

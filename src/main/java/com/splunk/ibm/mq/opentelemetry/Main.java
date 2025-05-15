@@ -15,8 +15,6 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
-import com.singularity.ee.agent.systemagent.api.TaskExecutionContext;
-import com.singularity.ee.agent.systemagent.api.exception.TaskExecutionException;
 import com.splunk.ibm.mq.WMQMonitor;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
@@ -42,6 +40,13 @@ public class Main {
   public static void main(String[] args) throws Exception {
     if (args.length == 0) {
       System.err.println("Usage: Main <config-file>");
+      System.exit(1);
+    }
+
+    try {
+      Main.class.getClassLoader().loadClass("com.ibm.mq.headers.MQDataException");
+    } catch (ClassNotFoundException e) {
+      System.err.println("IBM MQ jar is missing from classpath.");
       System.exit(1);
     }
 
@@ -90,16 +95,9 @@ public class Main {
 
     service.scheduleAtFixedRate(
         () -> {
-          try {
-            WMQMonitor monitor =
-                new WMQMonitor(new OpenTelemetryMetricWriteHelper(exporter, meters));
-            TaskExecutionContext taskExecCtx = new TaskExecutionContext();
-            Map<String, String> taskArguments = new HashMap<>();
-            taskArguments.put("config-file", configFile);
-            monitor.execute(taskArguments, taskExecCtx);
-          } catch (TaskExecutionException e) {
-            throw new RuntimeException(e);
-          }
+          WMQMonitor monitor =
+              new WMQMonitor(config, service, new OpenTelemetryMetricWriteHelper(exporter, meters));
+          monitor.run();
         },
         config.getTaskInitialDelaySeconds(),
         config.getTaskDelaySeconds(),

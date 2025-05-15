@@ -22,9 +22,7 @@ import static org.mockito.Mockito.*;
 
 import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.PathResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
@@ -32,11 +30,13 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.common.Constants;
-import com.splunk.ibm.mq.common.WMQUtil;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,26 +54,20 @@ public class TopicMetricsCollectorTest {
 
   @Mock private MetricWriteHelper metricWriteHelper;
 
-  private MonitorContextConfiguration monitorContextConfig;
+  //  private MonitorContextConfiguration monitorContextConfig;
   private Map<String, WMQMetricOverride> topicMetricsToReport;
   private QueueManager queueManager;
   private ArgumentCaptor<List<Metric>> pathCaptor;
+  private ConfigWrapper config;
+  private ExecutorService threadPool;
 
   @BeforeEach
-  void setup() {
-    monitorContextConfig =
-        new MonitorContextConfiguration(
-            "WMQMonitor",
-            "Custom Metrics|WMQMonitor|",
-            PathResolver.resolveDirectory(TopicMetricsCollectorTest.class),
-            aMonitorJob);
-    monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
-    Map<String, ?> configMap = monitorContextConfig.getConfigYml();
+  void setup() throws Exception {
+    config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
+    threadPool = Executors.newFixedThreadPool(config.getNumberOfThreads());
     ObjectMapper mapper = new ObjectMapper();
-    queueManager =
-        mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
-    Map<String, Map<String, WMQMetricOverride>> metricsMap =
-        WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
+    queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
+    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
     topicMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_TOPIC);
     pathCaptor = ArgumentCaptor.forClass(List.class);
   }
@@ -83,8 +77,7 @@ public class TopicMetricsCollectorTest {
     MetricsCollectorContext collectorContext =
         new MetricsCollectorContext(
             topicMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
-    JobSubmitterContext jobContext =
-        new JobSubmitterContext(monitorContextConfig, collectorContext);
+    JobSubmitterContext jobContext = new JobSubmitterContext(collectorContext, threadPool, config);
     classUnderTest = new TopicMetricsCollector(jobContext);
 
     when(pcfMessageAgent.send(any(PCFMessage.class)))
