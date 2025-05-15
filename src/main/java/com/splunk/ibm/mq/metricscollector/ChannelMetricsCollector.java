@@ -96,11 +96,11 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
         List<PCFMessage> messages =
             MessageFilter.ofKind("channel name")
                 .excluding(context.getChannelExcludeFilters())
-                .withResourceExtractor(this::getChannelNameFromMessage)
+                .withResourceExtractor(MessageBuddy::channelName)
                 .filter(response);
 
         for (PCFMessage message : messages) {
-          String channelName = getChannelNameFromMessage(message);
+          String channelName = MessageBuddy.channelName(message);
 
           logger.debug("Pulling out metrics for channel name {}", channelName);
           List<Metric> responseMetrics = Lists.newArrayList();
@@ -153,7 +153,4 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
     logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
   }
 
-  private String getChannelNameFromMessage(PCFMessage message) throws PCFException {
-    return message.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
-  }
 }
