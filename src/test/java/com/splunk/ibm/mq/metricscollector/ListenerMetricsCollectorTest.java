@@ -18,21 +18,21 @@ package com.splunk.ibm.mq.metricscollector;
 import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
 import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.standardPropsForAlias;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.PathResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.common.Constants;
-import com.splunk.ibm.mq.common.WMQUtil;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,41 +44,29 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ListenerMetricsCollectorTest {
+
   private ListenerMetricsCollector classUnderTest;
-  @Mock private AMonitorJob aMonitorJob;
 
   @Mock private PCFMessageAgent pcfMessageAgent;
 
   @Mock private MetricWriteHelper metricWriteHelper;
 
-  private MonitorContextConfiguration monitorContextConfig;
   private Map<String, WMQMetricOverride> listenerMetricsToReport;
   private QueueManager queueManager;
   private ArgumentCaptor<List<Metric>> pathCaptor;
   private MetricCreator metricCreator;
 
   @BeforeEach
-  public void setup() {
-    monitorContextConfig =
-        new MonitorContextConfiguration(
-            "WMQMonitor",
-            "Custom Metrics|WMQMonitor|",
-            PathResolver.resolveDirectory(ListenerMetricsCollectorTest.class),
-            aMonitorJob);
-    monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
-    Map<String, ?> configMap = monitorContextConfig.getConfigYml();
+  public void setup() throws Exception {
+    ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
-    queueManager =
-        mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
-    Map<String, Map<String, WMQMetricOverride>> metricsMap =
-        WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
+    queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
+    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
     listenerMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_LISTENER);
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator =
         new MetricCreator(
-            monitorContextConfig.getMetricPrefix(),
-            queueManager,
-            ListenerMetricsCollector.ARTIFACT);
+            config.getMetricPrefix(), queueManager, ListenerMetricsCollector.ARTIFACT);
   }
 
   @Test

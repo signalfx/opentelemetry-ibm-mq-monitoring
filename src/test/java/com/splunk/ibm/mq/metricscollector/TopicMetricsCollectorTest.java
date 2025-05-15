@@ -20,7 +20,6 @@ import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.standard
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -48,13 +47,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class TopicMetricsCollectorTest {
   private TopicMetricsCollector classUnderTest;
 
-  @Mock private AMonitorJob aMonitorJob;
-
   @Mock private PCFMessageAgent pcfMessageAgent;
 
   @Mock private MetricWriteHelper metricWriteHelper;
 
-  //  private MonitorContextConfiguration monitorContextConfig;
   private Map<String, WMQMetricOverride> topicMetricsToReport;
   private QueueManager queueManager;
   private ArgumentCaptor<List<Metric>> pathCaptor;

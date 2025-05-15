@@ -21,20 +21,17 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.PathResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.common.Constants;
-import com.splunk.ibm.mq.common.WMQUtil;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -50,33 +47,21 @@ class InquireChannelCmdCollectorTest {
 
   InquireChannelCmdCollector classUnderTest;
 
-  @Mock AMonitorJob aMonitorJob;
-
   @Mock PCFMessageAgent pcfMessageAgent;
 
   @Mock MetricWriteHelper metricWriteHelper;
-
-  MonitorContextConfiguration monitorContextConfig;
 
   ArgumentCaptor<List> pathCaptor;
   MetricCreator metricCreator;
   MetricsCollectorContext context;
 
   @BeforeEach
-  public void setup() {
-    monitorContextConfig =
-        new MonitorContextConfiguration(
-            "WMQMonitor",
-            "Custom Metrics|WMQMonitor|",
-            PathResolver.resolveDirectory(InquireChannelCmdCollectorTest.class),
-            aMonitorJob);
-    monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
-    Map<String, ?> configMap = monitorContextConfig.getConfigYml();
+  public void setup() throws Exception {
+    ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     QueueManager queueManager =
-        mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
-    Map<String, Map<String, WMQMetricOverride>> metricsMap =
-        WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
+        mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
+    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
     Map<String, WMQMetricOverride> channelMetrics = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
     Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
     for (String key : channelMetrics.keySet()) {
@@ -93,9 +78,7 @@ class InquireChannelCmdCollectorTest {
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator =
         new MetricCreator(
-            monitorContextConfig.getMetricPrefix(),
-            queueManager,
-            InquireChannelCmdCollector.ARTIFACT);
+            config.getMetricPrefix(), queueManager, InquireChannelCmdCollector.ARTIFACT);
     IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(channelMetricsToReport);
     context =
         new MetricsCollectorContext(
