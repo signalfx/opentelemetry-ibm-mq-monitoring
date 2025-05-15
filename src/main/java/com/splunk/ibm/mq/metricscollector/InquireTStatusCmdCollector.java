@@ -114,7 +114,7 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
     }
 
     List<PCFMessage> messages = MessageFilter.ofKind("topic name")
-        .excluding(context.getChannelExcludeFilters())
+        .excluding(context.getTopicExcludeFilters())
         .withResourceExtractor(MessageBuddy::topicName)
         .filter(response);
 
