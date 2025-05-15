@@ -76,15 +76,14 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
             "sending PCF agent request to query metrics for generic listener {}",
             listenerGenericName);
         long startTime = System.currentTimeMillis();
-        PCFMessage[] response = context.send(request);
+        List<PCFMessage> response = context.send(request);
         long endTime = System.currentTimeMillis() - startTime;
         logger.debug(
             "PCF agent listener metrics query response for generic listener {} received in {} milliseconds",
             listenerGenericName,
             endTime);
-        if (response == null || response.length <= 0) {
-          logger.debug(
-              "Unexpected Error while PCFMessage.send(), response is either null or empty");
+        if (response.isEmpty()) {
+          logger.debug("Unexpected error while PCFMessage.send(), response is empty");
           return;
         }
         for (PCFMessage pcfMessage : response) {
@@ -110,9 +109,7 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
         }
       } catch (Exception e) {
         logger.error(
-            "Unexpected Error occurred while collecting metrics for listener "
-                + listenerGenericName,
-            e);
+            "Unexpected error while collecting metrics for listener " + listenerGenericName, e);
       }
     }
     long exitTime = System.currentTimeMillis() - entryTime;

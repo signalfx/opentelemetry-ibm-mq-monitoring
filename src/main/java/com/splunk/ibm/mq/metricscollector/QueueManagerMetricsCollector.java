@@ -53,20 +53,20 @@ public final class QueueManagerMetricsCollector implements MetricsPublisher {
       logger.debug(
           "sending PCF agent request to query queuemanager {}", context.getAgentQueueManagerName());
       long startTime = System.currentTimeMillis();
-      PCFMessage[] responses = context.send(request);
+      List<PCFMessage> responses = context.send(request);
       long endTime = System.currentTimeMillis() - startTime;
       logger.debug(
           "PCF agent queuemanager metrics query response for {} received in {} milliseconds",
           context.getAgentQueueManagerName(),
           endTime);
-      if (responses == null || responses.length <= 0) {
-        logger.debug("Unexpected Error while PCFMessage.send(), response is either null or empty");
+      if (responses.isEmpty()) {
+        logger.debug("Unexpected error while PCFMessage.send(), response is empty");
         return;
       }
       List<Metric> responseMetrics = Lists.newArrayList();
       context.forEachMetric(
           (metricKey, wmqOverride) -> {
-            int metricVal = responses[0].getIntParameterValue(wmqOverride.getConstantValue());
+            int metricVal = responses.get(0).getIntParameterValue(wmqOverride.getConstantValue());
             if (logger.isDebugEnabled()) {
               logger.debug("Metric: {}={}", metricKey, metricVal);
             }

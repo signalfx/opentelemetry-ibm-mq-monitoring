@@ -15,6 +15,7 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
 import com.appdynamics.extensions.MetricWriteHelper;
@@ -32,6 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import javax.annotation.concurrent.Immutable;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,8 +120,10 @@ public final class MetricsCollectorContext {
     return queueManager.getQueueFilters().getExclude();
   }
 
-  PCFMessage[] send(PCFMessage request) throws IOException, MQDataException {
-    return agent.send(request);
+  @NotNull
+  List<PCFMessage> send(PCFMessage request) throws IOException, MQDataException {
+    PCFMessage[] result = agent.send(request);
+    return result == null ? emptyList() : Arrays.asList(result);
   }
 
   void forEachMetric(MetricConsumerAction action) throws PCFException {

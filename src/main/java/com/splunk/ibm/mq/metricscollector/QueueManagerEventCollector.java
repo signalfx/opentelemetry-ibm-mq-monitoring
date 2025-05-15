@@ -120,7 +120,7 @@ public final class QueueManagerEventCollector implements MetricsPublisher {
       readEvents(queueManagerEventsQueueName);
     } catch (Exception e) {
       logger.error(
-          "Unexpected Error occurred while collecting queue manager events for queue "
+          "Unexpected error occurred while collecting queue manager events for queue "
               + queueManagerEventsQueueName,
           e);
     }

@@ -64,14 +64,14 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
             "sending PCF agent request to query metrics for generic channel {}",
             channelGenericName);
         long startTime = System.currentTimeMillis();
-        PCFMessage[] response = context.send(request);
+        List<PCFMessage> response = context.send(request);
         long endTime = System.currentTimeMillis() - startTime;
         logger.debug(
             "PCF agent queue metrics query response for generic queue {} received in {} milliseconds",
             channelGenericName,
             endTime);
-        if (response == null || response.length <= 0) {
-          logger.warn("Unexpected Error while PCFMessage.send(), response is either null or empty");
+        if (response.isEmpty()) {
+          logger.warn("Unexpected error while PCFMessage.send(), response is empty");
           return;
         }
         for (PCFMessage pcfMessage : response) {
@@ -115,8 +115,7 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
         logger.error(pcfe.getMessage(), pcfe);
       } catch (Exception e) {
         logger.error(
-            "Unexpected Error occoured while collecting metrics for channel " + channelGenericName,
-            e);
+            "Unexpected error while collecting metrics for channel " + channelGenericName, e);
       }
     }
 

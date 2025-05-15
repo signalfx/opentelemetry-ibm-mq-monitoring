@@ -25,7 +25,11 @@ import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.headers.MQDataException;
-import com.ibm.mq.headers.pcf.*;
+import com.ibm.mq.headers.pcf.MQCFIL;
+import com.ibm.mq.headers.pcf.MQCFIN;
+import com.ibm.mq.headers.pcf.PCFException;
+import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFParameter;
 import com.splunk.ibm.mq.config.ExcludeFilters;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
 import java.io.IOException;
@@ -33,7 +37,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,29 +124,29 @@ public final class QueueMetricsCollector implements MetricsPublisher {
         queueGenericName,
         command);
     long startTime = System.currentTimeMillis();
-    PCFMessage[] response = context.send(request);
+    List<PCFMessage> response = context.send(request);
     long endTime = System.currentTimeMillis() - startTime;
     logger.debug(
         "PCF agent queue metrics query response for generic queue {} for command {} received in {} milliseconds",
         queueGenericName,
         command,
         endTime);
-    if (response == null || response.length <= 0) {
+    if (response.isEmpty()) {
       logger.debug(
-          "Unexpected Error while PCFMessage.send() for command {}, response is either null or empty",
+          "Unexpected error while PCFMessage.send() for command {}, response is either null or empty",
           command);
       return;
     }
-    for (int i = 0; i < response.length; i++) {
-      String queueName = response[i].getStringParameterValue(CMQC.MQCA_Q_NAME).trim();
+    for (PCFMessage pcfMessage : response) {
+      String queueName = pcfMessage.getStringParameterValue(CMQC.MQCA_Q_NAME).trim();
       String queueType;
-      if (response[i].getParameterValue(CMQC.MQIA_Q_TYPE) == null) {
+      if (pcfMessage.getParameterValue(CMQC.MQIA_Q_TYPE) == null) {
         queueType = sharedState.getType(queueName);
         if (queueType == null) {
           continue;
         }
       } else {
-        switch (response[i].getIntParameterValue(CMQC.MQIA_Q_TYPE)) {
+        switch (pcfMessage.getIntParameterValue(CMQC.MQIA_Q_TYPE)) {
           case MQQT_LOCAL:
             queueType = "local";
             break;
@@ -158,12 +164,12 @@ public final class QueueMetricsCollector implements MetricsPublisher {
             break;
           default:
             logger.warn(
-                "Unknown type of queue {}", response[i].getIntParameterValue(CMQC.MQIA_Q_TYPE));
+                "Unknown type of queue {}", pcfMessage.getIntParameterValue(CMQC.MQIA_Q_TYPE));
             queueType = "unknown";
             break;
         }
-        if (response[i].getParameter(CMQC.MQIA_USAGE) != null) {
-          switch (response[i].getIntParameterValue(CMQC.MQIA_USAGE)) {
+        if (pcfMessage.getParameter(CMQC.MQIA_USAGE) != null) {
+          switch (pcfMessage.getIntParameterValue(CMQC.MQIA_USAGE)) {
             case CMQC.MQUS_NORMAL:
               queueType += "-normal";
               break;
@@ -184,17 +190,17 @@ public final class QueueMetricsCollector implements MetricsPublisher {
           String metrickey = itr.next();
           WMQMetricOverride wmqOverride = metrics.get(metrickey);
           try {
-            PCFParameter pcfParam = response[i].getParameter(wmqOverride.getConstantValue());
+            PCFParameter pcfParam = pcfMessage.getParameter(wmqOverride.getConstantValue());
             if (pcfParam != null) {
               if (pcfParam instanceof MQCFIN) {
-                int metricVal = response[i].getIntParameterValue(wmqOverride.getConstantValue());
+                int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
                 Metric metric =
                     metricCreator.createMetric(
                         metrickey, metricVal, wmqOverride, queueName, queueType, metrickey);
                 responseMetrics.add(metric);
               } else if (pcfParam instanceof MQCFIL) {
                 int[] metricVals =
-                    response[i].getIntListParameterValue(wmqOverride.getConstantValue());
+                    pcfMessage.getIntListParameterValue(wmqOverride.getConstantValue());
                 if (metricVals != null) {
                   int count = 0;
                   for (int val : metricVals) {

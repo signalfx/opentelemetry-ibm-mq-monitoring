@@ -93,17 +93,16 @@ final class QueueCollectionBuddy {
         queueGenericName,
         command);
     long startTime = System.currentTimeMillis();
-    PCFMessage[] response = context.send(request);
+    List<PCFMessage> response = context.send(request);
     long endTime = System.currentTimeMillis() - startTime;
     logger.debug(
         "PCF agent queue metrics query response for generic queue {} for command {} received in {} milliseconds",
         queueGenericName,
         command,
         endTime);
-    if (response == null || response.length == 0) {
+    if (response.isEmpty()) {
       logger.debug(
-          "Unexpected Error while PCFMessage.send() for command {}, response is either null or empty",
-          command);
+          "Unexpected error while PCFMessage.send() for command {}, response is empty", command);
       return;
     }
     for (PCFMessage pcfMessage : response) {

@@ -24,15 +24,17 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.splunk.ibm.mq.config.ExcludeFilters;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** This class is responsible for channel metric collection. */
 public final class ChannelMetricsCollector implements MetricsPublisher {
 
-  public static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
+  private static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
+
   public static final String ARTIFACT = "Channels";
   private final MetricCreator metricCreator;
   private final MetricsCollectorContext context;
@@ -80,45 +82,45 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
             "sending PCF agent request to query metrics for generic channel {}",
             channelGenericName);
         long startTime = System.currentTimeMillis();
-        PCFMessage[] response = context.send(request);
+        List<PCFMessage> response = context.send(request);
         long endTime = System.currentTimeMillis() - startTime;
         logger.debug(
             "PCF agent queue metrics query response for generic queue {} received in {} milliseconds",
             channelGenericName,
             endTime);
-        if (response == null || response.length <= 0) {
-          logger.debug(
-              "Unexpected Error while PCFMessage.send(), response is either null or empty");
+        if (response.isEmpty()) {
+          logger.debug("Unexpected error while PCFMessage.send(), response is empty");
           return;
         }
-        for (PCFMessage pcfMessage : response) {
-          String channelName =
-              pcfMessage.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
-          Set<ExcludeFilters> excludeFilters = context.getChannelExcludeFilters();
-          if (!ExcludeFilters.isExcluded(
-              channelName, excludeFilters)) { // check for exclude filters
-            logger.debug("Pulling out metrics for channel name {}", channelName);
-            List<Metric> responseMetrics = Lists.newArrayList();
-            context.forEachMetric(
-                (metrickey, wmqOverride) -> {
-                  int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                  Metric metric =
-                      metricCreator.createMetric(
-                          metrickey, metricVal, wmqOverride, channelName, metrickey);
-                  responseMetrics.add(metric);
-                  // We follow the definition of active channel as documented in
-                  // https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
-                  if ("Status".equals(metrickey)
-                      && metricVal != CMQCFC.MQCHS_RETRYING
-                      && metricVal != CMQCFC.MQCHS_STOPPED
-                      && metricVal != CMQCFC.MQCHS_STARTING) {
-                    activeChannels.add(channelName);
-                  }
-                });
-            context.transformAndPrintMetrics(responseMetrics);
-          } else {
-            logger.debug("Channel name {} is excluded.", channelName);
-          }
+
+        List<PCFMessage> messages =
+            MessageFilter.ofKind("channel name")
+                .excluding(context.getChannelExcludeFilters())
+                .withResourceExtractor(this::getChannelNameFromMessage)
+                .filter(response);
+
+        for (PCFMessage message : messages) {
+          String channelName = getChannelNameFromMessage(message);
+
+          logger.debug("Pulling out metrics for channel name {}", channelName);
+          List<Metric> responseMetrics = Lists.newArrayList();
+          context.forEachMetric(
+              (metrickey, wmqOverride) -> {
+                int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
+                Metric metric =
+                    metricCreator.createMetric(
+                        metrickey, metricVal, wmqOverride, channelName, metrickey);
+                responseMetrics.add(metric);
+                // We follow the definition of active channel as documented in
+                // https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
+                if ("Status".equals(metrickey)
+                    && metricVal != CMQCFC.MQCHS_RETRYING
+                    && metricVal != CMQCFC.MQCHS_STOPPED
+                    && metricVal != CMQCFC.MQCHS_STARTING) {
+                  activeChannels.add(channelName);
+                }
+              });
+          context.transformAndPrintMetrics(responseMetrics);
         }
       } catch (PCFException pcfe) {
         if (pcfe.getReason() == MQRCCF_CHL_STATUS_NOT_FOUND) {
@@ -135,7 +137,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
         }
       } catch (Exception e) {
         logger.error(
-            "Unexpected Error occurred while collecting metrics for channel " + channelGenericName,
+            "Unexpected error occurred while collecting metrics for channel " + channelGenericName,
             e);
       }
     }
@@ -149,5 +151,9 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
 
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
+  }
+
+  private String getChannelNameFromMessage(PCFMessage message) throws PCFException {
+    return message.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
   }
 }

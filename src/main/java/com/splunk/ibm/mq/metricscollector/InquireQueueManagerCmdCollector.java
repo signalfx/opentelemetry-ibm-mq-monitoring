@@ -48,7 +48,7 @@ public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
         context.getAgentQueueManagerName(),
         entryTime);
     PCFMessage request;
-    PCFMessage[] responses;
+    List<PCFMessage> responses;
     // CMQCFC.MQCMD_INQUIRE_Q_MGR is 2
     request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR);
     // request.addParameter(CMQC.MQCA_Q_MGR_NAME, "*");
@@ -66,14 +66,14 @@ public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
           "PCF agent queuemanager metrics query response for {} received in {} milliseconds",
           context.getAgentQueueManagerName(),
           endTime);
-      if (responses == null || responses.length <= 0) {
-        logger.debug("Unexpected Error while PCFMessage.send(), response is either null or empty");
+      if (responses.isEmpty()) {
+        logger.debug("Unexpected error while PCFMessage.send(), response is either null or empty");
         return;
       }
       List<Metric> responseMetrics = Lists.newArrayList();
       context.forEachMetric(
           (metrickey, wmqOverride) -> {
-            int metricVal = responses[0].getIntParameterValue(wmqOverride.getConstantValue());
+            int metricVal = responses.get(0).getIntParameterValue(wmqOverride.getConstantValue());
             if (logger.isDebugEnabled()) {
               logger.debug("Metric: " + metrickey + "=" + metricVal);
             }

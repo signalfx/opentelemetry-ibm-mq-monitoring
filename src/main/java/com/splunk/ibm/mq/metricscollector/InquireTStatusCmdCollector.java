@@ -100,16 +100,16 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
         topicGenericName,
         command);
     long startTime = System.currentTimeMillis();
-    PCFMessage[] response = context.send(request);
+    List<PCFMessage> response = context.send(request);
     long endTime = System.currentTimeMillis() - startTime;
     logger.debug(
         "PCF agent topic metrics query response for generic topic {} for command {} received in {} milliseconds",
         topicGenericName,
         command,
         endTime);
-    if (response == null || response.length <= 0) {
+    if (response.isEmpty()) {
       logger.debug(
-          "Unexpected Error while PCFMessage.send() for command {}, response is either null or empty",
+          "Unexpected error while PCFMessage.send() for command {}, response is either null or empty",
           command);
       return;
     }
