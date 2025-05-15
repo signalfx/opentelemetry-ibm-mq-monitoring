@@ -15,28 +15,10 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import static com.ibm.mq.constants.CMQC.MQQT_ALIAS;
-import static com.ibm.mq.constants.CMQC.MQQT_CLUSTER;
-import static com.ibm.mq.constants.CMQC.MQQT_LOCAL;
-import static com.ibm.mq.constants.CMQC.MQQT_MODEL;
-import static com.ibm.mq.constants.CMQC.MQQT_REMOTE;
-
-import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
-import com.ibm.mq.constants.CMQC;
-import com.ibm.mq.headers.MQDataException;
-import com.ibm.mq.headers.pcf.MQCFIL;
-import com.ibm.mq.headers.pcf.MQCFIN;
-import com.ibm.mq.headers.pcf.PCFException;
-import com.ibm.mq.headers.pcf.PCFMessage;
-import com.ibm.mq.headers.pcf.PCFParameter;
-import com.splunk.ibm.mq.config.ExcludeFilters;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
-import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -116,126 +98,4 @@ public final class QueueMetricsCollector implements MetricsPublisher {
     }
   }
 
-  protected void processPCFRequestAndPublishQMetrics(
-      MetricsCollectorContext context, String queueGenericName, PCFMessage request, String command)
-      throws IOException, MQDataException {
-    logger.debug(
-        "sending PCF agent request to query metrics for generic queue {} for command {}",
-        queueGenericName,
-        command);
-    long startTime = System.currentTimeMillis();
-    List<PCFMessage> response = context.send(request);
-    long endTime = System.currentTimeMillis() - startTime;
-    logger.debug(
-        "PCF agent queue metrics query response for generic queue {} for command {} received in {} milliseconds",
-        queueGenericName,
-        command,
-        endTime);
-    if (response.isEmpty()) {
-      logger.debug(
-          "Unexpected error while PCFMessage.send() for command {}, response is either null or empty",
-          command);
-      return;
-    }
-    for (PCFMessage pcfMessage : response) {
-      String queueName = pcfMessage.getStringParameterValue(CMQC.MQCA_Q_NAME).trim();
-      String queueType;
-      if (pcfMessage.getParameterValue(CMQC.MQIA_Q_TYPE) == null) {
-        queueType = sharedState.getType(queueName);
-        if (queueType == null) {
-          continue;
-        }
-      } else {
-        switch (pcfMessage.getIntParameterValue(CMQC.MQIA_Q_TYPE)) {
-          case MQQT_LOCAL:
-            queueType = "local";
-            break;
-          case MQQT_ALIAS:
-            queueType = "alias";
-            break;
-          case MQQT_REMOTE:
-            queueType = "remote";
-            break;
-          case MQQT_CLUSTER:
-            queueType = "cluster";
-            break;
-          case MQQT_MODEL:
-            queueType = "model";
-            break;
-          default:
-            logger.warn(
-                "Unknown type of queue {}", pcfMessage.getIntParameterValue(CMQC.MQIA_Q_TYPE));
-            queueType = "unknown";
-            break;
-        }
-        if (pcfMessage.getParameter(CMQC.MQIA_USAGE) != null) {
-          switch (pcfMessage.getIntParameterValue(CMQC.MQIA_USAGE)) {
-            case CMQC.MQUS_NORMAL:
-              queueType += "-normal";
-              break;
-            case CMQC.MQUS_TRANSMISSION:
-              queueType += "-transmission";
-              break;
-          }
-        }
-        sharedState.putQueueType(queueName, queueType);
-      }
-
-      Set<ExcludeFilters> excludeFilters = context.getQueueExcludeFilters();
-      if (!ExcludeFilters.isExcluded(queueName, excludeFilters)) { // check for exclude filters
-        logger.debug("Pulling out metrics for queue name {} for command {}", queueName, command);
-        Iterator<String> itr = metrics.keySet().iterator();
-        List<Metric> responseMetrics = Lists.newArrayList();
-        while (itr.hasNext()) {
-          String metrickey = itr.next();
-          WMQMetricOverride wmqOverride = metrics.get(metrickey);
-          try {
-            PCFParameter pcfParam = pcfMessage.getParameter(wmqOverride.getConstantValue());
-            if (pcfParam != null) {
-              if (pcfParam instanceof MQCFIN) {
-                int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                Metric metric =
-                    metricCreator.createMetric(
-                        metrickey, metricVal, wmqOverride, queueName, queueType, metrickey);
-                responseMetrics.add(metric);
-              } else if (pcfParam instanceof MQCFIL) {
-                int[] metricVals =
-                    pcfMessage.getIntListParameterValue(wmqOverride.getConstantValue());
-                if (metricVals != null) {
-                  int count = 0;
-                  for (int val : metricVals) {
-                    count++;
-                    Metric metric =
-                        metricCreator.createMetric(
-                            metrickey + "_" + count,
-                            val,
-                            wmqOverride,
-                            queueName,
-                            metrickey + "_" + count);
-                    responseMetrics.add(metric);
-                  }
-                }
-              }
-            } else {
-              logger.warn(
-                  "PCF parameter is null in response for Queue: {} for metric: {} in command {}",
-                  queueName,
-                  wmqOverride.getIbmCommand(),
-                  command);
-            }
-          } catch (PCFException pcfe) {
-            logger.error(
-                "PCFException caught while collecting metric for Queue: {} for metric: {} in command {}",
-                queueName,
-                wmqOverride.getIbmCommand(),
-                command,
-                pcfe);
-          }
-        }
-        context.transformAndPrintMetrics(responseMetrics);
-      } else {
-        logger.debug("Queue name {} is excluded.", queueName);
-      }
-    }
-  }
 }
