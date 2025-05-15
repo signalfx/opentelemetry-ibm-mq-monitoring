@@ -106,7 +106,7 @@ final class QueueCollectionBuddy {
       return;
     }
 
-    List<PCFMessage> messages = MessageFilter.ofKind("queue name")
+    List<PCFMessage> messages = MessageFilter.ofKind("queue")
         .excluding(context.getQueueExcludeFilters())
         .withResourceExtractor(MessageBuddy::queueName)
         .filter(response);

@@ -49,7 +49,7 @@ class MessageFilter {
     for (PCFMessage message : messages) {
       String resourceName = extractor.apply(message);
       if (ExcludeFilters.isExcluded(resourceName, filters)) {
-        logger.debug("{} = {} is excluded.", kind, resourceName);
+        logger.debug("{} name = {} is excluded.", kind, resourceName);
       } else {
         result.add(message);
       }

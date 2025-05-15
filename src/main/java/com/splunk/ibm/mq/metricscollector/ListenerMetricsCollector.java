@@ -89,7 +89,7 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
           return;
         }
 
-        List<PCFMessage> messages = MessageFilter.ofKind("listener name")
+        List<PCFMessage> messages = MessageFilter.ofKind("listener")
             .excluding(context.getListenerExcludeFilters())
             .withResourceExtractor(MessageBuddy::listenerName)
             .filter(response);

@@ -76,7 +76,7 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
           return;
         }
 
-        List<PCFMessage> messages = MessageFilter.ofKind("channel name")
+        List<PCFMessage> messages = MessageFilter.ofKind("channel")
             .excluding(context.getChannelExcludeFilters())
             .withResourceExtractor(MessageBuddy::channelName)
             .filter(response);

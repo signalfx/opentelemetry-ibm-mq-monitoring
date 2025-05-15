@@ -94,7 +94,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
         }
 
         List<PCFMessage> messages =
-            MessageFilter.ofKind("channel name")
+            MessageFilter.ofKind("channel")
                 .excluding(context.getChannelExcludeFilters())
                 .withResourceExtractor(MessageBuddy::channelName)
                 .filter(response);
