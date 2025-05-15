@@ -19,8 +19,9 @@ import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.splunk.ibm.mq.config.ExcludeFilters;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,8 @@ import org.slf4j.LoggerFactory;
  * information such as: - listener is running or stopped - port number and transport type - last
  * error codes - associated command server •
  *
- * <p>It utilizes WMQMetricOverride to map metrics from the configuration to their IBM MQ constants.
+ * <p>It utilizes WMQMetricOverride to map metrics from the configuration to their IBM MQ
+ * constants.
  */
 public final class ListenerMetricsCollector implements MetricsPublisher {
 
@@ -86,26 +88,25 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
           logger.debug("Unexpected error while PCFMessage.send(), response is empty");
           return;
         }
-        for (PCFMessage pcfMessage : response) {
-          String listenerName =
-              pcfMessage.getStringParameterValue(CMQCFC.MQCACH_LISTENER_NAME).trim();
-          Set<ExcludeFilters> excludeFilters = context.getListenerExcludeFilters();
-          if (!ExcludeFilters.isExcluded(
-              listenerName, excludeFilters)) { // check for exclude filters
-            logger.debug("Pulling out metrics for listener name {}", listenerName);
-            List<Metric> responseMetrics = Lists.newArrayList();
-            context.forEachMetric(
-                (metricKey, wmqOverride) -> {
-                  int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-                  Metric metric =
-                      metricCreator.createMetric(
-                          metricKey, metricVal, wmqOverride, listenerName, metricKey);
-                  responseMetrics.add(metric);
-                });
-            context.transformAndPrintMetrics(responseMetrics);
-          } else {
-            logger.debug("Listener name {} is excluded.", listenerName);
-          }
+
+        List<PCFMessage> messages = MessageFilter.ofKind("listener name")
+            .excluding(context.getListenerExcludeFilters())
+            .withResourceExtractor(MessageBuddy::listenerName)
+            .filter(response);
+
+        for (PCFMessage message : messages) {
+          String listenerName = MessageBuddy.listenerName(message);
+          logger.debug("Pulling out metrics for listener name {}", listenerName);
+          List<Metric> responseMetrics = Lists.newArrayList();
+          context.forEachMetric(
+              (metricKey, wmqOverride) -> {
+                int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
+                Metric metric =
+                    metricCreator.createMetric(
+                        metricKey, metricVal, wmqOverride, listenerName, metricKey);
+                responseMetrics.add(metric);
+              });
+          context.transformAndPrintMetrics(responseMetrics);
         }
       } catch (Exception e) {
         logger.error(

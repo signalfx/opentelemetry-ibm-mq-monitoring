@@ -48,7 +48,6 @@ class MessageFilter {
     List<PCFMessage> result = new ArrayList<>();
     for (PCFMessage message : messages) {
       String resourceName = extractor.apply(message);
-      // TODO: Uninvert this
       if (ExcludeFilters.isExcluded(resourceName, filters)) {
         logger.debug("{} = {} is excluded.", kind, resourceName);
       } else {

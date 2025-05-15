@@ -17,4 +17,7 @@ public class MessageBuddy {
     return message.getStringParameterValue(CMQC.MQCA_TOPIC_STRING).trim();
   }
 
+  public static String listenerName(PCFMessage message) throws PCFException {
+    return message.getStringParameterValue(CMQCFC.MQCACH_LISTENER_NAME).trim();
+  }
 }
