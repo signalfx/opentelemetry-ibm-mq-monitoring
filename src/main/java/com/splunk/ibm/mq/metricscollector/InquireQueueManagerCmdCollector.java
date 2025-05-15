@@ -47,10 +47,8 @@ public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
         "publishMetrics entry time for queuemanager {} is {} milliseconds",
         context.getAgentQueueManagerName(),
         entryTime);
-    PCFMessage request;
-    List<PCFMessage> responses;
     // CMQCFC.MQCMD_INQUIRE_Q_MGR is 2
-    request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR);
+    PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR);
     // request.addParameter(CMQC.MQCA_Q_MGR_NAME, "*");
     // CMQCFC.MQIACF_Q_MGR_STATUS_ATTRS is 1001
     request.addParameter(
@@ -60,7 +58,7 @@ public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
       logger.debug(
           "sending PCF agent request to query queuemanager {}", context.getAgentQueueManagerName());
       long startTime = System.currentTimeMillis();
-      responses = context.send(request);
+      List<PCFMessage> responses = context.send(request);
       long endTime = System.currentTimeMillis() - startTime;
       logger.debug(
           "PCF agent queuemanager metrics query response for {} received in {} milliseconds",
@@ -83,7 +81,7 @@ public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
           });
       context.transformAndPrintMetrics(responseMetrics);
     } catch (Exception e) {
-      logger.error(e.getMessage());
+      logger.error("Error collecting QueueManagerCmd metrics", e);
       throw new RuntimeException(e);
     } finally {
       long exitTime = System.currentTimeMillis() - entryTime;
