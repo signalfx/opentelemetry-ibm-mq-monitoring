@@ -99,7 +99,7 @@ class WMQMonitorIntegrationTest {
   }
 
   private static void configureQueueManager(QueueManager manager) {
-    MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager, null);
+    MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager);
     PCFMessageAgent agent = WMQMonitorTask.initPCFMesageAgent(manager, ibmQueueManager);
     PCFMessage request = new PCFMessage(CMQCFC.MQCMD_CHANGE_Q_MGR);
     // turn on emitting authority events

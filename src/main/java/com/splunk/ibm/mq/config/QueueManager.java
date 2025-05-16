@@ -31,7 +31,6 @@ public class QueueManager {
   private int encoding = Integer.MIN_VALUE;
   private String cipherSuite;
   private String cipherSpec;
-  private String encryptedPassword;
   private String replyQueuePrefix;
   private String modelQueueName;
   private String configurationQueueName = "SYSTEM.ADMIN.CONFIG.EVENT";
@@ -155,14 +154,6 @@ public class QueueManager {
 
   public void setChannelFilters(ResourceFilters channelFilters) {
     this.channelFilters = channelFilters;
-  }
-
-  public String getEncryptedPassword() {
-    return encryptedPassword;
-  }
-
-  public void setEncryptedPassword(String encryptedPassword) {
-    this.encryptedPassword = encryptedPassword;
   }
 
   public String getReplyQueuePrefix() {

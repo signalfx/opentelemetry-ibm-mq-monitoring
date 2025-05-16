@@ -83,11 +83,8 @@ public class WMQMonitorTask implements Runnable {
     MQQueueManager ibmQueueManager = null;
     PCFMessageAgent agent = null;
     BigDecimal heartBeatMetricValue = BigDecimal.ZERO;
-    // encryptionKey is a global setting; it is needed to allow decrypting the queue manager
-    // password.
-    String encryptionKey = config.getEncryptionKey();
     try {
-      ibmQueueManager = connectToQueueManager(queueManager, encryptionKey);
+      ibmQueueManager = connectToQueueManager(queueManager);
       heartBeatMetricValue = BigDecimal.ONE;
       agent = initPCFMesageAgent(queueManager, ibmQueueManager);
       extractAndReportMetrics(ibmQueueManager, agent);
@@ -167,10 +164,9 @@ public class WMQMonitorTask implements Runnable {
     return str;
   }
 
-  public static MQQueueManager connectToQueueManager(
-      QueueManager queueManager, String encryptionKey) {
+  public static MQQueueManager connectToQueueManager(QueueManager queueManager) {
     MQQueueManager ibmQueueManager = null;
-    WMQContext auth = new WMQContext(queueManager, encryptionKey);
+    WMQContext auth = new WMQContext(queueManager);
     Hashtable env = auth.getMQEnvironment();
 
     try {

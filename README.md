@@ -103,17 +103,15 @@ The user connecting to the queueManager should have the inquire, get, put (since
    ```-Djavax.net.ssl.keyStore=<PATH_TO_JKS_FILE>```<br />
    ```-Djavax.net.ssl.keyStorePassword=<PASS>```<br />
 
-   b. sslConnection in config.yml, configure the trustStorePassword or trustStoreEncryptedPassword based on Credentials Encryption. Same holds for keyStore configuration as well.
+   b. sslConnection in config.yml, configure the trustStorePassword. Same holds for keyStore configuration as well.
 
     ```
     sslConnection:
       trustStorePath: ""
       trustStorePassword: ""
-      trustStoreEncryptedPassword: ""
     
       keyStorePath: ""
       keyStorePassword: ""
-      keyStoreEncryptedPassword: ""
     ```
 
 ## Configuration
@@ -288,9 +286,6 @@ The following metrics are extracted using the MQCMD_RESET_Q_STATS command which 
 </tbody>
 </table>
 
-
-## Credentials Encryption
-Please visit [this page](https://community.appdynamics.com/t5/Knowledge-Base/How-to-use-Password-Encryption-with-Extensions/ta-p/29397) to get detailed instructions on password encryption. The steps in this document will guide you through the whole process.
 
 ## Troubleshooting
 1. Please follow the steps listed in this [troubleshooting-document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) in order to troubleshoot your issue. These are a set of common issues that customers might have faced during the installation of the extension.
