@@ -28,12 +28,12 @@ public final class MetricCreator {
   @Nullable private final String firstPathComponent;
 
   public MetricCreator(String metricPrefix, QueueManager queueManager) {
-    this(metricPrefix, WMQUtil.getQueueManagerNameFromConfig(queueManager), null);
+    this(metricPrefix, queueManager.getName(), null);
   }
 
   public MetricCreator(
       String metricPrefix, QueueManager queueManager, @Nullable String firstPathComponent) {
-    this(metricPrefix, WMQUtil.getQueueManagerNameFromConfig(queueManager), firstPathComponent);
+    this(metricPrefix, queueManager.getName(), firstPathComponent);
   }
 
   public MetricCreator(

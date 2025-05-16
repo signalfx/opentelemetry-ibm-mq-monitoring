@@ -78,7 +78,7 @@ public class WMQMonitorTask implements Runnable {
 
   @Override
   public void run() {
-    String queueManagerName = WMQUtil.getQueueManagerNameFromConfig(queueManager);
+    String queueManagerName = queueManager.getName();
     logger.debug("WMQMonitor thread for queueManager {} started.", queueManagerName);
     long startTime = System.currentTimeMillis();
     MQQueueManager ibmQueueManager = null;
@@ -182,7 +182,7 @@ public class WMQMonitorTask implements Runnable {
     }
     logger.debug(
         "MQQueueManager connection initiated for queueManager {} in thread {}",
-        WMQUtil.getQueueManagerNameFromConfig(queueManager),
+        queueManager.getName(),
         Thread.currentThread().getName());
     return ibmQueueManager;
   }

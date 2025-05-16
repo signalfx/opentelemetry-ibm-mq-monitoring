@@ -1,13 +1,8 @@
-### ANY CHANGES TO THIS FILE DOES NOT REQUIRE A RESTART ###
-# Each queueManager requires 9 threads to fetch its metrics concurrently and 1 main thread to run the extension.
-# So for ex, if there are 2 queueManagers configured, please set the numberOfThreads to be 19 (2*9+1)
-numberOfThreads: 50
-
-#This will create it in specific Tier aka Component. Replace <COMPONENT_ID>. Please make sure to have a trailing |.
-#To find out the COMPONENT_ID, please see the screenshot here https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
-metricPrefix: "Server|Component:Test|Custom Metrics|WebsphereMQ|"
-#For SIM
-#metricPrefix: "Custom Metrics|WebsphereMQ|"
+#Run it as a scheduled task instead of running every minute.
+#If you want to run this every minute, comment this out
+#taskSchedule:
+#  numberOfThreads: 20
+#  taskDelaySeconds: 300
 
 #This is the timeout on queue metrics and channel metrics threads.Default value is 20 seconds.
 #No need to change the default unless you know what you are doing.
@@ -19,13 +14,9 @@ metricPrefix: "Server|Component:Test|Custom Metrics|WebsphereMQ|"
 #encryptionKey: ""
 
 queueManagers:
-  - displayName: "mqIT"
-    # displayName (optional). This will be your QM name that will show up in AppD metric path.
+  - name: "QM1"
     host: "0.0.0.0"
     port: 1414
-
-    #Actual name of the queue manager
-    name: "QM1"
 
     #The transport type for the queue manager connection, the default is "Bindings" for a binding type connection
     #For bindings type, connection WMQ extension (i.e machine agent) need to be on the same machine on which WebbsphereMQ server is running
@@ -350,13 +341,6 @@ mqMetrics:
   # Sets up reading performance events from the performance events queue.
   - metricsType: "performanceMetrics"
 
-#Run it as a scheduled task instead of running every minute.
-#If you want to run this every minute, comment this out
-#taskSchedule:
-#  numberOfThreads: 1
-#  taskDelaySeconds: 300
-
-
 sslConnection:
   trustStorePath: ""
   trustStorePassword: ""
@@ -365,24 +349,3 @@ sslConnection:
   keyStorePath: ""
   keyStorePassword: ""
   keyStoreEncryptedPassword: ""
-
-
-# If any of the following fields are not set, the values of the specific fields are set from the system properties of the corresponding fields as specified in the comments.
-# If the system properties are not set for the field, then the data is retrieved from machine agent configFile. Please refer to ControllerInfoFactory for more details.
-controllerInfo:
-  controllerHost: "controller"
-  controllerPort: 8080
-  account: "customer1"
-  username: "user"
-  password: "welcome"
-  encryptedPassword: ""
-  encryptionKey: ""
-  controllerSslEnabled: false
-  enableOrchestration: false
-  uniqueHostId: ""
-  accountAccessKey: ""
-  machinePath: ""
-  simEnabled: true
-  applicationName: ""
-  tierName: ""
-  nodeName: ""

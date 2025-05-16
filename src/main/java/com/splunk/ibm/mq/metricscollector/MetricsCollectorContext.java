@@ -144,7 +144,7 @@ public final class MetricsCollectorContext {
   }
 
   String getQueueManagerName() {
-    return WMQUtil.getQueueManagerNameFromConfig(queueManager);
+    return queueManager.getName();
   }
 
   QueueManager getQueueManager() {

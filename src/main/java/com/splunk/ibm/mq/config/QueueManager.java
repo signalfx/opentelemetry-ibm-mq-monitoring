@@ -19,7 +19,6 @@ import java.util.List;
 
 public class QueueManager {
 
-  private String displayName;
   private String host;
   private int port = -1;
   private String name;
@@ -48,14 +47,6 @@ public class QueueManager {
   private ResourceFilters topicFilters;
 
   List<String> writeStatsDirectory;
-
-  public String getDisplayName() {
-    return displayName;
-  }
-
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
-  }
 
   public String getHost() {
     return host;

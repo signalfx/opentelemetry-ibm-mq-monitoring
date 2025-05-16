@@ -91,12 +91,4 @@ public class WMQUtil {
     }
     return overrideMap;
   }
-
-  public static String getQueueManagerNameFromConfig(QueueManager queueManager) {
-    if (!Strings.isNullOrEmpty(queueManager.getDisplayName())) {
-      return queueManager.getDisplayName();
-    } else {
-      return queueManager.getName();
-    }
-  }
 }
