@@ -21,13 +21,14 @@ import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
 import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.standardPropsForAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
-import com.appdynamics.extensions.AMonitorJob;
 import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.conf.MonitorContextConfiguration;
 import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.PathResolver;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
@@ -35,9 +36,9 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.common.Constants;
-import com.splunk.ibm.mq.common.WMQUtil;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,15 +55,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class ChannelMetricsCollectorTest {
-  ChannelMetricsCollector classUnderTest;
 
-  @Mock AMonitorJob aMonitorJob;
+  ChannelMetricsCollector classUnderTest;
 
   @Mock PCFMessageAgent pcfMessageAgent;
 
   @Mock MetricWriteHelper metricWriteHelper;
-
-  MonitorContextConfiguration monitorContextConfig;
 
   QueueManager queueManager;
   ArgumentCaptor<List<Metric>> pathCaptor;
@@ -70,20 +68,11 @@ class ChannelMetricsCollectorTest {
   MetricsCollectorContext context;
 
   @BeforeEach
-  void setup() {
-    monitorContextConfig =
-        new MonitorContextConfiguration(
-            "WMQMonitor",
-            "IGNORED DUE TO EXISTING IN CONFIG, DON'T BELIEVE THE HYPE",
-            PathResolver.resolveDirectory(ChannelMetricsCollectorTest.class),
-            aMonitorJob);
-    monitorContextConfig.setConfigYml("src/test/resources/conf/config.yml");
-    Map<String, ?> configMap = monitorContextConfig.getConfigYml();
+  void setup() throws Exception {
+    ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
-    queueManager =
-        mapper.convertValue(((List) configMap.get("queueManagers")).get(0), QueueManager.class);
-    Map<String, Map<String, WMQMetricOverride>> metricsMap =
-        WMQUtil.getMetricsToReportFromConfigYml((List<Map>) configMap.get("mqMetrics"));
+    queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
+    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
     Map<String, WMQMetricOverride> channelMetrics = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
     Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
     assertThat(channelMetrics).isNotEmpty();
@@ -99,8 +88,7 @@ class ChannelMetricsCollectorTest {
         metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS");
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator =
-        new MetricCreator(
-            monitorContextConfig.getMetricPrefix(), queueManager, ChannelMetricsCollector.ARTIFACT);
+        new MetricCreator(config.getMetricPrefix(), queueManager, ChannelMetricsCollector.ARTIFACT);
     IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(channelMetricsToReport);
     context =
         new MetricsCollectorContext(
