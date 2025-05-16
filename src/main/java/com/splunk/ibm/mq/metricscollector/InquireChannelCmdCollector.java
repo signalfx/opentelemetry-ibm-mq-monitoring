@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
@@ -27,12 +26,12 @@ import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** This class is responsible for channel inquiry metric collection. */
 public final class InquireChannelCmdCollector implements MetricsPublisher {
 
-  public static final Logger logger =
-      ExtensionsLoggerFactory.getLogger(InquireChannelCmdCollector.class);
+  public static final Logger logger = LoggerFactory.getLogger(InquireChannelCmdCollector.class);
   public static final String ARTIFACT = "Channels";
   private final MetricCreator metricCreator;
   private final MetricsCollectorContext context;

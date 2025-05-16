@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.appdynamics.extensions.logging.ExtensionsLoggerFactory;
 import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
@@ -24,12 +23,13 @@ import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import java.util.List;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** This class is responsible for queue metric collection. */
 public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
 
   private static final Logger logger =
-      ExtensionsLoggerFactory.getLogger(InquireQueueManagerCmdCollector.class);
+      LoggerFactory.getLogger(InquireQueueManagerCmdCollector.class);
   public static final String ARTIFACT = "Queue Manager";
   private final MetricCreator metricCreator;
   private final MetricsCollectorContext context;
