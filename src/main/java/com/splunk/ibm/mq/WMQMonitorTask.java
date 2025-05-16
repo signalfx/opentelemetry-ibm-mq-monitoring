@@ -352,7 +352,7 @@ public class WMQMonitorTask implements Runnable {
     JobSubmitterContext jobSubmitterContext =
         new JobSubmitterContext(collectorContext, threadPool, config);
     MetricsPublisher queueMetricsCollector =
-        new QueueMetricsCollector(queueMetrics, sharedState, jobSubmitterContext);
+        new QueueMetricsCollector(sharedState, jobSubmitterContext);
     pendingJobs.add(queueMetricsCollector);
   }
 
