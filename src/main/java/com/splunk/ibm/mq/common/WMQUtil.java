@@ -15,9 +15,7 @@
  */
 package com.splunk.ibm.mq.common;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
 import java.util.Collections;
 import java.util.List;
@@ -90,13 +88,5 @@ public class WMQUtil {
       logger.debug("Override Definition: {}", override);
     }
     return overrideMap;
-  }
-
-  public static String getQueueManagerNameFromConfig(QueueManager queueManager) {
-    if (!Strings.isNullOrEmpty(queueManager.getDisplayName())) {
-      return queueManager.getDisplayName();
-    } else {
-      return queueManager.getName();
-    }
   }
 }

@@ -93,14 +93,14 @@ class ListenerMetricsCollectorTest {
     assertThatMetric(allValues.get(0).get(0))
         .hasName("Status")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Listeners|DEV.DEFAULT.LISTENER.TCP|Status")
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Listeners|DEV.DEFAULT.LISTENER.TCP|Status")
         .hasValue("2")
         .withPropertiesMatching(standardPropsForAlias("Status"));
 
     assertThatMetric(allValues.get(1).get(0))
         .hasName("Status")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Listeners|DEV.LISTENER.TCP|Status")
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Listeners|DEV.LISTENER.TCP|Status")
         .hasValue("3")
         .withPropertiesMatching(standardPropsForAlias("Status"));
   }

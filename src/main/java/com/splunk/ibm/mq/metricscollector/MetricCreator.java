@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import com.appdynamics.extensions.metrics.Metric;
-import com.splunk.ibm.mq.common.WMQUtil;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
 import javax.annotation.Nullable;
@@ -28,12 +27,12 @@ public final class MetricCreator {
   @Nullable private final String firstPathComponent;
 
   public MetricCreator(String metricPrefix, QueueManager queueManager) {
-    this(metricPrefix, WMQUtil.getQueueManagerNameFromConfig(queueManager), null);
+    this(metricPrefix, queueManager.getName(), null);
   }
 
   public MetricCreator(
       String metricPrefix, QueueManager queueManager, @Nullable String firstPathComponent) {
-    this(metricPrefix, WMQUtil.getQueueManagerNameFromConfig(queueManager), firstPathComponent);
+    this(metricPrefix, queueManager.getName(), firstPathComponent);
   }
 
   public MetricCreator(

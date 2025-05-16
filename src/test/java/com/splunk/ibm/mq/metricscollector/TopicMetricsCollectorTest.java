@@ -96,29 +96,25 @@ public class TopicMetricsCollectorTest {
 
     assertThatMetric(allValues.get(0).get(0))
         .hasName("SubscriptionCount")
-        .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Topics|test|SubscriptionCount")
+        .hasPath("Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Topics|test|SubscriptionCount")
         .hasValue("3")
         .withPropertiesMatching(standardPropsForAlias("Subscription Count"));
 
     assertThatMetric(allValues.get(0).get(1))
         .hasName("PublishCount")
-        .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Topics|test|PublishCount")
+        .hasPath("Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Topics|test|PublishCount")
         .hasValue("2")
         .withPropertiesMatching(standardPropsForAlias("Publish Count"));
 
     assertThatMetric(allValues.get(1).get(0))
         .hasName("SubscriptionCount")
-        .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Topics|dev|SubscriptionCount")
+        .hasPath("Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Topics|dev|SubscriptionCount")
         .hasValue("4")
         .withPropertiesMatching(standardPropsForAlias("Subscription Count"));
 
     assertThatMetric(allValues.get(1).get(1))
         .hasName("PublishCount")
-        .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Topics|dev|PublishCount")
+        .hasPath("Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Topics|dev|PublishCount")
         .hasValue("3")
         .withPropertiesMatching(standardPropsForAlias("Publish Count"));
   }

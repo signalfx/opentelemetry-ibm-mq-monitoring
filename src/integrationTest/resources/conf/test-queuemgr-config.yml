@@ -1,20 +1,7 @@
-### ANY CHANGES TO THIS FILE DOES NOT REQUIRE A RESTART ###
-# Each queueManager requires 9 threads to fetch its metrics concurrently and 1 main thread to run the extension.
-# So for ex, if there are 2 queueManagers configured, please set the numberOfThreads to be 19 (2*9+1)
-numberOfThreads: 20
-
-#This will create it in specific Tier aka Component. Replace <COMPONENT_ID>. Please make sure to have a trailing |.
-#To find out the COMPONENT_ID, please see the screen shot here https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
-metricPrefix: "Server|Component:IT|Custom Metrics|WebsphereMQ|"
-
 queueManagers:
-  - displayName: "mqIT"
-    # displayName (optional). This will be your QM name that will show up in AppD metric path.
+  - name: "QM1"
     host: "localhost"
     port: 1414
-
-    #Actual name of the queue manager
-    name: "QM1"
 
     #The transport type for the queue manager connection, the default is "Bindings" for a binding type connection
     #For bindings type, connection WMQ extension (i.e machine agent) need to be on the same machine on which WebbsphereMQ server is running
@@ -312,5 +299,4 @@ sslConnection:
 
 # Configure the OTLP exporter using system properties keys following the specification https://opentelemetry.io/docs/languages/java/configuration/
 otlpExporter:
-  otel.exporter.otlp.endpoint: http://0.0.0.0:4317
-  otel.exporter.otlp.protocol: grpc
+  otel.exporter.otlp.endpoint: http://0.0.0.0:4318

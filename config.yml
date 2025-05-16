@@ -1,13 +1,8 @@
-### ANY CHANGES TO THIS FILE DOES NOT REQUIRE A RESTART ###
-# Each queueManager requires 9 threads to fetch its metrics concurrently and 1 main thread to run the extension.
-# So for ex, if there are 2 queueManagers configured, please set the numberOfThreads to be 19 (2*9+1)
-numberOfThreads: 20
-
-#This will create it in specific Tier aka Component. Replace <COMPONENT_ID>. Please make sure to have a trailing |.
-#To find out the COMPONENT_ID, please see the screen shot here https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
-metricPrefix: "Server|Component:<COMPONENT_ID>|Custom Metrics|WebsphereMQ|"
-#For SIM
-#metricPrefix: "Custom Metrics|WebsphereMQ|"
+#Run it as a scheduled task instead of running every minute.
+#If you want to run this every minute, comment this out
+#taskSchedule:
+#  numberOfThreads: 20
+#  taskDelaySeconds: 300
 
 #This is the timeout on queue metrics and channel metrics threads.Default value is 20 seconds.
 #No need to change the default unless you know what you are doing.
@@ -19,13 +14,9 @@ metricPrefix: "Server|Component:<COMPONENT_ID>|Custom Metrics|WebsphereMQ|"
 #encryptionKey: ""
 
 queueManagers:
-  - displayName: ""
-    # displayName (optional). This will be your QM name that will show up in AppD metric path.
+  - name: "QM1"
     host: "localhost"
     port: 1414
-
-    #Actual name of the queue manager
-    name: "QM1"
 
     #The transport type for the queue manager connection, the default is "Bindings" for a binding type connection
     #For bindings type, connection WMQ extension (i.e machine agent) need to be on the same machine on which WebbsphereMQ server is running
@@ -76,7 +67,6 @@ queueManagers:
     # For translation to IBM Cipher  http://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.dev.doc/q113210_.htm
     # A cipher working for IBM Cloud MQ and Temurin JDK 8 is TLS_AES_128_GCM_SHA256
     #cipherSuite: ""
-
 
     queueFilters:
         #Can provide complete queue name or generic names. A generic name is a character string followed by an asterisk (*),
@@ -346,13 +336,6 @@ mqMetrics:
 #            alias: "Max Active Channels"
 #            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MAX_ACTIVE_CHANNELS"
 
-#Run it as a scheduled task instead of running every minute.
-#If you want to run this every minute, comment this out
-#taskSchedule:
-#  numberOfThreads: 1
-#  taskDelaySeconds: 300
-
-
 sslConnection:
   trustStorePath: ""
   trustStorePassword: ""
@@ -362,28 +345,6 @@ sslConnection:
   keyStorePassword: ""
   keyStoreEncryptedPassword: ""
 
-
-# If any of the following fields are not set, the values of the specific fields are set from the system properties of the corresponding fields as specified in the comments.
-# If the system properties are not set for the field, then the data is retrieved from machine agent configFile. Please refer to ControllerInfoFactory for more details.
-controllerInfo:
-  controllerHost: "controller"
-  controllerPort: 8080
-  account: "customer1"
-  username: "user"
-  password: "welcome"
-  encryptedPassword: ""
-  encryptionKey: ""
-  controllerSslEnabled: false
-  enableOrchestration: false
-  uniqueHostId: ""
-  accountAccessKey: ""
-  machinePath: ""
-  simEnabled: true
-  applicationName: ""
-  tierName: ""
-  nodeName: ""
-
 # Configure the OTLP exporter using system properties keys following the specification https://opentelemetry.io/docs/languages/java/configuration/
 otlpExporter:
-  otel.exporter.otlp.endpoint: http://0.0.0.0:14317
-  otel.exporter.otlp.protocol: grpc
+  otel.exporter.otlp.endpoint: http://localhost:4318

@@ -104,7 +104,7 @@ public class QueueCollectionBuddyTest {
     assertThatMetric(metrics.get(0))
         .hasName("CurrentQueueDepth")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|"
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
                 + component
                 + "|local-transmission|CurrentQueueDepth")
         .hasValue(String.valueOf(values.get(0)))
@@ -113,25 +113,21 @@ public class QueueCollectionBuddyTest {
     assertThatMetric(metrics.get(1))
         .hasName("OnQTime_1")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|"
-                + component
-                + "|OnQTime_1")
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|" + component + "|OnQTime_1")
         .hasValue(String.valueOf(values.get(1)))
         .withPropertiesMatching(standardPropsForAlias("OnQTime"));
 
     assertThatMetric(metrics.get(2))
         .hasName("OnQTime_2")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|"
-                + component
-                + "|OnQTime_2")
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|" + component + "|OnQTime_2")
         .hasValue(String.valueOf(values.get(2)))
         .withPropertiesMatching(standardPropsForAlias("OnQTime"));
 
     assertThatMetric(metrics.get(3))
         .hasName("OldestMsgAge")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|"
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
                 + component
                 + "|local-transmission|OldestMsgAge")
         .hasValue(String.valueOf(values.get(3)))
@@ -140,7 +136,7 @@ public class QueueCollectionBuddyTest {
     assertThatMetric(metrics.get(4))
         .hasName("UncommittedMsgs")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|"
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
                 + component
                 + "|local-transmission|UncommittedMsgs")
         .hasValue(String.valueOf(values.get(4)))
@@ -174,7 +170,7 @@ public class QueueCollectionBuddyTest {
     assertThatMetric(metrics.get(0))
         .hasName("MaxQueueDepth")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|"
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
                 + component
                 + "|local-transmission|MaxQueueDepth")
         .hasValue(String.valueOf(values.get(0)))
@@ -183,7 +179,7 @@ public class QueueCollectionBuddyTest {
     assertThatMetric(metrics.get(1))
         .hasName("CurrentQueueDepth")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|"
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
                 + component
                 + "|local-transmission|CurrentQueueDepth")
         .hasValue(String.valueOf(values.get(1)))
@@ -192,7 +188,7 @@ public class QueueCollectionBuddyTest {
     assertThatMetric(metrics.get(2))
         .hasName("OpenInputCount")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|"
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
                 + component
                 + "|local-transmission|OpenInputCount")
         .hasValue(String.valueOf(values.get(2)))
@@ -201,7 +197,7 @@ public class QueueCollectionBuddyTest {
     assertThatMetric(metrics.get(3))
         .hasName("OpenOutputCount")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|"
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
                 + component
                 + "|local-transmission|OpenOutputCount")
         .hasValue(String.valueOf(values.get(3)))
@@ -230,21 +226,21 @@ public class QueueCollectionBuddyTest {
     assertThatMetric(allValues.get(0).get(0))
         .hasName("HighQDepth")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|HighQDepth")
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|HighQDepth")
         .hasValue("10")
         .withPropertiesMatching(standardPropsForAlias("HighQDepth"));
 
     assertThatMetric(allValues.get(0).get(1))
         .hasName("MsgDeqCount")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|MsgDeqCount")
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|MsgDeqCount")
         .hasValue("0")
         .withPropertiesMatching(standardPropsForAlias("MsgDeqCount"));
 
     assertThatMetric(allValues.get(0).get(2))
         .hasName("MsgEnqCount")
         .hasPath(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|MsgEnqCount")
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|MsgEnqCount")
         .hasValue("3")
         .withPropertiesMatching(standardPropsForAlias("MsgEnqCount"));
   }

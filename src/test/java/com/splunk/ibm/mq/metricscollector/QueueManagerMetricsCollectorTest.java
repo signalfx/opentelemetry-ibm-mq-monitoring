@@ -146,30 +146,4 @@ class QueueManagerMetricsCollectorTest {
 
     return new PCFMessage[] {response1};
   }
-
-  @Test
-  public void testDisplayName() throws Exception {
-    CountDownLatch latch = mock(CountDownLatch.class);
-    when(pcfMessageAgent.send(any(PCFMessage.class)))
-        .thenReturn(createPCFResponseForInquireQMgrStatusCmd());
-    classUnderTest = new QueueManagerMetricsCollector(context, metricCreator);
-    classUnderTest.publishMetrics();
-    verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
-    List<String> metricPathsList = Lists.newArrayList();
-    for (List<Metric> metricList : pathCaptor.getAllValues()) {
-      for (Metric metric : metricList) {
-        metricPathsList.add(metric.getMetricPath());
-      }
-    }
-    assertThat(queueManager.getDisplayName()).isEqualTo("QueueManager1");
-    assertThat(metricPathsList)
-        .contains("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Status");
-    // NOTE: This was the old test value -- simply hacked to match the actual output. Not sure why
-    // it was different/failing
-    //        assertThat(metricPathsList).contains("Server|Component:Tier1|Custom
-    // Metrics|WebsphereMQ|QManager|Status");
-    assertThat(metricPathsList)
-        .contains(
-            "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|ConnectionCount");
-  }
 }
