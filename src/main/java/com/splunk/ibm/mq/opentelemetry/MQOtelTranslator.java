@@ -266,6 +266,8 @@ class MQOtelTranslator {
           put("Queue Manager", queueMgrMetricNameMappings);
           put("Queues", queueMetricNameMappings);
           put("Channels", channelMetricNameMappings);
+          put("MQCMD_INQUIRE_CHANNEL", channelMetricNameMappings);
+          put("MQCMD_INQUIRE_CHANNEL_STATUS", channelMetricNameMappings);
           put("ChannelsGlobal", channelsNameMapping);
           put("Listeners", listenerMetricNameMappings);
           put("Topics", topicMetricNameMappings);
