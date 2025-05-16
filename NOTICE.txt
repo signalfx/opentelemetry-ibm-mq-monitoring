@@ -1,4 +1,0 @@
-Notice and Disclaimer
-
-All Extensions published by Splunk are governed by the Apache License v2 and are excluded from the definition of covered software under any agreement between Splunk and the User governing Splunk, Test & Dev Edition, or any other Editions.
-
