@@ -15,12 +15,13 @@
  */
 package com.splunk.ibm.mq.integration.tests;
 
-import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.util.AssertUtils;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.splunk.ibm.mq.WMQMonitorTask;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
+import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -33,12 +34,14 @@ import java.util.concurrent.ExecutorService;
  */
 class TestWMQMonitor {
 
-  private final MetricWriteHelper metricWriteHelper;
+  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
   private final ConfigWrapper config;
   private final ExecutorService threadPool;
 
   TestWMQMonitor(
-      ConfigWrapper config, MetricWriteHelper metricWriteHelper, ExecutorService service) {
+      ConfigWrapper config,
+      OpenTelemetryMetricWriteHelper metricWriteHelper,
+      ExecutorService service) {
     this.config = config;
     this.metricWriteHelper = metricWriteHelper;
     this.threadPool = service;
@@ -54,8 +57,7 @@ class TestWMQMonitor {
    */
   void runTest() {
     List<Map<String, ?>> queueManagers = config.getQueueManagers();
-    AssertUtils.assertNotNull(
-        queueManagers, "The 'queueManagers' section in config.yml is not initialised");
+    assertThat(queueManagers).isNotNull();
     ObjectMapper mapper = new ObjectMapper();
     // we override this helper to pass in our opentelemetry helper instead.
     if (metricWriteHelper != null) {

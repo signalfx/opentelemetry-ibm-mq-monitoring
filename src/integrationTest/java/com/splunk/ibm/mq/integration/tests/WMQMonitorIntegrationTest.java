@@ -19,7 +19,6 @@ import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.constants.CMQC;
@@ -192,7 +191,8 @@ class WMQMonitorIntegrationTest {
     for (Map.Entry<String, SdkMeterProvider> e : providers.entrySet()) {
       meters.put(e.getKey(), e.getValue().get("opentelemetry.io/mq"));
     }
-    MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter, meters);
+    OpenTelemetryMetricWriteHelper metricWriteHelper =
+        new OpenTelemetryMetricWriteHelper(testExporter, meters);
     String configFile = getConfigFile("conf/test-config.yml");
 
     ConfigWrapper config = ConfigWrapper.parse(configFile);
@@ -235,7 +235,8 @@ class WMQMonitorIntegrationTest {
     for (Map.Entry<String, SdkMeterProvider> e : providers.entrySet()) {
       meters.put(e.getKey(), e.getValue().get("opentelemetry.io/mq"));
     }
-    MetricWriteHelper metricWriteHelper = new OpenTelemetryMetricWriteHelper(testExporter, meters);
+    OpenTelemetryMetricWriteHelper metricWriteHelper =
+        new OpenTelemetryMetricWriteHelper(testExporter, meters);
     String configFile = getConfigFile("conf/test-queuemgr-config.yml");
     ConfigWrapper config = ConfigWrapper.parse(configFile);
 

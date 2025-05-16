@@ -22,7 +22,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.mq.constants.CMQC;
@@ -33,6 +32,7 @@ import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
+import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,7 @@ public class QueueCollectionBuddyTest {
 
   @Mock private PCFMessageAgent pcfMessageAgent;
 
-  @Mock private MetricWriteHelper metricWriteHelper;
+  @Mock private OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   private Map<String, WMQMetricOverride> queueMetricsToReport;
   private QueueManager queueManager;
