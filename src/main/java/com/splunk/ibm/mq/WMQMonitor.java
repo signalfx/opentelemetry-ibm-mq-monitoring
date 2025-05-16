@@ -48,14 +48,6 @@ public class WMQMonitor implements Runnable {
     this.metricWriteHelper = metricWriteHelper;
   }
 
-  protected String getDefaultMetricPrefix() {
-    return "Custom Metrics|WMQMonitor|";
-  }
-
-  public String getMonitorName() {
-    return "WMQMonitor";
-  }
-
   @Override
   public void run() {
     configureSecurity();
