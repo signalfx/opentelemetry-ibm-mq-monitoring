@@ -33,15 +33,10 @@ public final class QueueMetricsCollector implements MetricsPublisher {
   // The queue information is only available as response of some commands.
   private final QueueCollectorSharedState sharedState;
   private final MetricCreator metricCreator;
-  private final Map<String, WMQMetricOverride> metrics;
   private final JobSubmitterContext context;
 
-  public QueueMetricsCollector(
-      Map<String, WMQMetricOverride> metricsToReport,
-      QueueCollectorSharedState sharedState,
-      JobSubmitterContext context) {
+  public QueueMetricsCollector(QueueCollectorSharedState sharedState, JobSubmitterContext context) {
     this.sharedState = sharedState;
-    this.metrics = metricsToReport;
     this.context = context;
     this.metricCreator = context.newMetricCreator(ARTIFACT);
   }
