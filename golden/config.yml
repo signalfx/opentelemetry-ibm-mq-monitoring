@@ -1,0 +1,388 @@
+### ANY CHANGES TO THIS FILE DOES NOT REQUIRE A RESTART ###
+# Each queueManager requires 9 threads to fetch its metrics concurrently and 1 main thread to run the extension.
+# So for ex, if there are 2 queueManagers configured, please set the numberOfThreads to be 19 (2*9+1)
+numberOfThreads: 50
+
+#This will create it in specific Tier aka Component. Replace <COMPONENT_ID>. Please make sure to have a trailing |.
+#To find out the COMPONENT_ID, please see the screenshot here https://docs.appdynamics.com/display/PRO42/Build+a+Monitoring+Extension+Using+Java
+metricPrefix: "Server|Component:Test|Custom Metrics|WebsphereMQ|"
+#For SIM
+#metricPrefix: "Custom Metrics|WebsphereMQ|"
+
+#This is the timeout on queue metrics and channel metrics threads.Default value is 20 seconds.
+#No need to change the default unless you know what you are doing.
+#queueMetricsCollectionTimeoutInSeconds: 40
+#channelMetricsCollectionTimeoutInSeconds: 40
+#topicMetricsCollectionTimeoutInSeconds: 40
+
+#Uncomment only if encryption of passwords is wanted.
+#encryptionKey: ""
+
+queueManagers:
+  - displayName: "mqIT"
+    # displayName (optional). This will be your QM name that will show up in AppD metric path.
+    host: "0.0.0.0"
+    port: 1414
+
+    #Actual name of the queue manager
+    name: "QM1"
+
+    #The transport type for the queue manager connection, the default is "Bindings" for a binding type connection
+    #For bindings type, connection WMQ extension (i.e machine agent) need to be on the same machine on which WebbsphereMQ server is running
+    #For client type, connection change it to "Client".
+    transportType: "Client"
+
+    #Channel name of the queue manager, channel should be server-conn type.
+    #This field is not required in case of transportType: Bindings
+    channelName: DEV.ADMIN.SVRCONN
+
+    #for user access level, please check "Access Permissions" section on the extensions page
+    #comment out the username and password in case of transportType: Bindings.
+    username: "admin"
+    password: "passw0rd"
+
+    #Uncomment only if encryption of passwords is wanted.
+    #encryptedPassword: ""
+
+    #PCF requests are always sent to SYSTEM.ADMIN.COMMAND.QUEUE. The PCF responses to these requests are sent to the default reply-to queue called
+    #SYSTEM.DEFAULT.MODEL.QUEUE. However, you can override this behavior and send it to a temporary dynamic queue by changing the modelQueueName and replyQueuePrefix fields.
+    #For more details around this https://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.adm.doc/q083240_.htm & https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.adm.doc/q020010_.htm
+    #modelQueueName: ""
+    #replyQueuePrefix: ""
+
+    # Name of the temporary dynamic queue holding the configuration events. This queue contains information regarding the configuration of the queue manager, notable MaxChannels and MaxActiveChannels.
+    # If unset, the default queue name `SYSTEM.ADMIN.CONFIG.EVENT` is applied.
+    # Configuration events need to be enabled explicitly in the queue manager configuration. See https://www.ibm.com/docs/en/ibm-mq/9.4.x?topic=monitoring-configuration-events for reference.
+    #configurationQueueName: "SYSTEM.ADMIN.CONFIG.EVENT"
+
+    # Interval in milliseconds at which the configuration events in the configuration queue can be consumed.
+    # By default, no events are consumed.
+    #consumeConfigurationEventInterval: 600000 # 10 minutes
+
+    # Enable running a queue manager refresh request to reload its configuration and create a configuration event.
+    # This action is only executed if no configuration events are found when reading the configuration queue.name:
+    # By default, this action is disabled.
+    #refreshQueueManagerConfigurationEnabled: false
+
+    #Sets the CCSID used in the message descriptor of request and response messages. The default value is MQC.MQCCSI_Q_MGR.
+    #To set this, please use the integer value.
+    #ccsid:
+
+    #Sets the encoding used in the message descriptor of request and response messages. The default value is MQC.MQENC_NATIVE.
+    #To set this, please use the integer value.
+    #encoding:
+
+    # IBM Cipher Suite e.g. "SSL_RSA_WITH_AES_128_CBC_SHA256"..
+    # For translation to IBM Cipher  http://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.dev.doc/q113210_.htm
+    # A cipher working for IBM Cloud MQ and Temurin JDK 8 is TLS_AES_128_GCM_SHA256
+    #cipherSuite:  "TLS_AES_128_GCM_SHA256"
+
+
+    queueFilters:
+        #Can provide complete queue name or generic names. A generic name is a character string followed by an asterisk (*),
+        #for example ABC*, and it selects all objects having names that start with the selected character string.
+        #An asterisk on its own matches all possible names.
+        include: ["*"]
+        exclude:
+             #type value: STARTSWITH, EQUALS, ENDSWITH, CONTAINS
+           - type: "STARTSWITH"
+             #The name of the queue or queue name pattern as per queue filter, comma separated values
+             values: ["SYSTEM","AMQ"]
+
+
+    channelFilters:
+        #Can provide complete channel name or generic names. A generic name is a character string followed by an asterisk (*),
+        #for example ABC*, and it selects all objects having names that start with the selected character string.
+        #An asterisk on its own matches all possible names.
+        include: ["*"]
+        exclude:
+           #type value: STARTSWITH, EQUALS, ENDSWITH, CONTAINS
+           - type: "STARTSWITH"
+           #The name of the queue or queue name pattern as per queue filter, comma separated values
+             values: ["SYSTEM"]
+
+    listenerFilters:
+        #Can provide complete channel name or generic names. A generic name is a character string followed by an asterisk (*),
+        #for example ABC*, and it selects all objects having names that start with the selected character string.
+        #An asterisk on its own matches all possible names.
+        include: ["*"]
+        exclude:
+           #type value: STARTSWITH, EQUALS, ENDSWITH, CONTAINS
+           - type: "STARTSWITH"
+           #The name of the queue or queue name pattern as per queue filter, comma separated values
+             values: ["SYSTEM"]
+
+    topicFilters:
+        # For topics, IBM MQ uses the topic wildcard characters ('#' and '+') and does not treat a trailing asterisk as a wildcard
+        # https://www.ibm.com/support/knowledgecenter/en/SSFKSJ_7.5.0/com.ibm.mq.pla.doc/q005020_.htm
+        include: ["#"]
+        exclude:
+             #type value: STARTSWITH, EQUALS, ENDSWITH, CONTAINS
+           - type: "STARTSWITH"
+             #The name of the queue or queue name pattern as per queue filter, comma separated values
+             values: ["SYSTEM","$SYS"]
+
+mqMetrics:
+  # This Object will extract queue manager metrics
+  - metricsType: "queueMgrMetrics"
+    metrics:
+      include:
+        - Status:
+            alias: "Status"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_Q_MGR_STATUS"
+            aggregationType: "OBSERVATION"
+            timeRollUpType: "AVERAGE"
+            clusterRollUpType: "INDIVIDUAL"
+        - ConnectionCount:
+            alias: "ConnectionCount"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_CONNECTION_COUNT"
+
+        - ReusableLogSize:
+            alias: "Reusable Log Size"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_REUSABLE_LOG_SIZE"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
+
+        - RestartLogSize:
+            alias: "Restart Log Size"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_RESTART_LOG_SIZE"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
+
+        - ArchiveLogSize:
+            alias: "Archive Log Size"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_ARCHIVE_LOG_SIZE"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
+
+        - StatisticsInterval:
+            alias: "Statistics Interval"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_STATISTICS_INTERVAL"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR"
+
+  # This Object will extract queue metrics
+  - metricsType: "queueMetrics"
+    metrics:
+      include:
+        - MaxQueueDepth:
+            alias: "Max Queue Depth"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MAX_Q_DEPTH"
+            ibmCommand: "MQCMD_INQUIRE_Q"
+
+        - CurrentQueueDepth:
+            alias: "Current Queue Depth"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_CURRENT_Q_DEPTH"
+            ibmCommand: "MQCMD_INQUIRE_Q"
+
+        - CurrentQueueFileSize:
+            alias: "Current queue file size"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_CUR_Q_FILE_SIZE"
+            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
+
+        - MaxQueueFileSize:
+            alias: "Current maximum queue file size"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_CUR_MAX_FILE_SIZE"
+            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
+
+        - OpenInputCount:
+            alias: "Open Input Count"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_OPEN_INPUT_COUNT"
+            ibmCommand: "MQCMD_INQUIRE_Q"
+
+        - OpenOutputCount:
+            alias: "Open Output Count"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_OPEN_OUTPUT_COUNT"
+            ibmCommand: "MQCMD_INQUIRE_Q"
+
+        - OldestMsgAge:
+            alias: "OldestMsgAge"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_OLDEST_MSG_AGE"
+            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
+            aggregationType: "OBSERVATION"
+            timeRollUpType: "CURRENT"
+            clusterRollUpType: "INDIVIDUAL"
+
+        - UncommittedMsgs:
+            alias: "UncommittedMsgs"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_UNCOMMITTED_MSGS"
+            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
+
+        - OnQTime:
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_Q_TIME_INDICATOR"
+            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
+            aggregationType: "OBSERVATION"
+            timeRollUpType: "CURRENT"
+            clusterRollUpType: "INDIVIDUAL"
+
+        - HighQDepth:
+            alias: "HighQDepth"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_HIGH_Q_DEPTH"
+            ibmCommand: "MQCMD_RESET_Q_STATS"
+
+        - MsgDeqCount:
+            alias: "MsgDeqCount"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MSG_DEQ_COUNT"
+            ibmCommand: "MQCMD_RESET_Q_STATS"
+
+        - MsgEnqCount:
+            alias: "MsgEnqCount"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MSG_ENQ_COUNT"
+            ibmCommand: "MQCMD_RESET_Q_STATS"
+
+        - UncommittedMsgs:
+            alias: "Uncommitted Messages"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_UNCOMMITTED_MSGS"
+            ibmCommand: "MQCMD_INQUIRE_Q_STATUS"
+
+        - ServiceInterval:
+            alias: "Service Interval"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_Q_SERVICE_INTERVAL"
+            ibmCommand: "MQCMD_INQUIRE_Q"
+
+        - ServiceIntervalEvent:
+            alias: "Service Interval Event"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT"
+            ibmCommand: "MQCMD_INQUIRE_Q"
+
+  # This Object will extract channel metrics
+  - metricsType: "channelMetrics"
+    metrics:
+      include:
+        - ActiveChannelInstances:
+            alias: "Active Channel Instances"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS"
+
+        - Messages:
+            alias: "Messages"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
+        - Status:
+            alias: "Status"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_CHANNEL_STATUS"  #http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
+            aggregationType: "OBSERVATION"
+            timeRollUpType: "AVERAGE"
+            clusterRollUpType: "INDIVIDUAL"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
+        - ByteSent:
+            alias: "Byte Sent"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BYTES_SENT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
+        - ByteReceived:
+            alias: "Byte Received"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BYTES_RECEIVED"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
+        - BuffersSent:
+            alias: "Buffers Sent"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BUFFERS_SENT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
+        - BuffersReceived:
+            alias: "Buffers Received"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_BUFFERS_RECEIVED"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL_STATUS"
+
+        - CurrentSharingConversations:
+            alias: "Current Sharing Conversations"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_CURRENT_SHARING_CONVS"
+
+        - MaxSharingConversations:
+            alias: "Max Sharing Conversations"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_SHARING_CONVS"
+
+        - MaxInstances:
+            alias: "Max Instances"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_INSTANCES"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MaxInstancesPerClient:
+            alias: "Max Instances per Client"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgRetryCount:
+            alias: "Message Retry Count"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MR_COUNT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgsReceived:
+            alias: "Message Received Count"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS_RECEIVED"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+        - MsgsSent:
+            alias: "Message Sent"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_MSGS_SENT"
+            ibmCommand: "MQCMD_INQUIRE_CHANNEL"
+
+  - metricsType: "listenerMetrics"
+    metrics:
+      include:
+        - Status:
+            alias: "Status"
+            ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACH_LISTENER_STATUS"
+            aggregationType: "OBSERVATION"
+            timeRollUpType: "AVERAGE"
+            clusterRollUpType: "INDIVIDUAL"
+
+  # This Object will extract topic metrics
+  - metricsType: "topicMetrics"
+    metrics:
+      include:
+        - PublishCount:
+            alias: "Publish Count"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_PUB_COUNT"
+            ibmCommand: "MQCMD_INQUIRE_TOPIC_STATUS"
+        - SubscriptionCount:
+            alias: "Subscription Count"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_SUB_COUNT"
+            ibmCommand: "MQCMD_INQUIRE_TOPIC_STATUS"
+
+  # Sets up reading configuration events from the configuration queue.
+  - metricsType: "configurationMetrics"
+    metrics:
+      include:
+        - MaxHandles:
+            alias: "Max Handles"
+            ibmConstant: "com.ibm.mq.constants.CMQC.MQIA_MAX_HANDLES"
+
+  # Sets up reading performance events from the performance events queue.
+  - metricsType: "performanceMetrics"
+
+#Run it as a scheduled task instead of running every minute.
+#If you want to run this every minute, comment this out
+#taskSchedule:
+#  numberOfThreads: 1
+#  taskDelaySeconds: 300
+
+
+sslConnection:
+  trustStorePath: ""
+  trustStorePassword: ""
+  trustStoreEncryptedPassword: ""
+
+  keyStorePath: ""
+  keyStorePassword: ""
+  keyStoreEncryptedPassword: ""
+
+
+# If any of the following fields are not set, the values of the specific fields are set from the system properties of the corresponding fields as specified in the comments.
+# If the system properties are not set for the field, then the data is retrieved from machine agent configFile. Please refer to ControllerInfoFactory for more details.
+controllerInfo:
+  controllerHost: "controller"
+  controllerPort: 8080
+  account: "customer1"
+  username: "user"
+  password: "welcome"
+  encryptedPassword: ""
+  encryptionKey: ""
+  controllerSslEnabled: false
+  enableOrchestration: false
+  uniqueHostId: ""
+  accountAccessKey: ""
+  machinePath: ""
+  simEnabled: true
+  applicationName: ""
+  tierName: ""
+  nodeName: ""
