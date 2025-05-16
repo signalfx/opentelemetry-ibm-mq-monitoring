@@ -49,17 +49,21 @@ public final class QueueMetricsCollector implements MetricsPublisher {
   @Override
   public void publishMetrics() {
     logger.info("Collecting queue metrics...");
-    Map<String, WMQMetricOverride> metricsForInquireQCmd =
-        context.getMetricsForCommand(InquireQCmdCollector.COMMAND);
+
     List<MetricsPublisher> publishers = Lists.newArrayList();
-    if (!metricsForInquireQCmd.isEmpty()) {
+    // first collect all queue types.
+    {
+      Map<String, WMQMetricOverride> metricsForInquireQCmd =
+          context.getMetricsForCommand(InquireQCmdCollector.COMMAND);
       MetricsCollectorContext collectorContext = context.newCollectorContext(metricsForInquireQCmd);
       QueueCollectionBuddy queueBuddy =
           new QueueCollectionBuddy(
               collectorContext, sharedState, metricCreator, InquireQCmdCollector.COMMAND);
       MetricsPublisher publisher = new InquireQCmdCollector(collectorContext, queueBuddy);
-      publishers.add(publisher);
+      publisher.publishMetrics();
     }
+
+    // schedule all other jobs in parallel.
     Map<String, WMQMetricOverride> metricsForInquireQStatusCmd =
         context.getMetricsForCommand(InquireQStatusCmdCollector.COMMAND);
     if (!metricsForInquireQStatusCmd.isEmpty()) {
