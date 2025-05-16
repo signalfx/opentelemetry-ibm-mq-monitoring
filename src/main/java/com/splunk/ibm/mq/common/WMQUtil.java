@@ -15,9 +15,7 @@
  */
 package com.splunk.ibm.mq.common;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
-import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
 import java.util.Collections;
 import java.util.List;
