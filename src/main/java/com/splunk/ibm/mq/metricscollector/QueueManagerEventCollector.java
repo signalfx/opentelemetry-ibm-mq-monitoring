@@ -48,11 +48,7 @@ public final class QueueManagerEventCollector implements MetricsPublisher {
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;
     this.authorityEventCounter =
-        metricWriteHelper
-            .getMeter(queueManager.getName())
-            .counterBuilder("mq.unauthorized.event")
-            .setUnit("1")
-            .build();
+        metricWriteHelper.getMeter().counterBuilder("mq.unauthorized.event").setUnit("1").build();
   }
 
   private void readEvents(String queueManagerEventsQueueName) throws Exception {
@@ -77,6 +73,8 @@ public final class QueueManagerEventCollector implements MetricsPublisher {
             authorityEventCounter.add(
                 1,
                 Attributes.of(
+                    AttributeKey.stringKey("queue.manager"),
+                    queueManager.getName(),
                     AttributeKey.stringKey("user.name"),
                     username,
                     AttributeKey.stringKey("application.name"),

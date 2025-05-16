@@ -20,6 +20,7 @@ import com.google.common.base.Strings;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import io.opentelemetry.api.metrics.LongGauge;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -34,6 +35,7 @@ public class WMQMonitor implements Runnable {
   private final OpenTelemetryMetricWriteHelper metricWriteHelper;
   private final ExecutorService threadPool;
   private final ConfigWrapper config;
+  private final LongGauge heartbeatGauge;
 
   public WMQMonitor(
       ConfigWrapper config,
@@ -43,6 +45,8 @@ public class WMQMonitor implements Runnable {
     this.config = config;
     this.threadPool = threadPool;
     this.metricWriteHelper = metricWriteHelper;
+    this.heartbeatGauge =
+        metricWriteHelper.getMeter().gaugeBuilder("mq.heartbeat").setUnit("1").ofLongs().build();
   }
 
   @Override
@@ -54,7 +58,8 @@ public class WMQMonitor implements Runnable {
 
     for (Map<String, ?> queueManager : queueManagers) {
       QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
-      WMQMonitorTask task = new WMQMonitorTask(config, metricWriteHelper, qManager, threadPool);
+      WMQMonitorTask task =
+          new WMQMonitorTask(config, metricWriteHelper, qManager, threadPool, heartbeatGauge);
       threadPool.submit(new TaskJob((String) queueManager.get("name"), task));
     }
   }

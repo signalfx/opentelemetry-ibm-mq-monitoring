@@ -244,7 +244,6 @@ class MQOtelTranslator {
             {
               put("Status", "mq.manager.status");
               put("ConnectionCount", "mq.connection.count");
-              put("HeartBeat", "mq.heartbeat");
               put("Restart Log Size", "mq.restart.log.size");
               put("Reusable Log Size", "mq.reusable.log.size");
               put("Archive Log Size", "mq.archive.log.size");

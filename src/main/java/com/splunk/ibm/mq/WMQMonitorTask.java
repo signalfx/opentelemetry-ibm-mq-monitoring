@@ -41,6 +41,8 @@ import com.splunk.ibm.mq.metricscollector.ReadConfigurationEventQueueCollector;
 import com.splunk.ibm.mq.metricscollector.TopicMetricsCollector;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,18 +71,13 @@ public class WMQMonitorTask implements Runnable {
       ConfigWrapper config,
       OpenTelemetryMetricWriteHelper metricWriteHelper,
       QueueManager queueManager,
-      ExecutorService threadPool) {
+      ExecutorService threadPool,
+      LongGauge heartbeatGauge) {
     this.config = config;
     this.queueManager = queueManager;
     this.metricWriteHelper = metricWriteHelper;
     this.threadPool = threadPool;
-    this.heartbeatGauge =
-        metricWriteHelper
-            .getMeter(queueManager.getName())
-            .gaugeBuilder("mq.heartbeat")
-            .setUnit("1")
-            .ofLongs()
-            .build();
+    this.heartbeatGauge = heartbeatGauge;
   }
 
   @Override
@@ -96,7 +93,6 @@ public class WMQMonitorTask implements Runnable {
       heartBeatMetricValue = 1;
       agent = initPCFMessageAgent(queueManager, ibmQueueManager);
       extractAndReportMetrics(ibmQueueManager, agent);
-
     } catch (Exception e) {
       logger.error(
           "Error connecting to QueueManager {} by thread {}: {}",
@@ -105,8 +101,11 @@ public class WMQMonitorTask implements Runnable {
           e.getMessage(),
           e);
     } finally {
+      heartbeatGauge.set(
+          heartBeatMetricValue,
+          Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName));
+      metricWriteHelper.flush();
       cleanUp(ibmQueueManager, agent);
-      heartbeatGauge.set(heartBeatMetricValue);
       long endTime = System.currentTimeMillis() - startTime;
       logger.debug(
           "WMQMonitor thread for queueManager {} ended. Time taken = {} ms",

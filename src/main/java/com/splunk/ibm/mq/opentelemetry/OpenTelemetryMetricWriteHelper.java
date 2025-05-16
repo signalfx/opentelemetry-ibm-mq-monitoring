@@ -20,12 +20,11 @@ import com.appdynamics.extensions.metrics.transformers.Transformer;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
+import io.opentelemetry.sdk.metrics.export.MetricReader;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,12 +34,14 @@ public class OpenTelemetryMetricWriteHelper {
       LoggerFactory.getLogger(OpenTelemetryMetricWriteHelper.class);
 
   private final MetricExporter exporter;
-  private final Map<String, Meter> meters;
+  private final MetricReader reader;
+  private final Meter meter;
 
   public OpenTelemetryMetricWriteHelper(
-      MetricExporter otlpGrpcMetricExporter, Map<String, Meter> meters) {
+      MetricReader reader, MetricExporter otlpGrpcMetricExporter, Meter meter) {
     this.exporter = otlpGrpcMetricExporter;
-    this.meters = meters;
+    this.meter = meter;
+    this.reader = reader;
   }
 
   public void printMetric(String metricPath, BigDecimal value, String metricType) {
@@ -61,12 +62,11 @@ public class OpenTelemetryMetricWriteHelper {
     this.exporter.export(metrics);
   }
 
-  @Nullable
-  public Meter getMeter(String queueManager) {
-    return this.meters.get(queueManager);
+  public Meter getMeter() {
+    return meter;
   }
 
-  public void onComplete() {
-    this.exporter.flush(); // TODO await?
+  public void flush() {
+    this.reader.forceFlush().whenComplete(this.exporter::flush);
   }
 }

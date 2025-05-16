@@ -22,6 +22,7 @@ import com.splunk.ibm.mq.WMQMonitorTask;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import io.opentelemetry.api.metrics.LongGauge;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -59,14 +60,16 @@ class TestWMQMonitor {
     List<Map<String, ?>> queueManagers = config.getQueueManagers();
     assertThat(queueManagers).isNotNull();
     ObjectMapper mapper = new ObjectMapper();
+
+    LongGauge gauge =
+        metricWriteHelper.getMeter().gaugeBuilder("mq.heartbeat").setUnit("1").ofLongs().build();
+
     // we override this helper to pass in our opentelemetry helper instead.
-    if (metricWriteHelper != null) {
-      for (Map<String, ?> queueManager : queueManagers) {
-        QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
-        WMQMonitorTask wmqTask =
-            new WMQMonitorTask(config, metricWriteHelper, qManager, threadPool);
-        wmqTask.run();
-      }
+    for (Map<String, ?> queueManager : queueManagers) {
+      QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
+      WMQMonitorTask wmqTask =
+          new WMQMonitorTask(config, metricWriteHelper, qManager, threadPool, gauge);
+      wmqTask.run();
     }
   }
 }
