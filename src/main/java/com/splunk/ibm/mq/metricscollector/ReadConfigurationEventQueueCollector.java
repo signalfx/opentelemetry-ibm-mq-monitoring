@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.MQException;
@@ -30,6 +29,7 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -41,7 +41,7 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
 
   private static final Logger logger =
       LoggerFactory.getLogger(ReadConfigurationEventQueueCollector.class);
-  private final MetricWriteHelper metricWriteHelper;
+  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
   private final MQQueueManager mqQueueManager;
@@ -54,7 +54,7 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
       PCFMessageAgent agent,
       MQQueueManager mqQueueManager,
       QueueManager queueManager,
-      MetricWriteHelper metricWriteHelper,
+      OpenTelemetryMetricWriteHelper metricWriteHelper,
       MetricCreator metricCreator) {
     this.metricsToReport = metricsToReport;
     this.agent = agent;

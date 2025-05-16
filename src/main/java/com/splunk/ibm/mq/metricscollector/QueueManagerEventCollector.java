@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQGetMessageOptions;
 import com.ibm.mq.MQMessage;
@@ -45,17 +44,11 @@ public final class QueueManagerEventCollector implements MetricsPublisher {
   public QueueManagerEventCollector(
       MQQueueManager mqQueueManager,
       QueueManager queueManager,
-      MetricWriteHelper metricWriteHelper) {
-    if (!(metricWriteHelper instanceof OpenTelemetryMetricWriteHelper)) {
-      throw new IllegalArgumentException(
-          "metricWriteHelper is not an instance of OpenTelemetryMetricWriteHelper");
-    }
+      OpenTelemetryMetricWriteHelper metricWriteHelper) {
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;
-    OpenTelemetryMetricWriteHelper openTelemetryMetricWriteHelper =
-        (OpenTelemetryMetricWriteHelper) metricWriteHelper;
     this.authorityEventCounter =
-        openTelemetryMetricWriteHelper
+        metricWriteHelper
             .getMeter(queueManager.getName())
             .counterBuilder("mq.unauthorized.event")
             .setUnit("1")

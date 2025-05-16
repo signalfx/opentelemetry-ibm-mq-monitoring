@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.metrics.transformers.Transformer;
 import io.opentelemetry.api.metrics.Meter;
@@ -30,7 +29,7 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OpenTelemetryMetricWriteHelper extends MetricWriteHelper {
+public class OpenTelemetryMetricWriteHelper {
 
   private static final Logger logger =
       LoggerFactory.getLogger(OpenTelemetryMetricWriteHelper.class);
@@ -44,14 +43,12 @@ public class OpenTelemetryMetricWriteHelper extends MetricWriteHelper {
     this.meters = meters;
   }
 
-  @Override
   public void printMetric(String metricPath, BigDecimal value, String metricType) {
     String metricName = metricPath.substring(metricPath.lastIndexOf('|'));
     transformAndPrintMetrics(
         Collections.singletonList(new Metric(metricName, value.toString(), metricPath)));
   }
 
-  @Override
   public void transformAndPrintMetrics(List<Metric> metrics) {
     Transformer transformer = new Transformer(metrics);
     transformer.transform();
@@ -69,7 +66,6 @@ public class OpenTelemetryMetricWriteHelper extends MetricWriteHelper {
     return this.meters.get(queueManager);
   }
 
-  @Override
   public void onComplete() {
     this.exporter.flush(); // TODO await?
   }

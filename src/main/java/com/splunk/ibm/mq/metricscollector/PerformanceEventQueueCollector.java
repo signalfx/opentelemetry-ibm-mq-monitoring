@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQGetMessageOptions;
 import com.ibm.mq.MQMessage;
@@ -48,15 +47,9 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
   public PerformanceEventQueueCollector(
       MQQueueManager mqQueueManager,
       QueueManager queueManager,
-      MetricWriteHelper metricWriteHelper) {
-    if (!(metricWriteHelper instanceof OpenTelemetryMetricWriteHelper)) {
-      throw new IllegalArgumentException(
-          "metricWriteHelper is not an instance of OpenTelemetryMetricWriteHelper");
-    }
+      OpenTelemetryMetricWriteHelper openTelemetryMetricWriteHelper) {
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;
-    OpenTelemetryMetricWriteHelper openTelemetryMetricWriteHelper =
-        (OpenTelemetryMetricWriteHelper) metricWriteHelper;
     this.fullQueueDepthCounter =
         openTelemetryMetricWriteHelper
             .getMeter(queueManager.getName())

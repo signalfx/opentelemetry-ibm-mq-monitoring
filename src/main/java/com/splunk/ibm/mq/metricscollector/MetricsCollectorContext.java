@@ -18,7 +18,6 @@ package com.splunk.ibm.mq.metricscollector;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFException;
@@ -28,6 +27,7 @@ import com.splunk.ibm.mq.common.WMQUtil;
 import com.splunk.ibm.mq.config.ExcludeFilters;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -51,13 +51,13 @@ public final class MetricsCollectorContext {
   private final IntAttributesBuilder attributesBuilder;
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
-  private final MetricWriteHelper metricWriteHelper;
+  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   public MetricsCollectorContext(
       @Nullable Map<String, WMQMetricOverride> metricsToReport,
       QueueManager queueManager,
       PCFMessageAgent agent,
-      MetricWriteHelper metricWriteHelper) {
+      OpenTelemetryMetricWriteHelper metricWriteHelper) {
     this(
         metricsToReport,
         new IntAttributesBuilder(metricsToReport),
@@ -71,7 +71,7 @@ public final class MetricsCollectorContext {
       IntAttributesBuilder attributesBuilder,
       QueueManager queueManager,
       PCFMessageAgent agent,
-      MetricWriteHelper metricWriteHelper) {
+      OpenTelemetryMetricWriteHelper metricWriteHelper) {
     this.metricsToReport =
         metricsToReport == null ? Collections.emptyMap() : new HashMap<>(metricsToReport);
     this.attributesBuilder = attributesBuilder;
@@ -155,7 +155,7 @@ public final class MetricsCollectorContext {
     return agent;
   }
 
-  MetricWriteHelper getMetricWriteHelper() {
+  OpenTelemetryMetricWriteHelper getMetricWriteHelper() {
     return metricWriteHelper;
   }
 

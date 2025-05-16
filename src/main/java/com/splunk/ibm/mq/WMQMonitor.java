@@ -16,13 +16,13 @@
 package com.splunk.ibm.mq;
 
 import com.appdynamics.extensions.Constants;
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.util.CryptoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
+import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -34,12 +34,14 @@ public class WMQMonitor implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitor.class);
 
-  private final MetricWriteHelper metricWriteHelper;
+  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
   private final ExecutorService threadPool;
   private final ConfigWrapper config;
 
   public WMQMonitor(
-      ConfigWrapper config, ExecutorService threadPool, MetricWriteHelper metricWriteHelper) {
+      ConfigWrapper config,
+      ExecutorService threadPool,
+      OpenTelemetryMetricWriteHelper metricWriteHelper) {
     assert (metricWriteHelper != null);
     this.config = config;
     this.threadPool = threadPool;

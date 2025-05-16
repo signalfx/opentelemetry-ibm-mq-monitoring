@@ -20,7 +20,6 @@ import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.standard
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.appdynamics.extensions.MetricWriteHelper;
 import com.appdynamics.extensions.metrics.Metric;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
@@ -32,6 +31,7 @@ import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
+import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -49,7 +49,7 @@ public class TopicMetricsCollectorTest {
 
   @Mock private PCFMessageAgent pcfMessageAgent;
 
-  @Mock private MetricWriteHelper metricWriteHelper;
+  @Mock private OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   private Map<String, WMQMetricOverride> topicMetricsToReport;
   private QueueManager queueManager;

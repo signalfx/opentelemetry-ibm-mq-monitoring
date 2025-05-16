@@ -15,8 +15,6 @@
  */
 package com.splunk.ibm.mq;
 
-import com.appdynamics.extensions.MetricWriteHelper;
-import com.appdynamics.extensions.util.StringUtils;
 import com.google.common.base.Strings;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
@@ -43,6 +41,7 @@ import com.splunk.ibm.mq.metricscollector.QueueMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.ReadConfigurationEventQueueCollector;
 import com.splunk.ibm.mq.metricscollector.TopicMetricsCollector;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
+import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,13 +61,13 @@ public class WMQMonitorTask implements Runnable {
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitorTask.class);
   private final QueueManager queueManager;
   private final ConfigWrapper config;
-  private final MetricWriteHelper metricWriteHelper;
+  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
   private final List<MetricsPublisher> pendingJobs = new ArrayList<>();
   private final ExecutorService threadPool;
 
   public WMQMonitorTask(
       ConfigWrapper config,
-      MetricWriteHelper metricWriteHelper,
+      OpenTelemetryMetricWriteHelper metricWriteHelper,
       QueueManager queueManager,
       ExecutorService threadPool) {
     this.config = config;
@@ -104,7 +103,7 @@ public class WMQMonitorTask implements Runnable {
     } finally {
       cleanUp(ibmQueueManager, agent);
       metricWriteHelper.printMetric(
-          StringUtils.concatMetricPath(config.getMetricPrefix(), queueManagerName, "HeartBeat"),
+          concatMetricPath(config.getMetricPrefix(), queueManagerName, "HeartBeat"),
           heartBeatMetricValue,
           "AVG.AVG.IND");
       long endTime = System.currentTimeMillis() - startTime;
@@ -113,6 +112,60 @@ public class WMQMonitorTask implements Runnable {
           queueManagerName,
           endTime);
     }
+  }
+
+  private static String concatMetricPath(String... paths) {
+    StringBuilder sb = new StringBuilder();
+    for (String path : paths) {
+      if (path != null && !path.isEmpty()) {
+        String trimmed = trim(path.trim(), "|").trim();
+        if (trimmed.length() > 0) {
+          sb.append(trimmed).append("|");
+        }
+      }
+    }
+    if (sb.length() > 0) {
+      sb.deleteCharAt(sb.length() - 1);
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Removes the leading and trailing occurence of the string trim.
+   *
+   * <p>trim("||||FOO|BAR|||||","|") => FOO|BAR
+   *
+   * @param str
+   * @param trim
+   * @return
+   */
+  private static String trim(String str, String trim) {
+    str = trimLeading(str, trim);
+    str = trimTrailing(str, trim);
+    return str;
+  }
+
+  private static String trimLeading(String str, String trim) {
+    while (str.startsWith(trim)) {
+      str = str.substring(trim.length());
+    }
+    return str;
+  }
+
+  /**
+   * Removes the trailing occurence of the string trim.
+   *
+   * <p>trim("||||FOO|BAR|||||","|") => ||||FOO|BAR
+   *
+   * @param str
+   * @param trim
+   * @return
+   */
+  private static String trimTrailing(String str, String trim) {
+    while (str.endsWith(trim)) {
+      str = str.substring(0, str.length() - trim.length());
+    }
+    return str;
   }
 
   public static MQQueueManager connectToQueueManager(
