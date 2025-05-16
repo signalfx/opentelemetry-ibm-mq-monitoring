@@ -42,7 +42,7 @@ public class WMQContext {
     validateArgs();
   }
 
-  @SuppressWarnings({"rawtypes", "unchecked"})
+  @SuppressWarnings({"rawtypes"})
   public Hashtable getMQEnvironment() {
     Hashtable env = new Hashtable();
     addEnvProperty(env, CMQC.HOST_NAME_PROPERTY, queueManager.getHost());

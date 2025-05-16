@@ -40,7 +40,6 @@ public class QueueManager {
   private String queueManagerEventsQueueName = "SYSTEM.ADMIN.QMGR.EVENT";
   private long consumeConfigurationEventInterval;
   private boolean refreshQueueManagerConfigurationEnabled;
-  private long consumePerformanceEventInterval;
 
   private ResourceFilters queueFilters;
   private ResourceFilters channelFilters;
