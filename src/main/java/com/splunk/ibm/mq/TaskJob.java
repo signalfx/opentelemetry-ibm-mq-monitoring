@@ -34,6 +34,8 @@ public final class TaskJob implements Runnable {
       long diffTime = System.currentTimeMillis() - startTime;
       if (diffTime > 60000L) {
         WMQMonitor.logger.warn("{} Task took {} ms to complete", name, diffTime);
+      } else {
+        WMQMonitor.logger.debug("{} Task took {} ms to complete", name, diffTime);
       }
     } catch (Exception e) {
       WMQMonitor.logger.error("Error while running task name = " + name, e);

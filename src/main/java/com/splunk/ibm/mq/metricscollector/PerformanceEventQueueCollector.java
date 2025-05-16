@@ -73,10 +73,12 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
   private void readEvents(String performanceEventsQueueName) throws Exception {
 
     MQQueue queue = null;
+    int counter = 0;
     try {
       int queueAccessOptions = MQConstants.MQOO_FAIL_IF_QUIESCING | MQConstants.MQOO_INPUT_SHARED;
       queue = mqQueueManager.accessQueue(performanceEventsQueueName, queueAccessOptions);
       // keep going until receiving the exception MQConstants.MQRC_NO_MSG_AVAILABLE
+      logger.debug("Start reading events from performance queue {}", performanceEventsQueueName);
       while (true) {
         try {
           MQGetMessageOptions getOptions = new MQGetMessageOptions();
@@ -86,7 +88,7 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
           queue.get(message, getOptions);
           PCFMessage receivedMsg = new PCFMessage(message);
           incrementCounterByEventType(receivedMsg);
-
+          counter++;
         } catch (MQException e) {
           if (e.reasonCode != MQConstants.MQRC_NO_MSG_AVAILABLE) {
             logger.error(e.getMessage(), e);
@@ -102,6 +104,7 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
         queue.close();
       }
     }
+    logger.debug("Read {} events from performance queue {}", counter, performanceEventsQueueName);
   }
 
   private void incrementCounterByEventType(PCFMessage receivedMsg) throws PCFException {

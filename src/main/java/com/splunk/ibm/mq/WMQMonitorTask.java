@@ -250,6 +250,7 @@ public class WMQMonitorTask implements Runnable {
 
     // Step 3: enqueue all jobs
     CountDownLatch countDownLatch = new CountDownLatch(pendingJobs.size());
+    logger.debug("Queueing {} jobs", pendingJobs.size());
     for (MetricsPublisher collector : pendingJobs) {
       Runnable job = new MetricsPublisherJob(collector, countDownLatch);
       threadPool.submit(new TaskJob(collector.getName(), job));
