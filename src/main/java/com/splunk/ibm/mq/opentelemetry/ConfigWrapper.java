@@ -34,7 +34,7 @@ import org.yaml.snakeyaml.Yaml;
 /** Low-fi domain-specific yaml wrapper. */
 public final class ConfigWrapper {
 
-  private static final int DEFAULT_THREADS = 1;
+  private static final int DEFAULT_THREADS = 20;
   private static final int DEFAULT_DELAY_SECONDS = 60;
   private static final int DEFAULT_INITIAL_DELAY = 0;
 
