@@ -18,7 +18,6 @@ package com.splunk.ibm.mq.metricscollector;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import java.util.Arrays;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,13 +42,6 @@ final class InquireQCmdCollector implements MetricsPublisher {
      */
     long entryTime = System.currentTimeMillis();
 
-    int[] attrs =
-        context.buildIntAttributesArray(CMQC.MQCA_Q_NAME, CMQC.MQIA_USAGE, CMQC.MQIA_Q_TYPE);
-    logger.debug(
-        "Attributes being sent along PCF agent request to query queue metrics: {} for command {}",
-        Arrays.toString(attrs),
-        COMMAND);
-
     Set<String> queueGenericNames = context.getQueueIncludeFilterNames();
     for (String queueGenericName : queueGenericNames) {
       // list of all metrics extracted through MQCMD_INQUIRE_Q is mentioned here
@@ -57,7 +49,7 @@ final class InquireQCmdCollector implements MetricsPublisher {
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q);
       request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
       request.addParameter(CMQC.MQIA_Q_TYPE, CMQC.MQQT_ALL);
-      request.addParameter(CMQCFC.MQIACF_Q_ATTRS, attrs);
+      request.addParameter(CMQCFC.MQIACF_Q_ATTRS, CMQCFC.MQIACF_ALL);
 
       queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName);
     }

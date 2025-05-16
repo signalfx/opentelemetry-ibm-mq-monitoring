@@ -73,14 +73,9 @@ class ListenerMetricsCollectorTest {
   public void testPublishMetrics() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireListenerStatusCmd());
-    IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(listenerMetricsToReport);
     MetricsCollectorContext context =
         new MetricsCollectorContext(
-            listenerMetricsToReport,
-            attributesBuilder,
-            queueManager,
-            pcfMessageAgent,
-            metricWriteHelper);
+            listenerMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
     classUnderTest = new ListenerMetricsCollector(context, metricCreator);
     classUnderTest.publishMetrics();
     verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());

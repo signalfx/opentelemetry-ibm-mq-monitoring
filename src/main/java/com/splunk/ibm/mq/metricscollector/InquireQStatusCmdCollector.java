@@ -18,7 +18,6 @@ package com.splunk.ibm.mq.metricscollector;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import java.util.Arrays;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,24 +64,13 @@ final class InquireQStatusCmdCollector implements MetricsPublisher {
       return;
     }
 
-    //
-    // attrs = { CMQC.MQCA_Q_NAME, MQIACF_OLDEST_MSG_AGE, MQIACF_Q_TIME_INDICATOR };
-    //
-    int[] attrs = context.buildIntAttributesArray(CMQC.MQCA_Q_NAME);
-    if (logger.isDebugEnabled()) {
-      logger.debug(
-          "Attributes being sent along PCF agent request to query queue metrics: {} for command {}",
-          Arrays.toString(attrs),
-          COMMAND);
-    }
-
     Set<String> queueGenericNames = context.getQueueIncludeFilterNames();
     for (String queueGenericName : queueGenericNames) {
       // list of all metrics extracted through MQCMD_INQUIRE_Q_STATUS is mentioned here
       // https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ref.adm.doc/q087880_.htm
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS);
       request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
-      request.addParameter(CMQCFC.MQIACF_Q_STATUS_ATTRS, attrs);
+      request.addParameter(CMQCFC.MQIACF_Q_STATUS_ATTRS, CMQCFC.MQIACF_ALL);
       queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName);
     }
     long exitTime = System.currentTimeMillis() - entryTime;

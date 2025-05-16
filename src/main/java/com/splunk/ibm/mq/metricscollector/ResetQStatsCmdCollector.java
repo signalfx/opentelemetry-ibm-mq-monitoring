@@ -18,7 +18,6 @@ package com.splunk.ibm.mq.metricscollector;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import java.util.Arrays;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,12 +49,6 @@ final class ResetQStatsCmdCollector implements MetricsPublisher {
           COMMAND);
       return;
     }
-
-    int[] attrs = context.buildIntAttributesArray(CMQC.MQCA_Q_NAME);
-    logger.debug(
-        "Attributes being sent along PCF agent request to query queue metrics: {} for command {}",
-        Arrays.toString(attrs),
-        COMMAND);
 
     Set<String> queueGenericNames = context.getQueueIncludeFilterNames();
     for (String queueGenericName : queueGenericNames) {

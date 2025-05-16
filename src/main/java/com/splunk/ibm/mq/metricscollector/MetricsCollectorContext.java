@@ -48,7 +48,6 @@ public final class MetricsCollectorContext {
   private static final Logger logger = LoggerFactory.getLogger(MetricsCollectorContext.class);
 
   private final Map<String, WMQMetricOverride> metricsToReport;
-  private final IntAttributesBuilder attributesBuilder;
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
   private final OpenTelemetryMetricWriteHelper metricWriteHelper;
@@ -58,23 +57,8 @@ public final class MetricsCollectorContext {
       QueueManager queueManager,
       PCFMessageAgent agent,
       OpenTelemetryMetricWriteHelper metricWriteHelper) {
-    this(
-        metricsToReport,
-        new IntAttributesBuilder(metricsToReport),
-        queueManager,
-        agent,
-        metricWriteHelper);
-  }
-
-  public MetricsCollectorContext(
-      @Nullable Map<String, WMQMetricOverride> metricsToReport,
-      IntAttributesBuilder attributesBuilder,
-      QueueManager queueManager,
-      PCFMessageAgent agent,
-      OpenTelemetryMetricWriteHelper metricWriteHelper) {
     this.metricsToReport =
         metricsToReport == null ? Collections.emptyMap() : new HashMap<>(metricsToReport);
-    this.attributesBuilder = attributesBuilder;
     this.queueManager = queueManager;
     this.agent = agent;
     this.metricWriteHelper = metricWriteHelper;
@@ -82,10 +66,6 @@ public final class MetricsCollectorContext {
 
   boolean hasNoMetricsToReport() {
     return metricsToReport.isEmpty();
-  }
-
-  int[] buildIntAttributesArray(int... inputAttrs) {
-    return attributesBuilder.buildIntAttributesArray(inputAttrs);
   }
 
   Set<String> getChannelIncludeFilterNames() {

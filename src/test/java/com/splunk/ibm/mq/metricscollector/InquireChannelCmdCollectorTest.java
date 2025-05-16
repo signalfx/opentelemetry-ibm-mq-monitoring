@@ -79,14 +79,9 @@ class InquireChannelCmdCollectorTest {
     metricCreator =
         new MetricCreator(
             config.getMetricPrefix(), queueManager, InquireChannelCmdCollector.ARTIFACT);
-    IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(channelMetricsToReport);
     context =
         new MetricsCollectorContext(
-            channelMetricsToReport,
-            attributesBuilder,
-            queueManager,
-            pcfMessageAgent,
-            metricWriteHelper);
+            channelMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
   }
 
   @Test

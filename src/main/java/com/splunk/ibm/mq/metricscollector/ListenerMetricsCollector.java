@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -64,16 +63,11 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
       return;
     }
 
-    int[] attrs = context.buildIntAttributesArray(CMQCFC.MQCACH_LISTENER_NAME);
-    logger.debug(
-        "Attributes being sent along PCF agent request to query channel metrics: "
-            + Arrays.toString(attrs));
-
     Set<String> listenerGenericNames = context.getListenerIncludeFilterNames();
     for (String listenerGenericName : listenerGenericNames) {
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_LISTENER_STATUS);
       request.addParameter(CMQCFC.MQCACH_LISTENER_NAME, listenerGenericName);
-      request.addParameter(CMQCFC.MQIACF_LISTENER_STATUS_ATTRS, attrs);
+      request.addParameter(CMQCFC.MQIACF_LISTENER_STATUS_ATTRS, CMQCFC.MQIACF_ALL);
       try {
         logger.debug(
             "sending PCF agent request to query metrics for generic listener {}",

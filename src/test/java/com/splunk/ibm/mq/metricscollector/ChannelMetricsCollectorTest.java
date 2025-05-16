@@ -89,14 +89,9 @@ class ChannelMetricsCollectorTest {
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator =
         new MetricCreator(config.getMetricPrefix(), queueManager, ChannelMetricsCollector.ARTIFACT);
-    IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(channelMetricsToReport);
     context =
         new MetricsCollectorContext(
-            channelMetricsToReport,
-            attributesBuilder,
-            queueManager,
-            pcfMessageAgent,
-            metricWriteHelper);
+            channelMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
   }
 
   @Test

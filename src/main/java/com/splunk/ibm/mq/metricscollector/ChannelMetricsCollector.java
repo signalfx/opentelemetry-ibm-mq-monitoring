@@ -24,7 +24,6 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -58,14 +57,6 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
       return;
     }
 
-    int[] attrs =
-        context.buildIntAttributesArray(CMQCFC.MQCACH_CHANNEL_NAME, CMQCFC.MQCACH_CONNECTION_NAME);
-    if (logger.isDebugEnabled()) {
-      logger.debug(
-          "Attributes being sent along PCF agent request to query channel metrics: {}",
-          Arrays.toString(attrs));
-    }
-
     Set<String> channelGenericNames = context.getChannelIncludeFilterNames();
 
     //
@@ -77,7 +68,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS);
       request.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, channelGenericName);
       request.addParameter(CMQCFC.MQIACH_CHANNEL_INSTANCE_TYPE, CMQC.MQOT_CURRENT_CHANNEL);
-      request.addParameter(CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, attrs);
+      request.addParameter(CMQCFC.MQIACH_CHANNEL_INSTANCE_ATTRS, CMQCFC.MQIACF_ALL);
       try {
         logger.debug(
             "sending PCF agent request to query metrics for generic channel {}",

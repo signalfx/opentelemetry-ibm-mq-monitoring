@@ -55,10 +55,8 @@ public final class JobSubmitterContext {
   }
 
   MetricsCollectorContext newCollectorContext(Map<String, WMQMetricOverride> newMetrics) {
-    IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(newMetrics);
     return new MetricsCollectorContext(
         newMetrics,
-        attributesBuilder,
         collectorContext.getQueueManager(),
         collectorContext.getAgent(),
         collectorContext.getMetricWriteHelper());
