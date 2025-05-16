@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.integration.tests;
 
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -30,9 +29,7 @@ import com.splunk.ibm.mq.WMQMonitorTask;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.Main;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
-import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
@@ -41,7 +38,6 @@ import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -185,14 +181,11 @@ class WMQMonitorIntegrationTest {
         PeriodicMetricReader.builder(testExporter)
             .setExecutor(Executors.newScheduledThreadPool(1))
             .build();
-    Map<String, SdkMeterProvider> providers =
-        Main.createSdkMeterProviders(reader, singletonList("QM1"));
-    Map<String, Meter> meters = new HashMap<>();
-    for (Map.Entry<String, SdkMeterProvider> e : providers.entrySet()) {
-      meters.put(e.getKey(), e.getValue().get("opentelemetry.io/mq"));
-    }
+    SdkMeterProvider meterProvider =
+        SdkMeterProvider.builder().registerMetricReader(reader).build();
     OpenTelemetryMetricWriteHelper metricWriteHelper =
-        new OpenTelemetryMetricWriteHelper(testExporter, meters);
+        new OpenTelemetryMetricWriteHelper(
+            reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     String configFile = getConfigFile("conf/test-config.yml");
 
     ConfigWrapper config = ConfigWrapper.parse(configFile);
@@ -200,9 +193,7 @@ class WMQMonitorIntegrationTest {
     monitor.runTest();
 
     reader.forceFlush().join(5, TimeUnit.SECONDS);
-    for (SdkMeterProvider provider : providers.values()) {
-      provider.close();
-    }
+    meterProvider.close();
     List<MetricData> data = testExporter.getExportedMetrics();
     Set<String> metricNames = new HashSet<>();
     for (MetricData metricData : data) {
@@ -219,6 +210,8 @@ class WMQMonitorIntegrationTest {
     // this value is read from the performance event queue.
     assertThat(metricNames).contains("mq.queue.depth.high.event");
     assertThat(metricNames).contains("mq.queue.depth.low.event");
+    // reads a value from the heartbeat gauge
+    assertThat(metricNames).contains("mq.heartbeat");
   }
 
   @Test
@@ -229,14 +222,11 @@ class WMQMonitorIntegrationTest {
         PeriodicMetricReader.builder(testExporter)
             .setExecutor(Executors.newScheduledThreadPool(1))
             .build();
-    Map<String, SdkMeterProvider> providers =
-        Main.createSdkMeterProviders(reader, singletonList("QM1"));
-    Map<String, Meter> meters = new HashMap<>();
-    for (Map.Entry<String, SdkMeterProvider> e : providers.entrySet()) {
-      meters.put(e.getKey(), e.getValue().get("opentelemetry.io/mq"));
-    }
+    SdkMeterProvider meterProvider =
+        SdkMeterProvider.builder().registerMetricReader(reader).build();
     OpenTelemetryMetricWriteHelper metricWriteHelper =
-        new OpenTelemetryMetricWriteHelper(testExporter, meters);
+        new OpenTelemetryMetricWriteHelper(
+            reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     String configFile = getConfigFile("conf/test-queuemgr-config.yml");
     ConfigWrapper config = ConfigWrapper.parse(configFile);
 

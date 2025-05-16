@@ -52,19 +52,19 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
     this.queueManager = queueManager;
     this.fullQueueDepthCounter =
         openTelemetryMetricWriteHelper
-            .getMeter(queueManager.getName())
+            .getMeter()
             .counterBuilder("mq.queue.depth.full.event")
             .setUnit("1")
             .build();
     this.highQueueDepthCounter =
         openTelemetryMetricWriteHelper
-            .getMeter(queueManager.getName())
+            .getMeter()
             .counterBuilder("mq.queue.depth.high.event")
             .setUnit("1")
             .build();
     this.lowQueueDepthCounter =
         openTelemetryMetricWriteHelper
-            .getMeter(queueManager.getName())
+            .getMeter()
             .counterBuilder("mq.queue.depth.low.event")
             .setUnit("1")
             .build();
@@ -113,21 +113,36 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
         {
           String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
           fullQueueDepthCounter.add(
-              1, Attributes.of(AttributeKey.stringKey("queue.name"), queueName));
+              1,
+              Attributes.of(
+                  AttributeKey.stringKey("queue.manager"),
+                  queueManager.getName(),
+                  AttributeKey.stringKey("queue.name"),
+                  queueName));
         }
         break;
       case CMQC.MQRC_Q_DEPTH_HIGH:
         {
           String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
           highQueueDepthCounter.add(
-              1, Attributes.of(AttributeKey.stringKey("queue.name"), queueName));
+              1,
+              Attributes.of(
+                  AttributeKey.stringKey("queue.manager"),
+                  queueManager.getName(),
+                  AttributeKey.stringKey("queue.name"),
+                  queueName));
         }
         break;
       case CMQC.MQRC_Q_DEPTH_LOW:
         {
           String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
           lowQueueDepthCounter.add(
-              1, Attributes.of(AttributeKey.stringKey("queue.name"), queueName));
+              1,
+              Attributes.of(
+                  AttributeKey.stringKey("queue.manager"),
+                  queueManager.getName(),
+                  AttributeKey.stringKey("queue.name"),
+                  queueName));
         }
         break;
       default:

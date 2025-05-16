@@ -21,6 +21,7 @@ import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
 import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporterBuilder;
 import io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil;
 import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
+import io.opentelemetry.sdk.metrics.Aggregation;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +55,7 @@ class Config {
         builder::setRetryPolicy,
         builder::setMemoryMode);
 
+    builder.setDefaultAggregationSelector((instrumentType) -> Aggregation.lastValue());
     return builder.build();
   }
 

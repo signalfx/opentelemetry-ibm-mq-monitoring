@@ -41,7 +41,9 @@ import com.splunk.ibm.mq.metricscollector.ReadConfigurationEventQueueCollector;
 import com.splunk.ibm.mq.metricscollector.TopicMetricsCollector;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
-import java.math.BigDecimal;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongGauge;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -63,16 +65,19 @@ public class WMQMonitorTask implements Runnable {
   private final OpenTelemetryMetricWriteHelper metricWriteHelper;
   private final List<MetricsPublisher> pendingJobs = new ArrayList<>();
   private final ExecutorService threadPool;
+  private final LongGauge heartbeatGauge;
 
   public WMQMonitorTask(
       ConfigWrapper config,
       OpenTelemetryMetricWriteHelper metricWriteHelper,
       QueueManager queueManager,
-      ExecutorService threadPool) {
+      ExecutorService threadPool,
+      LongGauge heartbeatGauge) {
     this.config = config;
     this.queueManager = queueManager;
     this.metricWriteHelper = metricWriteHelper;
     this.threadPool = threadPool;
+    this.heartbeatGauge = heartbeatGauge;
   }
 
   @Override
@@ -82,13 +87,12 @@ public class WMQMonitorTask implements Runnable {
     long startTime = System.currentTimeMillis();
     MQQueueManager ibmQueueManager = null;
     PCFMessageAgent agent = null;
-    BigDecimal heartBeatMetricValue = BigDecimal.ZERO;
+    int heartBeatMetricValue = 0;
     try {
       ibmQueueManager = connectToQueueManager(queueManager);
-      heartBeatMetricValue = BigDecimal.ONE;
+      heartBeatMetricValue = 1;
       agent = initPCFMessageAgent(queueManager, ibmQueueManager);
       extractAndReportMetrics(ibmQueueManager, agent);
-
     } catch (Exception e) {
       logger.error(
           "Error connecting to QueueManager {} by thread {}: {}",
@@ -97,71 +101,17 @@ public class WMQMonitorTask implements Runnable {
           e.getMessage(),
           e);
     } finally {
-      cleanUp(ibmQueueManager, agent);
-      metricWriteHelper.printMetric(
-          concatMetricPath(config.getMetricPrefix(), queueManagerName, "HeartBeat"),
+      heartbeatGauge.set(
           heartBeatMetricValue,
-          "AVG.AVG.IND");
+          Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName));
+      metricWriteHelper.flush();
+      cleanUp(ibmQueueManager, agent);
       long endTime = System.currentTimeMillis() - startTime;
       logger.debug(
           "WMQMonitor thread for queueManager {} ended. Time taken = {} ms",
           queueManagerName,
           endTime);
     }
-  }
-
-  private static String concatMetricPath(String... paths) {
-    StringBuilder sb = new StringBuilder();
-    for (String path : paths) {
-      if (path != null && !path.isEmpty()) {
-        String trimmed = trim(path.trim(), "|").trim();
-        if (trimmed.length() > 0) {
-          sb.append(trimmed).append("|");
-        }
-      }
-    }
-    if (sb.length() > 0) {
-      sb.deleteCharAt(sb.length() - 1);
-    }
-    return sb.toString();
-  }
-
-  /**
-   * Removes the leading and trailing occurence of the string trim.
-   *
-   * <p>trim("||||FOO|BAR|||||","|") => FOO|BAR
-   *
-   * @param str
-   * @param trim
-   * @return
-   */
-  private static String trim(String str, String trim) {
-    str = trimLeading(str, trim);
-    str = trimTrailing(str, trim);
-    return str;
-  }
-
-  private static String trimLeading(String str, String trim) {
-    while (str.startsWith(trim)) {
-      str = str.substring(trim.length());
-    }
-    return str;
-  }
-
-  /**
-   * Removes the trailing occurence of the string trim.
-   *
-   * <p>trim("||||FOO|BAR|||||","|") => ||||FOO|BAR
-   *
-   * @param str
-   * @param trim
-   * @return
-   */
-  private static String trimTrailing(String str, String trim) {
-    while (str.endsWith(trim)) {
-      str = str.substring(0, str.length() - trim.length());
-    }
-    return str;
   }
 
   public static MQQueueManager connectToQueueManager(QueueManager queueManager) {

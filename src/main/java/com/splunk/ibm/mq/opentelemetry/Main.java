@@ -16,17 +16,11 @@
 package com.splunk.ibm.mq.opentelemetry;
 
 import com.splunk.ibm.mq.WMQMonitor;
-import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -70,26 +64,19 @@ public class Main {
 
     MetricExporter exporter = Config.createOtlpHttpMetricsExporter(config._exposed());
 
-    MetricReader reader =
-        PeriodicMetricReader.builder(exporter)
-            .setExecutor(service)
-            .setInterval(config.getTaskDelay())
-            .build();
+    MetricReader reader = PeriodicMetricReader.builder(exporter).build();
 
-    List<String> queueManagerNames = config.getQueueManagerNames();
-    Map<String, SdkMeterProvider> providers = createSdkMeterProviders(reader, queueManagerNames);
-    Map<String, Meter> meters = new HashMap<>();
-    for (Map.Entry<String, SdkMeterProvider> e : providers.entrySet()) {
-      meters.put(e.getKey(), e.getValue().get("opentelemetry.io/mq"));
-    }
+    SdkMeterProvider meterProvider =
+        SdkMeterProvider.builder()
+            .setResource(Resource.empty())
+            .registerMetricReader(reader)
+            .build();
 
     Runtime.getRuntime()
         .addShutdownHook(
             new Thread(
                 () -> {
-                  for (SdkMeterProvider c : providers.values()) {
-                    c.close();
-                  }
+                  meterProvider.shutdown();
                   reader.shutdown();
                   service.shutdown();
                   exporter.shutdown();
@@ -98,27 +85,15 @@ public class Main {
     service.scheduleAtFixedRate(
         () -> {
           WMQMonitor monitor =
-              new WMQMonitor(config, service, new OpenTelemetryMetricWriteHelper(exporter, meters));
+              new WMQMonitor(
+                  config,
+                  service,
+                  new OpenTelemetryMetricWriteHelper(
+                      reader, exporter, meterProvider.get("websphere/mq")));
           monitor.run();
         },
         config.getTaskInitialDelaySeconds(),
         config.getTaskDelaySeconds(),
         TimeUnit.SECONDS);
-  }
-
-  public static Map<String, SdkMeterProvider> createSdkMeterProviders(
-      MetricReader reader, List<String> queueManagerNames) {
-    Map<String, SdkMeterProvider> providers = new HashMap<>();
-    for (String queueManagerName : queueManagerNames) {
-      Attributes attrs = Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName);
-      SdkMeterProvider meterProvider =
-          SdkMeterProvider.builder()
-              .registerMetricReader(reader)
-              // TODO: We should not be making multiple resources. :(
-              .setResource(Resource.create(attrs))
-              .build();
-      providers.put(queueManagerName, meterProvider);
-    }
-    return providers;
   }
 }
