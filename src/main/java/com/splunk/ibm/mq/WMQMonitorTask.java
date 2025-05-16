@@ -86,7 +86,7 @@ public class WMQMonitorTask implements Runnable {
     try {
       ibmQueueManager = connectToQueueManager(queueManager);
       heartBeatMetricValue = BigDecimal.ONE;
-      agent = initPCFMesageAgent(queueManager, ibmQueueManager);
+      agent = initPCFMessageAgent(queueManager, ibmQueueManager);
       extractAndReportMetrics(ibmQueueManager, agent);
 
     } catch (Exception e) {
@@ -182,7 +182,7 @@ public class WMQMonitorTask implements Runnable {
     return ibmQueueManager;
   }
 
-  public static PCFMessageAgent initPCFMesageAgent(
+  public static PCFMessageAgent initPCFMessageAgent(
       QueueManager queueManager, MQQueueManager ibmQueueManager) {
     try {
       PCFMessageAgent agent;
@@ -221,7 +221,7 @@ public class WMQMonitorTask implements Runnable {
     pendingJobs.clear();
 
     // Step 2: Inquire each metric type
-    inquireQueueMangerMetrics(metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER), agent);
+    inquireQueueManagerMetrics(metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER), agent);
 
     inquireChannelMetrics(metricsMap.get(Constants.METRIC_TYPE_CHANNEL), agent);
 
@@ -260,7 +260,7 @@ public class WMQMonitorTask implements Runnable {
     }
   }
 
-  private void inquireQueueMangerMetrics(
+  private void inquireQueueManagerMetrics(
       Map<String, WMQMetricOverride> metricsToReport, PCFMessageAgent agent) {
     if (metricsToReport == null) {
       logger.warn("No metrics to report for type Queue Manager.");
