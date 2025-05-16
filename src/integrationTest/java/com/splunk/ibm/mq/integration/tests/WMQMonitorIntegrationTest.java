@@ -219,6 +219,8 @@ class WMQMonitorIntegrationTest {
     // this value is read from the performance event queue.
     assertThat(metricNames).contains("mq.queue.depth.high.event");
     assertThat(metricNames).contains("mq.queue.depth.low.event");
+    // reads a value from the heartbeat gauge
+    assertThat(metricNames).contains("mq.heartbeat");
   }
 
   @Test
