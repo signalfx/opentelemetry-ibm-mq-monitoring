@@ -90,6 +90,7 @@ public class Main {
                   for (SdkMeterProvider c : providers.values()) {
                     c.close();
                   }
+                  reader.shutdown();
                   service.shutdown();
                   exporter.shutdown();
                 }));
