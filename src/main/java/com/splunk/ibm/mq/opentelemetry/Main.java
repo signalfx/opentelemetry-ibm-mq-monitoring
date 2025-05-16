@@ -72,8 +72,8 @@ public class Main {
 
     MetricReader reader =
         PeriodicMetricReader.builder(exporter)
-            .setExecutor(service)
-            .setInterval(config.getTaskDelay())
+            // we check to send metrics every 5s, while we collect them less often.
+            .setInterval(5, TimeUnit.SECONDS)
             .build();
 
     List<String> queueManagerNames = config.getQueueManagerNames();

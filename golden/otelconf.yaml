@@ -20,7 +20,7 @@ processors:
   groupbyattrs:
   batch:
     send_batch_size: 5000
-    timeout: 50s
+    timeout: 10s
 service:
   pipelines:
     metrics:
