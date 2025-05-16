@@ -56,6 +56,7 @@ public class Main {
 
     Thread.UncaughtExceptionHandler handler =
         (t, e) -> logger.error("Unhandled exception in thread pool", e);
+    logger.debug("Initializing thread pool with {} threads", config.getNumberOfThreads());
     final ScheduledExecutorService service =
         Executors.newScheduledThreadPool(
             config.getNumberOfThreads(),

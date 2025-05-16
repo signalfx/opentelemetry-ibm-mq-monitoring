@@ -303,7 +303,6 @@ class MQOtelTranslator {
               ImmutableGaugeData.create(Collections.singleton(pointData)));
 
       metrics.add(otelMetricData);
-      logger.debug("\nTranslating Metric: {} \nto Otel: {}\n", metric, otelMetricData);
     }
     return metrics;
   }
