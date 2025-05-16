@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.yaml.snakeyaml.Yaml;
 
 /** Low-fi domain-specific yaml wrapper. */
@@ -89,11 +88,6 @@ public final class ConfigWrapper {
       return Collections.emptyMap();
     }
     return result;
-  }
-
-  @Nullable
-  public String getEncryptionKey() {
-    return (String) config.get("encryptionKey");
   }
 
   public String getMetricPrefix() {

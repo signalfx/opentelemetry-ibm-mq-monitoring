@@ -10,9 +10,6 @@
 #channelMetricsCollectionTimeoutInSeconds: 40
 #topicMetricsCollectionTimeoutInSeconds: 40
 
-#Uncomment only if encryption of passwords is wanted.
-#encryptionKey: ""
-
 queueManagers:
   - name: "QM1"
     host: "0.0.0.0"
@@ -31,9 +28,6 @@ queueManagers:
     #comment out the username and password in case of transportType: Bindings.
     username: "admin"
     password: "passw0rd"
-
-    #Uncomment only if encryption of passwords is wanted.
-    #encryptedPassword: ""
 
     #PCF requests are always sent to SYSTEM.ADMIN.COMMAND.QUEUE. The PCF responses to these requests are sent to the default reply-to queue called
     #SYSTEM.DEFAULT.MODEL.QUEUE. However, you can override this behavior and send it to a temporary dynamic queue by changing the modelQueueName and replyQueuePrefix fields.
@@ -344,8 +338,6 @@ mqMetrics:
 sslConnection:
   trustStorePath: ""
   trustStorePassword: ""
-  trustStoreEncryptedPassword: ""
 
   keyStorePath: ""
   keyStorePassword: ""
-  keyStoreEncryptedPassword: ""

@@ -15,11 +15,8 @@
  */
 package com.splunk.ibm.mq;
 
-import com.appdynamics.extensions.Constants;
-import com.appdynamics.extensions.util.CryptoUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
@@ -80,13 +77,11 @@ public class WMQMonitor implements Runnable {
       return;
     }
 
-    String encryptionKey = config.getEncryptionKey();
-
-    configureTrustStore(sslConnection, encryptionKey);
-    configureKeyStore(sslConnection, encryptionKey);
+    configureTrustStore(sslConnection);
+    configureKeyStore(sslConnection);
   }
 
-  private void configureTrustStore(Map<String, String> sslConnection, String encryptionKey) {
+  private void configureTrustStore(Map<String, String> sslConnection) {
     String trustStorePath = sslConnection.get("trustStorePath");
     if (Strings.isNullOrEmpty(trustStorePath)) {
       logger.debug(
@@ -97,11 +92,7 @@ public class WMQMonitor implements Runnable {
     System.setProperty("javax.net.ssl.trustStore", trustStorePath);
     logger.debug("System property set for javax.net.ssl.trustStore is {}", trustStorePath);
 
-    String trustStorePassword =
-        getPassword(
-            sslConnection.get("trustStorePassword"),
-            sslConnection.get("trustStoreEncryptedPassword"),
-            encryptionKey);
+    String trustStorePassword = sslConnection.get("trustStorePassword");
 
     if (!Strings.isNullOrEmpty(trustStorePassword)) {
       System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword);
@@ -109,7 +100,7 @@ public class WMQMonitor implements Runnable {
     }
   }
 
-  private void configureKeyStore(Map<String, String> sslConnection, String encryptionKey) {
+  private void configureKeyStore(Map<String, String> sslConnection) {
     String keyStorePath = sslConnection.get("keyStorePath");
     if (Strings.isNullOrEmpty(keyStorePath)) {
       logger.debug(
@@ -119,28 +110,10 @@ public class WMQMonitor implements Runnable {
 
     System.setProperty("javax.net.ssl.keyStore", keyStorePath);
     logger.debug("System property set for javax.net.ssl.keyStore is {}", keyStorePath);
-    String keyStorePassword =
-        getPassword(
-            sslConnection.get("keyStorePassword"),
-            sslConnection.get("keyStoreEncryptedPassword"),
-            encryptionKey);
+    String keyStorePassword = sslConnection.get("keyStorePassword");
     if (!Strings.isNullOrEmpty(keyStorePassword)) {
       System.setProperty("javax.net.ssl.keyStorePassword", keyStorePassword);
       logger.debug("System property set for javax.net.ssl.keyStorePassword is xxxxx");
     }
-  }
-
-  private String getPassword(String password, String encryptedPassword, String encryptionKey) {
-    if (!Strings.isNullOrEmpty(password)) {
-      return password;
-    }
-
-    if (!Strings.isNullOrEmpty(encryptionKey) && !Strings.isNullOrEmpty(encryptedPassword)) {
-      Map<String, String> cryptoMap = Maps.newHashMap();
-      cryptoMap.put(Constants.ENCRYPTED_PASSWORD, encryptedPassword);
-      cryptoMap.put(Constants.ENCRYPTION_KEY, encryptionKey);
-      return CryptoUtils.getPassword(cryptoMap);
-    }
-    return null;
   }
 }

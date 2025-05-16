@@ -15,9 +15,7 @@
  */
 package com.splunk.ibm.mq;
 
-import com.appdynamics.extensions.util.CryptoUtils;
 import com.google.common.base.Strings;
-import com.google.common.collect.Maps;
 import com.ibm.mq.constants.CMQC;
 import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.config.QueueManager;
@@ -34,11 +32,9 @@ public class WMQContext {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQContext.class);
   private final QueueManager queueManager;
-  private final String encryptionKey;
 
-  public WMQContext(QueueManager queueManager, String encryptionKey) {
+  public WMQContext(QueueManager queueManager) {
     this.queueManager = queueManager;
-    this.encryptionKey = encryptionKey;
     validateArgs();
   }
 
@@ -49,7 +45,7 @@ public class WMQContext {
     addEnvProperty(env, CMQC.PORT_PROPERTY, queueManager.getPort());
     addEnvProperty(env, CMQC.CHANNEL_PROPERTY, queueManager.getChannelName());
     addEnvProperty(env, CMQC.USER_ID_PROPERTY, queueManager.getUsername());
-    addEnvProperty(env, CMQC.PASSWORD_PROPERTY, getPassword());
+    addEnvProperty(env, CMQC.PASSWORD_PROPERTY, queueManager.getPassword());
     addEnvProperty(env, CMQC.SSL_CERT_STORE_PROPERTY, queueManager.getSslKeyRepository());
     addEnvProperty(env, CMQC.SSL_CIPHER_SUITE_PROPERTY, queueManager.getCipherSuite());
     // TODO: investigate on CIPHER_SPEC property No Available in MQ 7.5 Jar
@@ -115,20 +111,5 @@ public class WMQContext {
     if (!validArgs) {
       throw new IllegalArgumentException(errorMsg.toString());
     }
-  }
-
-  private String getPassword() {
-    String password = queueManager.getPassword();
-    if (!Strings.isNullOrEmpty(password)) {
-      return password;
-    }
-    String encryptedPassword = queueManager.getEncryptedPassword();
-    if (!Strings.isNullOrEmpty(this.encryptionKey) && !Strings.isNullOrEmpty(encryptedPassword)) {
-      java.util.Map<String, String> cryptoMap = Maps.newHashMap();
-      cryptoMap.put(com.appdynamics.extensions.Constants.ENCRYPTED_PASSWORD, encryptedPassword);
-      cryptoMap.put(com.appdynamics.extensions.Constants.ENCRYPTION_KEY, this.encryptionKey);
-      return CryptoUtils.getPassword(cryptoMap);
-    }
-    return null;
   }
 }
