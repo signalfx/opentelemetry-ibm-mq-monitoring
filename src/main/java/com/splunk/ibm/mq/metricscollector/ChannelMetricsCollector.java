@@ -50,6 +50,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
 
   @Override
   public void publishMetrics() {
+    logger.info("Collecting metrics for command MQCMD_INQUIRE_CHANNEL_STATUS");
     long entryTime = System.currentTimeMillis();
 
     if (context.hasNoMetricsToReport()) {
