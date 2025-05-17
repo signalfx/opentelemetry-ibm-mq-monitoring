@@ -1,0 +1,60 @@
+receivers:
+  filelog:
+    include:
+    # Change to the path to the log file used by MQ.
+     - /tmp/log.txt
+    # Change to end for production uses.
+    start_at: beginning
+    operators:
+      - type: regex_parser
+        parse_from: body
+        regex: '^(?P<timestamp>\d\d\d\d-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\d)Z\s(?P<code>.*?):.*'
+        on_error: drop_quiet
+      - type: time_parser
+        parse_from: attributes.timestamp
+        layout_type: strptime
+        layout: "%Y-%m-%dT%H:%M:%S.%L"
+        on_error: drop_quiet
+  filelog/json:
+    include:
+      # Change to the path to the log file used by MQ.
+      - /tmp/log.json
+    # Change to end for production uses.
+    start_at: beginning
+    operators:
+      - type: json_parser
+        parse_from: body
+        parse_to: body.parsed
+        on_error: drop_quiet
+      - type: time_parser
+        parse_from: body.parsed.ibm_datetime
+        layout_type: strptime
+        layout: "%Y-%m-%dT%H:%M:%S.%L%z"
+        on_error: drop_quiet
+      - type: copy
+        from: body.parsed.ibm_messageId
+        to: attributes.code
+exporters:
+  debug:
+    verbosity: detailed
+connectors:
+  count:
+    logs:
+      mq.log.codes:
+        attributes:
+          - key: code
+
+service:
+  pipelines:
+    logs:
+      receivers:
+        - filelog
+        - filelog/json
+      exporters:
+        - count
+    metrics:
+      receivers:
+        - count
+      exporters:
+        - debug
+
