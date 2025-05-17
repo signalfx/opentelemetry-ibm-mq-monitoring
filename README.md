@@ -14,6 +14,8 @@ The MQ Monitor is compatible with IBM MQ version 7.x, 8.x and 9.x.
 
 ## Prerequisites
 
+### Build
+
 This software requires compilation with Java 11. 
 It targets language level 8 and outputs java 8 class files.
 
@@ -37,6 +39,15 @@ connector.jar
 These jar files are typically found in ```/opt/mqm/java/lib``` on a UNIX server but may be found in an alternate location depending upon your environment.
 
 In case of **CLIENT** transport type, IBM MQ Client must be installed to get the MQ jars. To download IBM MQ Client jars, see [here](https://developer.ibm.com/messaging/mq-downloads/)
+
+### MQ monitoring configuration
+
+This software reads events from event queues associated with the queue manager:
+* `SYSTEM.ADMIN.PERFM.EVENT`: Performance events, such as low, high, and full queue depth events.
+* `SYSTEM.ADMIN.QMGR.EVENT`: Authority events
+* `SYSTEM.ADMIN.CONFIG.EVENT`: Configuration events
+
+Please turn on those events to take advantage of this monitoring.
 
 ## Build
 
@@ -132,8 +143,6 @@ By default, the PCF responses are sent to the SYSTEM.DEFAULT.MODEL.QUEUE. Using 
 More details mentioned [here](https://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.adm.doc/q083240_.htm)
 
 ## Metrics
-
-The metrics will be reported under the tree ```Application Infrastructure Performance|$TIER|Custom Metrics|WebsphereMQ```
 
 ### [QueueManagerMetrics](https://www.ibm.com/support/knowledgecenter/en/SSFKSJ_7.5.0/com.ibm.mq.ref.adm.doc/q087850_.htm)
 
@@ -286,6 +295,9 @@ The following metrics are extracted using the MQCMD_RESET_Q_STATS command which 
 </tbody>
 </table>
 
+## Capturing logs
+
+See [Capturing logs as metrics](log_captures/README.md) for a tutorial to capture and extract metrics from logs.
 
 ## Troubleshooting
 1. Please follow the steps listed in this [troubleshooting-document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) in order to troubleshoot your issue. These are a set of common issues that customers might have faced during the installation of the extension.

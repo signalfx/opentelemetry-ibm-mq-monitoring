@@ -1,0 +1,127 @@
+2025-05-16T22:20:21.287Z Creating queue manager QM1
+2025-05-16T22:20:21.288Z Starting web server
+2025-05-16T22:20:23.295Z Created queue manager
+2025-05-16T22:20:23.342Z Removing existing ServiceComponent configuration
+2025-05-16T22:20:23.346Z Starting queue manager
+2025-05-16T22:20:21.819Z AMQ6287I: IBM MQ V9.4.2.1 (p942-001-250407). [CommentInsert1(Linux 6.10.14-linuxkit (MQ Linux (x86-64 platform) 64-bit)), CommentInsert2(/opt/mqm (Installation1)), CommentInsert3(9.4.2.1 (p942-001-250407))]
+2025-05-16T22:20:22.268Z AMQ7229I: 4 log records accessed on queue manager 'QM1' during the log replay phase. [ArithInsert1(4), CommentInsert1(QM1)]
+2025-05-16T22:20:22.269Z AMQ7230I: Log replay for queue manager 'QM1' complete. [ArithInsert1(4), CommentInsert1(QM1), CommentInsert2(<0:0:0:4816> 0x00000000000012d0)]
+2025-05-16T22:20:22.274Z AMQ7231I: 0 log records accessed on queue manager 'QM1' during the recovery phase. [CommentInsert1(QM1)]
+2025-05-16T22:20:22.275Z AMQ7232I: Transaction manager state recovered for queue manager 'QM1'. [CommentInsert1(QM1)]
+2025-05-16T22:20:22.281Z AMQ7233I: 0 out of 0 in-flight transactions resolved for queue manager 'QM1'. [CommentInsert1(QM1)]
+2025-05-16T22:20:22.896Z AMQ8048I: Default objects statistics : 84 created. 0 replaced. 0 failed. [ArithInsert1(84), CommentInsert1(0)]
+2025-05-16T22:20:22.901Z AMQ8003I: IBM MQ queue manager 'QM1' started using V9.4.2.1. [CommentInsert1(9.4.2.1), CommentInsert3(QM1)]
+2025-05-16T22:20:23.143Z AMQ8004I: IBM MQ queue manager 'QM1' ended. [CommentInsert3(QM1)]
+2025-05-16T22:20:23.386Z AMQ6206I: Command strmqm was issued. [CommentInsert1(strmqm), CommentInsert2(strmqm -x QM1)]
+2025-05-16T22:20:23.462Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1494), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:23.463Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1494), CommentInsert2(/mnt/mqm/data/errors/AMQ1494.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:23.546Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1513), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:23.550Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1513), CommentInsert2(/mnt/mqm/data/errors/AMQ1513.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:23.617Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1513), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:23.617Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1513), CommentInsert2(/mnt/mqm/data/errors/AMQ1513.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:23.675Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1513), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:23.675Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1513), CommentInsert2(/mnt/mqm/data/errors/AMQ1513.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:23.534Z Initializing MQ Advanced for Developers custom authentication service
+2025-05-16T22:20:23.395Z AMQ5782I: File system containing '/mnt/mqm/data/qmgrs/QM1' is 72.42% used, 30917MB free. [ArithInsert1(72.42), CommentInsert1(/mnt/mqm/data/qmgrs/QM1), CommentInsert2(112070), CommentInsert3(30917)]
+2025-05-16T22:20:23.401Z AMQ5782I: File system containing '/mnt/mqm/data/log/QM1' is 72.40% used, 30933MB free. [ArithInsert1(72.4), CommentInsert1(/mnt/mqm/data/log/QM1), CommentInsert2(112070), CommentInsert3(30933)]
+2025-05-16T22:20:23.448Z AMQ5775I: Successfully applied automatic configuration INI definitions. [CommentInsert1(INI)]
+2025-05-16T22:20:23.821Z AMQ7229I: 6 log records accessed on queue manager 'QM1' during the log replay phase. [ArithInsert1(6), CommentInsert1(QM1)]
+2025-05-16T22:20:23.821Z AMQ7230I: Log replay for queue manager 'QM1' complete. [ArithInsert1(6), CommentInsert1(QM1), CommentInsert2(<0:0:8:58914> 0x000000000008e622)]
+2025-05-16T22:20:23.826Z AMQ7231I: 0 log records accessed on queue manager 'QM1' during the recovery phase. [CommentInsert1(QM1)]
+2025-05-16T22:20:23.827Z AMQ7232I: Transaction manager state recovered for queue manager 'QM1'. [CommentInsert1(QM1)]
+2025-05-16T22:20:23.842Z AMQ7233I: 0 out of 0 in-flight transactions resolved for queue manager 'QM1'. [CommentInsert1(QM1)]
+2025-05-16T22:20:23.863Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1513), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:23.863Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1513), CommentInsert2(/mnt/mqm/data/errors/AMQ1513.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:23.932Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1513), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:23.933Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1513), CommentInsert2(/mnt/mqm/data/errors/AMQ1513.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:24.061Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1513), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:24.062Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1513), CommentInsert2(/mnt/mqm/data/errors/AMQ1513.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:24.285Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1554), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:24.290Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1554), CommentInsert2(/mnt/mqm/data/errors/AMQ1554.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:24.174Z AMQ9410I: Repository manager started.
+2025-05-16T22:20:24.238Z AMQ8003I: IBM MQ queue manager 'QM1' started using V9.4.2.1. [CommentInsert1(9.4.2.1), CommentInsert3(QM1)]
+2025-05-16T22:20:24.276Z AMQ5024I: The command server has started. ProcessId(1644). [ArithInsert1(1644), CommentInsert1(SYSTEM.CMDSERVER.1)]
+2025-05-16T22:20:24.292Z AMQ5022I: The channel initiator has started. ProcessId(1645). [ArithInsert1(1645), CommentInsert1(SYSTEM.CHANNEL.INITQ)]
+2025-05-16T22:20:24.226Z product = WebSphere Application Server 24.0.0.12 (wlp-1.0.96.cl241220241119-0657)\nwlp.install.dir = /opt/mqm/web/\nserver.config.dir = /mnt/mqm/data/web/installations/Installation1/servers/mqweb/\njava.home = /opt/mqm/java/jre64/jre\njava.version = 1.8.0_431\njava.runtime = Java(TM) SE Runtime Environment (8.0.8.35 - pxa6480sr8fp35-20241105_01(SR8 FP35))\nos = Linux (6.10.14-linuxkit; amd64) (en_US)\nprocess = 1517@172.19.0.3\nClasspath = /opt/mqm/web/bin/tools/ws-server.jar:/opt/mqm/web/bin/tools/ws-javaagent.jar\nJava Library path = /opt/mqm/java/jre64/jre/lib/amd64/compressedrefs:/opt/mqm/java/jre64/jre/lib/amd64:/opt/mqm/java/lib64:/opt/mqm/lib64:/opt/mqm/lib:/usr/lib64:/usr/lib\n
+2025-05-16T22:20:24.265Z CWWKE0001I: The server mqweb has been launched.
+2025-05-16T22:20:24.311Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1513), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:24.312Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1513), CommentInsert2(/mnt/mqm/data/errors/AMQ1513.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:24.594Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1554), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:24.594Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1554), CommentInsert2(/mnt/mqm/data/errors/AMQ1554.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:24.768Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1554), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:24.768Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1554), CommentInsert2(/mnt/mqm/data/errors/AMQ1554.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:24.466Z AMQ8942I: Starting to process automatic MQSC configuration script.
+2025-05-16T22:20:24.515Z AMQ8024I: IBM MQ channel initiator started. [CommentInsert1(SYSTEM.CHANNEL.INITQ)]
+2025-05-16T22:20:24.849Z AMQ8939I: Automatic MQSC configuration script has completed, and contained 25 command(s), of which 0 had errors. [ArithInsert1(25), CommentInsert1(0)]
+2025-05-16T22:20:24.874Z Started queue manager
+2025-05-16T22:20:24.935Z Starting HTTP (insecure) metrics gathering
+2025-05-16T22:20:24.872Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1554), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:24.872Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1554), CommentInsert2(/mnt/mqm/data/errors/AMQ1554.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:24.963Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1629), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:24.992Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1629), CommentInsert2(/mnt/mqm/data/errors/AMQ1629.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:25.076Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1699), CommentInsert1(SIGTRAP)]
+2025-05-16T22:20:25.086Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1699), CommentInsert2(/mnt/mqm/data/errors/AMQ1699.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:20:24.865Z AMQ9722W: Plain text communication is enabled.
+2025-05-16T22:20:24.869Z AMQ5026I: The listener 'SYSTEM.LISTENER.TCP.1' has started. ProcessId(1691). [ArithInsert1(1691), CommentInsert1(SYSTEM.LISTENER.TCP.1)]
+2025-05-16T22:20:25.165Z AMQ5806I: Queued Publish/Subscribe Daemon started for queue manager QM1. [CommentInsert1(QM1)]
+2025-05-16T22:20:25.358Z CWWKG0028A: Processing included configuration resource: /opt/mqm/web/mq/etc/mqweb.xml
+2025-05-16T22:20:25.376Z CWWKG0028A: Processing included configuration resource: /mnt/mqm/data/web/installations/Installation1/servers/mqweb/mqwebcontainer.xml
+2025-05-16T22:20:25.379Z CWWKG0028A: Processing included configuration resource: /mnt/mqm/data/web/installations/Installation1/servers/mqweb/tls.xml
+2025-05-16T22:20:25.384Z CWWKG0028A: Processing included configuration resource: /mnt/mqm/data/web/installations/Installation1/servers/mqweb/mqwebexternal.xml
+2025-05-16T22:20:25.385Z CWWKG0028A: Processing included configuration resource: /mnt/mqm/data/web/installations/Installation1/servers/mqweb/mqwebuser.xml
+2025-05-16T22:20:25.663Z CWWKE0002I: The kernel started after 1.763 seconds
+2025-05-16T22:20:25.735Z CWWKF0007I: Feature update started.
+2025-05-16T22:20:26.946Z CWWKG0102I: Found conflicting settings for httpDispatcher configuration.\n  Property appOrContextRootMissingMessage has conflicting values:\n    Value <script>document.title="";document.getElementsByTagName("h1")[0].innerHTML="";document.location.href=document.location.href.indexOf("ibmmq/console") >= 0?"/ibmmq/console/login.html":"ibmmq/console/login.html";</script> is set in file:/opt/mqm/web/mq/etc/mqweb.xml.\n    Value <script>document.location.href="/ibmmq/console/";</script> is set in file:/mnt/mqm/data/web/installations/Installation1/servers/mqweb/mqwebcontainer.xml.\n  Property appOrContextRootMissingMessage will be set to <script>document.location.href="/ibmmq/console/";</script>.\n
+2025-05-16T22:20:27.249Z The IBMJCEPlusFIPS provider is configured for FIPS 140-2. Please note that the 140-2 configuration may be removed in the future.
+2025-05-16T22:20:27.330Z Created user preferences directory.
+2025-05-16T22:20:27.610Z CWWKS0007I: The security service is starting...
+2025-05-16T22:20:28.062Z DYNA1001I: WebSphere Dynamic Cache instance named baseCache initialized successfully.
+2025-05-16T22:20:28.064Z DYNA1071I: The cache provider default is being used.
+2025-05-16T22:20:28.065Z DYNA1056I: Dynamic Cache (object cache) initialized successfully.
+2025-05-16T22:20:28.153Z CWWKS4103I: Creating the LTPA keys. This may take a few seconds.
+2025-05-16T22:20:28.184Z CWWKS1123I: The collective authentication plugin with class name NullCollectiveAuthenticationPlugin has been activated.
+2025-05-16T22:20:28.355Z CWPKI0802I: Creating the SSL certificate. This may take a few seconds.
+2025-05-16T22:20:28.417Z CWWKZ0018I: Starting application com.ibm.mq.rest.
+2025-05-16T22:20:28.417Z CWWKZ0018I: Starting application com.ibm.mq.console.
+2025-05-16T22:20:28.418Z CWWKZ0136I: The com.ibm.mq.rest application is using the archive file at the /opt/mqm/web/mq/apps/com.ibm.mq.rest.ear location.
+2025-05-16T22:20:28.418Z CWWKZ0136I: The com.ibm.mq.console application is using the archive file at the /opt/mqm/web/mq/apps/com.ibm.mq.webconsole.ear location.
+2025-05-16T22:20:28.481Z CWWKS4104A: LTPA keys created in 0.328 seconds. LTPA key file: /mnt/mqm/data/web/installations/Installation1/servers/mqweb/resources/security/ltpa.keys
+2025-05-16T22:20:28.485Z CWWKS0008I: The security service is ready.
+2025-05-16T22:20:28.486Z CWWKS4105I: LTPA configuration is ready after 0.336 seconds.
+2025-05-16T22:20:29.448Z SESN8501I: The session manager did not find a persistent storage location; HttpSession objects will be stored in the local application server's memory.
+2025-05-16T22:20:29.455Z SRVE0169I: Loading Web Module: mqconsole.
+2025-05-16T22:20:29.457Z SRVE0250I: Web Module mqconsole has been bound to default_host.
+2025-05-16T22:20:29.528Z SRVE0169I: Loading Web Module: com.ibm.mq.rest.
+2025-05-16T22:20:29.528Z SRVE0250I: Web Module com.ibm.mq.rest has been bound to default_host.
+2025-05-16T22:20:29.530Z SRVE0169I: Loading Web Module: com.ibm.mq.webconsoleinternal.
+2025-05-16T22:20:29.531Z SRVE0250I: Web Module com.ibm.mq.webconsoleinternal has been bound to default_host.
+2025-05-16T22:20:29.629Z SRVE9103I: A configuration file for a web server plugin was automatically generated for this server at /mnt/mqm/data/web/installations/Installation1/servers/mqweb/logs/state/plugin-cfg.xml.
+2025-05-16T22:20:29.654Z SESN0176I: A new session context will be created for application key default_host/ibmmq/console
+2025-05-16T22:20:29.660Z SESN0172I: The session manager is using the Java default SecureRandom implementation for session ID generation.
+2025-05-16T22:20:29.671Z SESN0176I: A new session context will be created for application key default_host/ibmmq/console/internal
+2025-05-16T22:20:29.672Z SESN0172I: The session manager is using the Java default SecureRandom implementation for session ID generation.
+2025-05-16T22:20:29.682Z DYNA1056I: Dynamic Cache (object cache) initialized successfully.
+2025-05-16T22:20:29.694Z SESN0176I: A new session context will be created for application key default_host/ibmmq/rest
+2025-05-16T22:20:29.700Z SESN0172I: The session manager is using the Java default SecureRandom implementation for session ID generation.
+2025-05-16T22:20:29.843Z CWWKS9122I:  For URL /* in application com.ibm.mq.console, the following HTTP methods are uncovered, and accessible: POST PUT DELETE HEAD OPTIONS TRACE
+2025-05-16T22:20:29.847Z MQWB2019I: MQ Console level: p942-001-250407
+2025-05-16T22:20:29.894Z MQWB0400E: The MFT REST API is not enabled.
+2025-05-16T22:20:29.895Z MQWB0023I: MQ REST API level: p942-001-250407
+2025-05-16T22:20:30.062Z Started web server
+2025-05-16T22:20:29.903Z MQWB0318I: The mqweb server is configured for 'LOCAL' queue manager REST messaging.
+2025-05-16T22:20:29.913Z CWWKZ0001I: Application com.ibm.mq.rest started in 1.495 seconds.
+2025-05-16T22:20:29.956Z CWWKZ0001I: Application com.ibm.mq.console started in 1.538 seconds.
+2025-05-16T22:20:30.000Z CWWKF0012I: The server installed the following features: [appSecurity-2.0, applicationMonitorMQ-1.0, basicAuthenticationMQ-1.0, concurrent-1.0, distributedMap-1.0, jaxrs-2.1, jaxrsClient-2.1, jndi-1.0, jsonp-1.1, servlet-4.0, ssl-1.0, websocket-1.0].
+2025-05-16T22:20:30.002Z CWWKF0008I: Feature update completed in 4.341 seconds.
+2025-05-16T22:20:30.002Z CWWKF0011I: The mqweb server is ready to run a smarter planet. The mqweb server started in 6.103 seconds.
+2025-05-16T22:20:30.623Z CWPKI0803A: SSL certificate created in 2.268 seconds. SSL key file: /mnt/mqm/data/web/installations/Installation1/servers/mqweb/resources/security/key.jks
+2025-05-16T22:20:30.624Z Successfully loaded default keystore: /mnt/mqm/data/web/installations/Installation1/servers/mqweb/resources/security/key.jks of type: JKS
+2025-05-16T22:20:30.721Z CWWKO0219I: TCP Channel defaultHttpEndpoint-ssl has been started and is now listening for requests on host *  (IPv6) port 9443.
+2025-05-16T22:20:30.727Z CWWKT0016I: Web application available (default_host): https://aa65e964b49b:9443/ibmmq/console/
+2025-05-16T22:20:30.732Z CWWKT0016I: Web application available (default_host): https://aa65e964b49b:9443/ibmmq/rest/
+2025-05-16T22:20:30.736Z CWWKT0016I: Web application available (default_host): https://aa65e964b49b:9443/ibmmq/console/internal/
+2025-05-16T22:21:47.059Z AMQ6209W: An unexpected asynchronous signal (5 : SIGTRAP) has been received and ignored. [ArithInsert1(5), ArithInsert2(1691), CommentInsert1(SIGTRAP)]
+2025-05-16T22:21:47.059Z AMQ6183W: An internal IBM MQ error with probe 'XC267011' has occurred. [ArithInsert1(1691), CommentInsert2(/mnt/mqm/data/errors/AMQ1691.0.FDC), CommentInsert3(XC267011)]
+2025-05-16T22:21:47.148Z Environment variable MQ_ADMIN_PASSWORD is deprecated, use secrets to set the passwords
+2025-05-16T22:21:53.387Z AMQ9209E: Connection to host '_gateway (172.19.0.1)' for channel 'DEV.ADMIN.SVRCONN' closed. [CommentInsert1(_gateway (172.19.0.1)), CommentInsert2(TCP/IP), CommentInsert3(DEV.ADMIN.SVRCONN)]
+2025-05-16T22:21:53.387Z AMQ9999E: Channel 'DEV.ADMIN.SVRCONN' to host '172.19.0.1' ended abnormally. [CommentInsert1(DEV.ADMIN.SVRCONN), CommentInsert2(1932), CommentInsert3(172.19.0.1)]
