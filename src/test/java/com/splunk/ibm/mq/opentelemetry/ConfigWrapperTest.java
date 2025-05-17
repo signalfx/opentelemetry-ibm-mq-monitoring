@@ -42,7 +42,7 @@ class ConfigWrapperTest {
   @Test
   void testNumberOfThreads() throws FileNotFoundException {
     ConfigWrapper config = ConfigWrapper.parse(file);
-    assertThat(config.getNumberOfThreads()).isEqualTo(1);
+    assertThat(config.getNumberOfThreads()).isEqualTo(20);
   }
 
   @Test

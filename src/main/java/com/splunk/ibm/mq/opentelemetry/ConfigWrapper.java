@@ -27,10 +27,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
 /** Low-fi domain-specific yaml wrapper. */
 public final class ConfigWrapper {
+
+  private static final Logger logger = LoggerFactory.getLogger(ConfigWrapper.class);
 
   private static final int DEFAULT_THREADS = 20;
   private static final int DEFAULT_DELAY_SECONDS = 60;
@@ -49,7 +53,15 @@ public final class ConfigWrapper {
   }
 
   public int getNumberOfThreads() {
-    return defaultedInt(getTaskSchedule(), "numberOfThreads", DEFAULT_THREADS);
+    int value = defaultedInt(getTaskSchedule(), "numberOfThreads", DEFAULT_THREADS);
+    if (value < DEFAULT_THREADS) {
+      logger.warn(
+          "numberOfThreads {} is less than the minimum number of threads allowed. Using {} instead.",
+          value,
+          DEFAULT_THREADS);
+      value = DEFAULT_THREADS;
+    }
+    return value;
   }
 
   int getTaskDelaySeconds() {
