@@ -57,10 +57,15 @@ public class WMQMonitor implements Runnable {
     ObjectMapper mapper = new ObjectMapper();
 
     for (Map<String, ?> queueManager : queueManagers) {
-      QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
-      WMQMonitorTask task =
-          new WMQMonitorTask(config, metricWriteHelper, qManager, threadPool, heartbeatGauge);
-      threadPool.submit(new TaskJob((String) queueManager.get("name"), task));
+      try {
+
+        QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
+        WMQMonitorTask task =
+            new WMQMonitorTask(config, metricWriteHelper, qManager, threadPool, heartbeatGauge);
+        threadPool.submit(new TaskJob((String) queueManager.get("name"), task));
+      } catch (Throwable t) {
+        logger.error("Error preparing queue manager {}", queueManager, t);
+      }
     }
   }
 
