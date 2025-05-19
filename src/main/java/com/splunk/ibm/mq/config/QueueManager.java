@@ -15,8 +15,10 @@
  */
 package com.splunk.ibm.mq.config;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class QueueManager {
 
   private String host;
