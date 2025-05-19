@@ -51,7 +51,7 @@ public class Main {
     Thread.UncaughtExceptionHandler handler =
         (t, e) -> logger.error("Unhandled exception in thread pool", e);
     logger.debug("Initializing thread pool with {} threads", config.getNumberOfThreads());
-    final ScheduledExecutorService service =
+    ScheduledExecutorService service =
         Executors.newScheduledThreadPool(
             config.getNumberOfThreads(),
             r -> {
@@ -61,8 +61,13 @@ public class Main {
             });
 
     Config.setUpSSLConnection(config._exposed());
-
     MetricExporter exporter = Config.createOtlpHttpMetricsExporter(config._exposed());
+
+    run(config, service, exporter);
+  }
+
+  public static void run(
+      ConfigWrapper config, final ScheduledExecutorService service, final MetricExporter exporter) {
 
     MetricReader reader = PeriodicMetricReader.builder(exporter).build();
 
