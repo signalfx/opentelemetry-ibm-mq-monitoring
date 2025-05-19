@@ -29,6 +29,7 @@ import com.splunk.ibm.mq.WMQMonitorTask;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
+import com.splunk.ibm.mq.opentelemetry.Main;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
@@ -44,6 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
@@ -232,5 +234,38 @@ class WMQMonitorIntegrationTest {
 
     TestWMQMonitor monitor = new TestWMQMonitor(config, metricWriteHelper, service);
     monitor.runTest();
+  }
+
+  @Test
+  void test_otlphttp() throws Exception {
+    logger.info("\n\n\n\n\n\nRunning test: test_otlphttp");
+    ConfigWrapper config =
+        ConfigWrapper.parse(WMQMonitorIntegrationTest.getConfigFile("conf/test-config.yml"));
+    ScheduledExecutorService service =
+        Executors.newScheduledThreadPool(config.getNumberOfThreads());
+    TestResultMetricExporter exporter = new TestResultMetricExporter();
+    Main.run(config, service, exporter);
+
+    Thread.sleep(5000);
+    service.shutdown();
+
+    List<MetricData> data = exporter.getExportedMetrics();
+    Set<String> metricNames = new HashSet<>();
+    for (MetricData metricData : data) {
+      metricNames.add(metricData.getName());
+    }
+    // this value is read from the active channels count:
+    assertThat(metricNames).contains("mq.manager.active.channels");
+    // this value is read from the configuration queue.
+    assertThat(metricNames).contains("mq.manager.max.handles");
+    // this value is read from the queue manager events, for unauthorized events.
+    assertThat(metricNames).contains("mq.unauthorized.event");
+    // this value is read from the performance event queue.
+    assertThat(metricNames).contains("mq.queue.depth.full.event");
+    // this value is read from the performance event queue.
+    assertThat(metricNames).contains("mq.queue.depth.high.event");
+    assertThat(metricNames).contains("mq.queue.depth.low.event");
+    // reads a value from the heartbeat gauge
+    assertThat(metricNames).contains("mq.heartbeat");
   }
 }
