@@ -237,7 +237,8 @@ public class WMQMonitorTask implements Runnable {
         groupMetricsByCommand(metricsToReport);
 
     processMetricType(
-        metricsByCommand, "MQCMD_INQUIRE_CHANNEL_STATUS", ChannelMetricsCollector::new, agent);
+        metricsByCommand, "MQCMD_INQUIRE_CHANNEL_STATUS",
+        (ctx, metricCreator) -> new ChannelMetricsCollector(ctx), agent);
     processMetricType(
         metricsByCommand, "MQCMD_INQUIRE_CHANNEL", InquireChannelCmdCollector::new, agent);
   }
