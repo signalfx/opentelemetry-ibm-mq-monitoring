@@ -83,12 +83,12 @@ class ChannelMetrics {
   }
 
   // TODO: This could be used elsewhere
-  void setAll(Function<Integer,Integer> valueGetter) {
+  void setAll(Function<Integer, Integer> valueGetter) {
     for (Entry<Integer, LongGauge> entry : instruments.entrySet()) {
       Integer constant = entry.getKey();
       LongGauge gauge = entry.getValue();
       Integer value = valueGetter.apply(constant);
-      if(value != null){
+      if (value != null) {
         gauge.set(value);
       }
     }

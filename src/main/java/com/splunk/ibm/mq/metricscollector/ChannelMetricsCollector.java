@@ -45,8 +45,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
     this(context, ChannelMetrics.create());
   }
 
-  public ChannelMetricsCollector(
-      MetricsCollectorContext context, ChannelMetrics channelMetrics) {
+  public ChannelMetricsCollector(MetricsCollectorContext context, ChannelMetrics channelMetrics) {
     this.context = context;
     this.channelMetrics = channelMetrics;
   }
@@ -149,5 +148,4 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
         .findFirst()
         .orElse(false);
   }
-
 }
