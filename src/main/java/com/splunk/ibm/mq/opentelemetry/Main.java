@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq.opentelemetry;
 
 import com.splunk.ibm.mq.WMQMonitor;
-import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
@@ -24,8 +23,6 @@ import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import io.opentelemetry.sdk.resources.Resource;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -89,11 +86,6 @@ public class Main {
             // TODO: Additional customizations to the sdk as needed here...
             .build()
             .getOpenTelemetrySdk();
-
-    Map<String, Meter> meters = new HashMap<>();
-    for (String queueManager : config.getQueueManagerNames()) {
-      meters.put(queueManager, otel.getMeter("opentelemetry.io/mq"));
-    }
 
     // TODO: None of this shutdown hook is necessary when using the autoconfigured sdk
     Runtime.getRuntime()
