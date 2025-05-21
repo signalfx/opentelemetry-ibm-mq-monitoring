@@ -221,22 +221,24 @@ class WMQMonitorIntegrationTest {
       String queueManager = pt.getAttributes().get(AttributeKey.stringKey("queue.name"));
       assertThat(queueManager).isEqualTo("smallqueue");
     }
-    //    // make sure we get MQ manager status
-    //    assertThat(metricNames).contains("mq.manager.status");
-    //    if (metrics.get("mq.manager.status") != null) {
-    //      LongPointData pt =
-    //          metrics.get("mq.manager.status").getLongGaugeData().getPoints().iterator().next();
-    //      String queueManager = pt.getAttributes().get(AttributeKey.stringKey("queue.manager"));
-    //      assertThat(queueManager).isEqualTo("QM1");
-    //    }
-    //
-    //    assertThat(metricNames).contains("mq.onqtime.2");
-    //    if (metrics.get("mq.onqtime.2") != null) {
-    //      LongPointData pt =
-    //          metrics.get("mq.onqtime.2").getLongGaugeData().getPoints().iterator().next();
-    //      String queueManager = pt.getAttributes().get(AttributeKey.stringKey("queue.manager"));
-    //      assertThat(queueManager).isEqualTo("QM1");
-    //    }
+    // make sure we get MQ manager status
+    assertThat(metricNames).contains("mq.manager.status");
+    if (metrics.get("mq.manager.status") != null) {
+      LongPointData pt =
+          metrics.get("mq.manager.status").getLongGaugeData().getPoints().iterator().next();
+      String queueManager = pt.getAttributes().get(AttributeKey.stringKey("queue.manager"));
+      assertThat(queueManager).isEqualTo("QM1");
+    }
+
+    assertThat(metricNames).contains("mq.onqtime.2");
+    if (metrics.get("mq.onqtime.2") != null) {
+      LongPointData pt =
+          metrics.get("mq.onqtime.2").getLongGaugeData().getPoints().iterator().next();
+      String queueManager = pt.getAttributes().get(AttributeKey.stringKey("queue.manager"));
+      assertThat(queueManager).isEqualTo("QM1");
+      String queueName = pt.getAttributes().get(AttributeKey.stringKey("queue.name"));
+      assertThat(queueName).isEqualTo("smallqueue");
+    }
   }
 
   @Test

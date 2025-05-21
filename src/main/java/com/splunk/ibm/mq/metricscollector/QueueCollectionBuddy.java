@@ -231,7 +231,8 @@ final class QueueCollectionBuddy {
         count++;
         String metricName = metricKey + "_" + count;
         Metric metric =
-            metricCreator.createMetric(metricName, val, wmqOverride, queueName, metricName);
+            metricCreator.createMetric(
+                metricName, val, wmqOverride, queueName, queueType, metricName);
         tempMetrics.add(metric);
       }
     }

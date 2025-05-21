@@ -113,14 +113,18 @@ public class QueueCollectionBuddyTest {
     assertThatMetric(metrics.get(1))
         .hasName("OnQTime_1")
         .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|" + component + "|OnQTime_1")
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
+                + component
+                + "|local-transmission|OnQTime_1")
         .hasValue(String.valueOf(values.get(1)))
         .withPropertiesMatching(standardPropsForAlias("OnQTime"));
 
     assertThatMetric(metrics.get(2))
         .hasName("OnQTime_2")
         .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|" + component + "|OnQTime_2")
+            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
+                + component
+                + "|local-transmission|OnQTime_2")
         .hasValue(String.valueOf(values.get(2)))
         .withPropertiesMatching(standardPropsForAlias("OnQTime"));
 
