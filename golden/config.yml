@@ -115,12 +115,12 @@ mqMetrics:
         - Status:
             alias: "Status"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_Q_MGR_STATUS"
-            aggregationType: "OBSERVATION"
-            timeRollUpType: "AVERAGE"
-            clusterRollUpType: "INDIVIDUAL"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
+
         - ConnectionCount:
             alias: "ConnectionCount"
             ibmConstant: "com.ibm.mq.constants.CMQCFC.MQIACF_CONNECTION_COUNT"
+            ibmCommand: "MQCMD_INQUIRE_Q_MGR_STATUS"
 
         - ReusableLogSize:
             alias: "Reusable Log Size"
