@@ -16,6 +16,8 @@
 package com.splunk.ibm.mq.opentelemetry;
 
 import com.splunk.ibm.mq.WMQMonitor;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
@@ -77,6 +79,15 @@ public class Main {
             .registerMetricReader(reader)
             .build();
 
+    // TODO: Prefer to use externally defined config or declarative config, not this weird hybrid
+    System.setProperty("otel.metric.export.interval", "" + config.getTaskDelay());
+    OpenTelemetrySdk otel =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            // TODO: Additional customizations to the sdk as needed here...
+            .build()
+            .getOpenTelemetrySdk();
+
+    // TODO: None of this shutdown hook is necessary when using the autoconfigured sdk
     Runtime.getRuntime()
         .addShutdownHook(
             new Thread(

@@ -19,8 +19,12 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MessageBuddy {
+  private static final Logger logger = LoggerFactory.getLogger(MessageBuddy.class);
 
   private MessageBuddy() {}
 
@@ -38,5 +42,15 @@ public class MessageBuddy {
 
   public static String queueName(PCFMessage message) throws PCFException {
     return message.getStringParameterValue(CMQC.MQCA_Q_NAME).trim();
+  }
+
+  @Nullable
+  public static Integer getIntParameterValue(PCFMessage message, int param) {
+    try {
+      return message.getIntParameterValue(param);
+    } catch (PCFException e) {
+      logger.error("Error fetching parameter value " + param, e);
+      return null;
+    }
   }
 }

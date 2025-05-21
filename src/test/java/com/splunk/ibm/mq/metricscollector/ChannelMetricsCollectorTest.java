@@ -111,7 +111,7 @@ class ChannelMetricsCollectorTest {
 
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireChannelStatusCmd());
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
+    classUnderTest = new ChannelMetricsCollector(context);
 
     classUnderTest.publishMetrics();
 
@@ -259,7 +259,7 @@ class ChannelMetricsCollectorTest {
   @Test
   void testPublishMetrics_nullResponse() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(null);
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
+    classUnderTest = new ChannelMetricsCollector(context);
 
     classUnderTest.publishMetrics();
 
@@ -269,7 +269,7 @@ class ChannelMetricsCollectorTest {
   @Test
   void testPublishMetrics_emptyResponse() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(new PCFMessage[] {});
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
+    classUnderTest = new ChannelMetricsCollector(context);
 
     classUnderTest.publishMetrics();
 
@@ -280,7 +280,7 @@ class ChannelMetricsCollectorTest {
   @MethodSource("exceptionsToThrow")
   void testPublishMetrics_pfException(Exception exceptionToThrow) throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenThrow(exceptionToThrow);
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
+    classUnderTest = new ChannelMetricsCollector(context);
 
     classUnderTest.publishMetrics();
 
@@ -299,10 +299,10 @@ class ChannelMetricsCollectorTest {
 
   @Test
   void noMetricsToReport() throws Exception {
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
+    classUnderTest = new ChannelMetricsCollector(context);
     classUnderTest.publishMetrics();
     verifyNoInteractions(metricWriteHelper);
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
+    classUnderTest = new ChannelMetricsCollector(context);
     classUnderTest.publishMetrics();
     verifyNoInteractions(metricWriteHelper);
   }
