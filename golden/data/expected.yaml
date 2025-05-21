@@ -8,7 +8,7 @@ resourceMetrics:
                   attributes:
                     - key: queue.manager
                       value:
-                        stringValue: MQCMD_INQUIRE_Q_MGR_STATUS
+                        stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: mq.restart.log.size
@@ -19,7 +19,7 @@ resourceMetrics:
                   attributes:
                     - key: queue.manager
                       value:
-                        stringValue: MQCMD_INQUIRE_Q_MGR_STATUS
+                        stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: mq.reusable.log.size
@@ -30,7 +30,7 @@ resourceMetrics:
                   attributes:
                     - key: queue.manager
                       value:
-                        stringValue: MQCMD_INQUIRE_Q_MGR_STATUS
+                        stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: mq.archive.log.size
@@ -41,7 +41,7 @@ resourceMetrics:
                   attributes:
                     - key: queue.manager
                       value:
-                        stringValue: MQCMD_INQUIRE_Q_MGR
+                        stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: mq.manager.statistics.interval
@@ -471,17 +471,6 @@ resourceMetrics:
             unit: "1"
           - gauge:
               dataPoints:
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: MQCMD_INQUIRE_CHANNEL_STATUS
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.manager.active.channels
-            unit: "1"
-          - gauge:
-              dataPoints:
                 - asInt: "999999999"
                   attributes:
                     - key: channel.name
@@ -527,6 +516,17 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: mq.max.instances
+            unit: "1"
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.manager.active.channels
             unit: "1"
           - gauge:
               dataPoints:

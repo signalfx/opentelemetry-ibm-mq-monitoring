@@ -55,8 +55,15 @@ class MQOtelTranslator {
       this.nameMappings = nameMappings;
       this.attributeMappingFunction = attributeMappingFunction;
     }
+
+    @Override
+    public String toString() {
+      return nameMappings.toString();
+    }
   }
 
+  // Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|MQCMD_INQUIRE_Q_MGR_STATUS|Status
+  // Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|MQCMD_INQUIRE_Q_MGR_STATUS|Reusable Log Size
   private static final Mapping queueMgrMetricNameMappings =
       new Mapping(
           new HashMap<String, String>() {
@@ -67,7 +74,7 @@ class MQOtelTranslator {
           },
           segments -> {
             AttributesBuilder builder = Attributes.builder();
-            builder.put("queue.manager", segments.get(segments.size() - 2));
+            builder.put("queue.manager", segments.get(segments.size() - 3));
             return builder.build();
           });
 
@@ -237,7 +244,6 @@ class MQOtelTranslator {
 
   // Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|Status
   // Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|ConnectionCount
-  // Server|Component:atoulme|Custom Metrics|WebsphereMQ|mq1|HeartBeat
   private static final Mapping websphereMQNameMappings =
       new Mapping(
           new HashMap<String, String>() {
@@ -255,7 +261,7 @@ class MQOtelTranslator {
           },
           segments -> {
             AttributesBuilder builder = Attributes.builder();
-            builder.put("queue.manager", segments.get(segments.size() - 2));
+            builder.put("queue.manager", segments.get(segments.size() - 3));
             return builder.build();
           });
 
