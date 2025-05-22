@@ -93,6 +93,13 @@ public final class QueueManagerMetricsCollector implements MetricsPublisher {
             metricCreator.createMetric("mq.archive.log.size", logSize, Attributes.empty());
         responseMetrics.add(metric);
       }
+      {
+        int maxActiveChannels = this.context.getQueueManager().getMaxActiveChannels();
+        Metric metric =
+            metricCreator.createMetric(
+                "mq.manager.max.active.channels", maxActiveChannels, Attributes.empty());
+        responseMetrics.add(metric);
+      }
       context.transformAndPrintMetrics(responseMetrics);
     } catch (Exception e) {
       logger.error(e.getMessage());

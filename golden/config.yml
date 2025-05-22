@@ -15,6 +15,9 @@ queueManagers:
     host: "0.0.0.0"
     port: 1414
 
+    # Indicate the MaxActiveChannels as set in qm.ini, see https://www.ibm.com/docs/en/ibm-mq/9.3.x?topic=qmini-channels-stanza-file
+    maxActiveChannels: 4200
+
     #The transport type for the queue manager connection, the default is "Bindings" for a binding type connection
     #For bindings type, connection WMQ extension (i.e machine agent) need to be on the same machine on which WebbsphereMQ server is running
     #For client type, connection change it to "Client".

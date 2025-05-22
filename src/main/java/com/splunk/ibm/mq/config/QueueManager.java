@@ -40,6 +40,9 @@ public class QueueManager {
   private String queueManagerEventsQueueName = "SYSTEM.ADMIN.QMGR.EVENT";
   private long consumeConfigurationEventInterval;
   private boolean refreshQueueManagerConfigurationEnabled;
+  // Config default is 100.
+  // https://www.ibm.com/docs/en/ibm-mq/9.3.x?topic=qmini-channels-stanza-file
+  private int maxActiveChannels = 100;
 
   private ResourceFilters queueFilters;
   private ResourceFilters channelFilters;
@@ -251,5 +254,13 @@ public class QueueManager {
 
   public void setQueueManagerEventsQueueName(String queueManagerEventsQueueName) {
     this.queueManagerEventsQueueName = queueManagerEventsQueueName;
+  }
+
+  public int getMaxActiveChannels() {
+    return maxActiveChannels;
+  }
+
+  public void setMaxActiveChannels(int maxActiveChannels) {
+    this.maxActiveChannels = maxActiveChannels;
   }
 }
