@@ -77,6 +77,9 @@ class AliasTransform {
     String metricName = metric.getMetricName();
     String alias = metric.getMetricProperties().getAlias();
     String metricPath = metric.getMetricPath();
+    if (metricPath == null) {
+      return;
+    }
     List<String> splitList = new ArrayList<>(PIPE_SPLITTER.splitToList(metricPath));
     if (splitList.size() > 0) {
       String metricNameFromSplit = splitList.get(splitList.size() - 1);

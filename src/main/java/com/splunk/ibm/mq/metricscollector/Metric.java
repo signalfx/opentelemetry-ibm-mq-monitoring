@@ -20,6 +20,7 @@ import com.appdynamics.extensions.metrics.MetricProperties;
 import com.appdynamics.extensions.metrics.MetricPropertiesBuilder;
 import com.appdynamics.extensions.util.AssertUtils;
 import com.appdynamics.extensions.util.MetricPathUtils;
+import io.opentelemetry.api.common.Attributes;
 import java.util.Map;
 
 public class Metric {
@@ -27,6 +28,18 @@ public class Metric {
   private String metricValue;
   private String metricPath;
   private MetricProperties metricProperties;
+  private Attributes attributes;
+
+  public Metric(String metricName, String metricValue, Attributes attributes) {
+    this.metricName = metricName;
+    this.metricValue = metricValue;
+    this.attributes = attributes;
+    this.metricProperties = new DefaultMetricProperties(metricName);
+  }
+
+  public Attributes getAttributes() {
+    return attributes;
+  }
 
   public Metric(String metricName, String metricValue, String metricPath) {
     AssertUtils.assertNotNull(metricName, "Metric name cannot be null");
