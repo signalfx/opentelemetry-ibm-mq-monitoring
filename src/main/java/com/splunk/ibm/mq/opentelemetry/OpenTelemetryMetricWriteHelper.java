@@ -21,9 +21,7 @@ import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
-import java.math.BigDecimal;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,12 +40,6 @@ public class OpenTelemetryMetricWriteHelper {
     this.exporter = otlpGrpcMetricExporter;
     this.meter = meter;
     this.reader = reader;
-  }
-
-  public void printMetric(String metricPath, BigDecimal value, String metricType) {
-    String metricName = metricPath.substring(metricPath.lastIndexOf('|'));
-    transformAndPrintMetrics(
-        Collections.singletonList(new Metric(metricName, value.toString(), metricPath)));
   }
 
   public void transformAndPrintMetrics(List<Metric> metrics) {
