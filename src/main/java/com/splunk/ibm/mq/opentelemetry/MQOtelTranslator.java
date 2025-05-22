@@ -316,6 +316,10 @@ class MQOtelTranslator {
   }
 
   ConversionResult convertMetricInfo(Metric metric) {
+    if (metric.getAttributes() != null) {
+      return new ConversionResult(metric.getMetricName(), metric.getAttributes());
+    }
+
     String metricPath = metric.getMetricPath();
     List<String> splitList = new ArrayList<>(PIPE_SPLITTER.splitToList(metricPath));
     Mapping mappings;

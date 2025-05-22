@@ -17,6 +17,7 @@ package com.splunk.ibm.mq.metricscollector;
 
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
+import io.opentelemetry.api.common.Attributes;
 import javax.annotation.Nullable;
 
 public final class MetricCreator {
@@ -39,6 +40,13 @@ public final class MetricCreator {
     this.metricPrefix = metricPrefix;
     this.queueManagerName = queueManagerName;
     this.firstPathComponent = firstPathComponent;
+  }
+
+  Metric createMetric(String metricName, int metricValue, Attributes attributes) {
+    return new Metric(
+        metricName,
+        String.valueOf(metricValue),
+        Attributes.builder().putAll(attributes).put("queue.manager", queueManagerName).build());
   }
 
   Metric createMetric(

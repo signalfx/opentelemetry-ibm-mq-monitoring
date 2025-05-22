@@ -18,6 +18,7 @@ package com.splunk.ibm.mq.metricscollector;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import io.opentelemetry.api.common.Attributes;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,16 +64,35 @@ public final class QueueManagerMetricsCollector implements MetricsPublisher {
         return;
       }
       List<Metric> responseMetrics = Lists.newArrayList();
-      context.forEachMetric(
-          (metricKey, wmqOverride) -> {
-            int metricVal = responses.get(0).getIntParameterValue(wmqOverride.getConstantValue());
-            if (logger.isDebugEnabled()) {
-              logger.debug("Metric: {}={}", metricKey, metricVal);
-            }
-            Metric metric =
-                metricCreator.createMetric(metricKey, metricVal, wmqOverride, metricKey);
-            responseMetrics.add(metric);
-          });
+      {
+        int status = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_Q_MGR_STATUS);
+        Metric metric = metricCreator.createMetric("mq.manager.status", status, Attributes.empty());
+        responseMetrics.add(metric);
+      }
+      {
+        int count = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_CONNECTION_COUNT);
+        Metric metric =
+            metricCreator.createMetric("mq.connection.count", count, Attributes.empty());
+        responseMetrics.add(metric);
+      }
+      {
+        int logSize = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_RESTART_LOG_SIZE);
+        Metric metric =
+            metricCreator.createMetric("mq.restart.log.size", logSize, Attributes.empty());
+        responseMetrics.add(metric);
+      }
+      {
+        int logSize = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_REUSABLE_LOG_SIZE);
+        Metric metric =
+            metricCreator.createMetric("mq.reusable.log.size", logSize, Attributes.empty());
+        responseMetrics.add(metric);
+      }
+      {
+        int logSize = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_ARCHIVE_LOG_SIZE);
+        Metric metric =
+            metricCreator.createMetric("mq.archive.log.size", logSize, Attributes.empty());
+        responseMetrics.add(metric);
+      }
       context.transformAndPrintMetrics(responseMetrics);
     } catch (Exception e) {
       logger.error(e.getMessage());

@@ -139,6 +139,9 @@ class QueueManagerMetricsCollectorTest {
     response1.addParameter(CMQCFC.MQCACF_LOG_PATH, "/var/mqm/log/QM1/active/");
     response1.addParameter(CMQCFC.MQCACF_MEDIA_LOG_EXTENT_NAME, "");
     response1.addParameter(CMQCFC.MQCACF_RESTART_LOG_EXTENT_NAME, "");
+    response1.addParameter(CMQCFC.MQIACF_RESTART_LOG_SIZE, 42);
+    response1.addParameter(CMQCFC.MQIACF_REUSABLE_LOG_SIZE, 42);
+    response1.addParameter(CMQCFC.MQIACF_ARCHIVE_LOG_SIZE, 42);
 
     return new PCFMessage[] {response1};
   }
