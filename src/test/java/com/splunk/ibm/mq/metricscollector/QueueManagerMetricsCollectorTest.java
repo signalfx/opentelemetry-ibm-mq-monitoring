@@ -17,7 +17,6 @@ package com.splunk.ibm.mq.metricscollector;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,7 +34,6 @@ import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,7 +73,6 @@ class QueueManagerMetricsCollectorTest {
 
   @Test
   public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
-    CountDownLatch latch = mock(CountDownLatch.class);
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireQMgrStatusCmd());
     classUnderTest = new QueueManagerMetricsCollector(context, metricCreator);
