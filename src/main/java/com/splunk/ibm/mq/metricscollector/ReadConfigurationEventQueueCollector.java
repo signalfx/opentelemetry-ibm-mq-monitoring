@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQGetMessageOptions;

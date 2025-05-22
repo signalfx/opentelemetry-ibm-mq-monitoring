@@ -17,7 +17,6 @@ package com.splunk.ibm.mq.metricscollector;
 
 import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.metricPropertiesMatching;
 
-import com.appdynamics.extensions.metrics.Metric;
 import com.appdynamics.extensions.metrics.MetricProperties;
 import java.util.function.Function;
 import org.assertj.core.api.Assertions;

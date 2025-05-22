@@ -18,7 +18,6 @@ package com.splunk.ibm.mq.metricscollector;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 
-import com.appdynamics.extensions.metrics.Metric;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;

@@ -20,7 +20,6 @@ import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.standard
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.appdynamics.extensions.metrics.Metric;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;

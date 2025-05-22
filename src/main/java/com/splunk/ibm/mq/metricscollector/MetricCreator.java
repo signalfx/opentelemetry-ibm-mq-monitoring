@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.appdynamics.extensions.metrics.Metric;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
 import javax.annotation.Nullable;
