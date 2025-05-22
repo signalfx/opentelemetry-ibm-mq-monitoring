@@ -15,10 +15,9 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
-import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.util.AssertUtils;
 import com.google.common.base.Function;
 import com.google.common.base.Splitter;
+import com.splunk.ibm.mq.metricscollector.Metric;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.sdk.common.InstrumentationScopeInfo;
@@ -283,7 +282,9 @@ class MQOtelTranslator {
   public MQOtelTranslator() {}
 
   public Collection<MetricData> translate(List<Metric> metricList) {
-    AssertUtils.assertNotNull(metricList, "Metrics List cannot be null");
+    if (metricList == null || metricList.isEmpty()) {
+      throw new IllegalArgumentException("Metrics List cannot be null");
+    }
     Resource res = Resource.empty();
     InstrumentationScopeInfo scopeInfo = InstrumentationScopeInfo.create("websphere/mq");
     List<MetricData> metrics = new ArrayList<>();

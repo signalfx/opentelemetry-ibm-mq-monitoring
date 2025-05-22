@@ -18,7 +18,6 @@ package com.splunk.ibm.mq.metricscollector;
 import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
 import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
 
-import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;

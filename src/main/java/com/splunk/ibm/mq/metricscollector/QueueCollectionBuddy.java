@@ -19,7 +19,6 @@ import static com.ibm.mq.constants.CMQC.*;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 
-import com.appdynamics.extensions.metrics.Metric;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.headers.MQDataException;

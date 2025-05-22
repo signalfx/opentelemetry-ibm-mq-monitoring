@@ -15,8 +15,8 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
-import com.appdynamics.extensions.metrics.Metric;
-import com.appdynamics.extensions.metrics.transformers.Transformer;
+import com.splunk.ibm.mq.metricscollector.Metric;
+import com.splunk.ibm.mq.metricscollector.Transformer;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
