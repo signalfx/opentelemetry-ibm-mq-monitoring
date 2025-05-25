@@ -16,10 +16,12 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import com.google.common.collect.Lists;
+import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import io.opentelemetry.api.common.Attributes;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,16 +70,13 @@ public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
         return;
       }
       List<Metric> responseMetrics = Lists.newArrayList();
-      context.forEachMetric(
-          (metrickey, wmqOverride) -> {
-            int metricVal = responses.get(0).getIntParameterValue(wmqOverride.getConstantValue());
-            if (logger.isDebugEnabled()) {
-              logger.debug("Metric: " + metrickey + "=" + metricVal);
-            }
-            Metric metric =
-                metricCreator.createMetric(metrickey, metricVal, wmqOverride, metrickey);
-            responseMetrics.add(metric);
-          });
+      {
+        int interval = responses.get(0).getIntParameterValue(CMQC.MQIA_STATISTICS_INTERVAL);
+        Metric metric =
+            metricCreator.createMetric(
+                "mq.manager.statistics.interval", interval, Attributes.empty());
+        responseMetrics.add(metric);
+      }
       context.transformAndPrintMetrics(responseMetrics);
     } catch (Exception e) {
       logger.error("Error collecting QueueManagerCmd metrics", e);
