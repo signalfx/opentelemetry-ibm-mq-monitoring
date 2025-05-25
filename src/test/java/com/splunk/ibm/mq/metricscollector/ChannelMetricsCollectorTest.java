@@ -28,7 +28,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
@@ -100,14 +99,6 @@ class ChannelMetricsCollectorTest {
 
   @Test
   void testPublishMetrics() throws Exception {
-    List<String> metricPathsList = Lists.newArrayList();
-    metricPathsList.add(
-        "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.ADMIN.SVRCONN|Status");
-    metricPathsList.add(
-        "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|DEV.APP.SVRCONN|Status");
-    metricPathsList.add(
-        "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount");
-
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireChannelStatusCmd());
     classUnderTest = new ChannelMetricsCollector(context, metricCreator);
@@ -118,74 +109,49 @@ class ChannelMetricsCollectorTest {
 
     List<List<Metric>> allValues = pathCaptor.getAllValues();
     assertThat(allValues).hasSize(3);
-    assertThat(allValues.get(0)).hasSize(6);
-    assertThat(allValues.get(1)).hasSize(6);
+    assertThat(allValues.get(0)).hasSize(8);
+    assertThat(allValues.get(1)).hasSize(8);
     assertThat(allValues.get(2)).hasSize(1);
 
-    assertRowWithList(allValues.get(0), "ADMIN");
-    assertRowWithList(allValues.get(1), "APP");
+    assertRowWithList(allValues.get(0));
+    assertRowWithList(allValues.get(1));
 
     assertThatMetric(allValues.get(2).get(0))
-        .hasName("ActiveChannelsCount")
-        .hasPath("Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount")
+        .hasName("mq.manager.active.channels")
         .hasValue("2")
-        .withPropertiesMatching(standardPropsForAlias("ActiveChannelsCount"));
+        .withPropertiesMatching(standardPropsForAlias("mq.manager.active.channels"));
   }
 
-  void assertRowWithList(List<Metric> metrics, String component) {
+  void assertRowWithList(List<Metric> metrics) {
     assertThatMetric(metrics.get(0))
-        .hasName("Status")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|DEV."
-                + component
-                + ".SVRCONN|Status")
-        .hasValue("3")
-        .withPropertiesMatching(standardPropsForAlias("Status"));
+        .hasName("mq.message.received.count")
+        .hasValue("17")
+        .withPropertiesMatching(standardPropsForAlias("mq.message.received.count"));
 
     assertThatMetric(metrics.get(1))
-        .hasName("Messages")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|DEV."
-                + component
-                + ".SVRCONN|Messages")
-        .hasValue("17")
-        .withPropertiesMatching(standardPropsForAlias("Messages"));
+        .hasName("mq.status")
+        .hasValue("3")
+        .withPropertiesMatching(standardPropsForAlias("mq.status"));
 
     assertThatMetric(metrics.get(2))
-        .hasName("BuffersSent")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|DEV."
-                + component
-                + ".SVRCONN|BuffersSent")
-        .hasValue("19")
-        .withPropertiesMatching(standardPropsForAlias("Buffers Sent"));
+        .hasName("mq.byte.sent")
+        .hasValue("6984")
+        .withPropertiesMatching(standardPropsForAlias("mq.byte.sent"));
 
     assertThatMetric(metrics.get(3))
-        .hasName("ByteSent")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|DEV."
-                + component
-                + ".SVRCONN|ByteSent")
-        .hasValue("6984")
-        .withPropertiesMatching(standardPropsForAlias("Byte Sent"));
+        .hasName("mq.byte.received")
+        .hasValue("5772")
+        .withPropertiesMatching(standardPropsForAlias("mq.byte.received"));
 
     assertThatMetric(metrics.get(4))
-        .hasName("BuffersReceived")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|DEV."
-                + component
-                + ".SVRCONN|BuffersReceived")
-        .hasValue("20")
-        .withPropertiesMatching(standardPropsForAlias("Buffers Received"));
+        .hasName("mq.buffers.sent")
+        .hasValue("19")
+        .withPropertiesMatching(standardPropsForAlias("mq.buffers.sent"));
 
     assertThatMetric(metrics.get(5))
-        .hasName("ByteReceived")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|DEV."
-                + component
-                + ".SVRCONN|ByteReceived")
-        .hasValue("5772")
-        .withPropertiesMatching(standardPropsForAlias("Byte Received"));
+        .hasName("mq.buffers.received")
+        .hasValue("20")
+        .withPropertiesMatching(standardPropsForAlias("mq.buffers.received"));
   }
 
   /*
@@ -290,10 +256,9 @@ class ChannelMetricsCollectorTest {
     assertThat(allValues).hasSize(1);
     assertThat(allValues.get(0)).hasSize(1);
     assertThatMetric(allValues.get(0).get(0))
-        .hasName("ActiveChannelsCount")
-        .hasPath("Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Channels|ActiveChannelsCount")
+        .hasName("mq.manager.active.channels")
         .hasValue("0")
-        .withPropertiesMatching(standardPropsForAlias("ActiveChannelsCount"));
+        .withPropertiesMatching(standardPropsForAlias("mq.manager.active.channels"));
   }
 
   @Test

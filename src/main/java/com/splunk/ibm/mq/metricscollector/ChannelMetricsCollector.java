@@ -23,6 +23,8 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -131,7 +133,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
         "Active Channels in queueManager {} are {}", context.getQueueManagerName(), activeChannels);
     Metric activeChannelsCountMetric =
         metricCreator.createMetric(
-            "ActiveChannelsCount", activeChannels.size(), null, "ActiveChannelsCount");
+            "mq.manager.active.channels", activeChannels.size(), Attributes.empty());
     context.transformAndPrintMetric(activeChannelsCountMetric);
 
     long exitTime = System.currentTimeMillis() - entryTime;
@@ -141,21 +143,91 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
   private @NotNull List<Metric> getMetrics(
       PCFMessage message, String channelName, List<String> activeChannels) throws PCFException {
     List<Metric> responseMetrics = Lists.newArrayList();
-    context.forEachMetric(
-        (metrickey, wmqOverride) -> {
-          int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
-          Metric metric =
-              metricCreator.createMetric(metrickey, metricVal, wmqOverride, channelName, metrickey);
-          responseMetrics.add(metric);
-          // We follow the definition of active channel as documented in
-          // https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
-          if ("Status".equals(metrickey)
-              && metricVal != CMQCFC.MQCHS_RETRYING
-              && metricVal != CMQCFC.MQCHS_STOPPED
-              && metricVal != CMQCFC.MQCHS_STARTING) {
-            activeChannels.add(channelName);
-          }
-        });
+    {
+      int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.message.received.count",
+              received,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
+    {
+      int status = message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_STATUS);
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.status",
+              status,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+      // We follow the definition of active channel as documented in
+      // https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
+      if (status != CMQCFC.MQCHS_RETRYING
+          && status != CMQCFC.MQCHS_STOPPED
+          && status != CMQCFC.MQCHS_STARTING) {
+        activeChannels.add(channelName);
+      }
+    }
+    {
+      int bytesSent = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT);
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.byte.sent",
+              bytesSent,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
+    {
+      int bytesReceived = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED);
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.byte.received",
+              bytesReceived,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
+    {
+      int buffersSent = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT);
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.buffers.sent",
+              buffersSent,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
+    {
+      int buffersReceived = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED);
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.buffers.received",
+              buffersReceived,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
+    {
+      int currentSharingConvs = 0;
+      if (message.getParameter(CMQCFC.MQIACH_CURRENT_SHARING_CONVS) != null) {
+        currentSharingConvs = message.getIntParameterValue(CMQCFC.MQIACH_CURRENT_SHARING_CONVS);
+      }
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.current.sharing.conversations",
+              currentSharingConvs,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
+    {
+      int maxSharingConvs = 0;
+      if (message.getParameter(CMQCFC.MQIACH_MAX_SHARING_CONVS) != null) {
+        maxSharingConvs = message.getIntParameterValue(CMQCFC.MQIACH_MAX_SHARING_CONVS);
+      }
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.max.sharing.conversations",
+              maxSharingConvs,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
     return responseMetrics;
   }
 }
