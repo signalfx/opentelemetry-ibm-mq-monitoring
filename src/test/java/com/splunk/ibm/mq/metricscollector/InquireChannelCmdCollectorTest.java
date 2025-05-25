@@ -135,6 +135,8 @@ class InquireChannelCmdCollectorTest {
     response1.addParameter(CMQCFC.MQIACH_MR_COUNT, 22);
     response1.addParameter(CMQCFC.MQIACH_MSGS_RECEIVED, 42);
     response1.addParameter(CMQCFC.MQIACH_MSGS_SENT, 64);
+    response1.addParameter(CMQCFC.MQIACH_MAX_INSTANCES, 3);
+    response1.addParameter(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT, 3);
 
     return new PCFMessage[] {response1};
   }

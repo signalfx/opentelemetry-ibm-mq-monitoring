@@ -21,6 +21,8 @@ import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import java.util.List;
 import java.util.Set;
 import org.jetbrains.annotations.NotNull;
@@ -112,17 +114,60 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
   private @NotNull List<Metric> getMetrics(PCFMessage message, String channelName)
       throws PCFException {
     List<Metric> responseMetrics = Lists.newArrayList();
-    context.forEachMetric(
-        (metrickey, wmqOverride) -> {
-          if (message.getParameter(wmqOverride.getConstantValue()) == null) {
-            logger.debug("Missing property {} on {}", metrickey, channelName);
-            return;
-          }
-          int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
-          Metric metric =
-              metricCreator.createMetric(metrickey, metricVal, wmqOverride, channelName, metrickey);
-          responseMetrics.add(metric);
-        });
+    {
+      int maxInstances = message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTANCES);
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.max.instances",
+              maxInstances,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
+    {
+      int maxInstancesPerClient = message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT);
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.instances.per.client",
+              maxInstancesPerClient,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
+    {
+      int count = 0;
+      if (message.getParameter(CMQCFC.MQIACH_MR_COUNT) != null) {
+        count = message.getIntParameterValue(CMQCFC.MQIACH_MR_COUNT);
+      }
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.message.retry.count",
+              count,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
+    {
+      int received = 0;
+      if (message.getParameter(CMQCFC.MQIACH_MSGS_RECEIVED) != null) {
+        received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_RECEIVED);
+      }
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.message.received.count",
+              received,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
+    {
+      int count = 0;
+      if (message.getParameter(CMQCFC.MQIACH_MSGS_SENT) != null) {
+        count = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_SENT);
+      }
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.message.sent.count",
+              count,
+              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
+      responseMetrics.add(metric);
+    }
     return responseMetrics;
   }
 }
