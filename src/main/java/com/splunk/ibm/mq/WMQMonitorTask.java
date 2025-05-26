@@ -263,8 +263,7 @@ public class WMQMonitorTask implements Runnable {
       String commandType,
       PCFMessageAgent agent) {
 
-    MetricCreator metricCreator =
-        new MetricCreator(config.getMetricPrefix(), queueManager, commandType);
+    MetricCreator metricCreator = new MetricCreator(queueManager.getName());
     MetricsCollectorContext context =
         new MetricsCollectorContext(metrics, queueManager, agent, metricWriteHelper);
     MetricsPublisher collector = collectorConstructor.apply(context, metricCreator);
@@ -319,9 +318,7 @@ public class WMQMonitorTask implements Runnable {
 
     MetricsCollectorContext context =
         new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
-    MetricCreator metricCreator =
-        new MetricCreator(
-            config.getMetricPrefix(), queueManager, ListenerMetricsCollector.ARTIFACT);
+    MetricCreator metricCreator = new MetricCreator(queueManager.getName());
     MetricsPublisher metricsCollector = collectorConstructor.apply(context, metricCreator);
     pendingJobs.add(metricsCollector);
   }
@@ -355,7 +352,7 @@ public class WMQMonitorTask implements Runnable {
       return;
     }
 
-    MetricCreator metricCreator = new MetricCreator(config.getMetricPrefix(), queueManager);
+    MetricCreator metricCreator = new MetricCreator(queueManager.getName());
     ReadConfigurationEventQueueCollector collector =
         new ReadConfigurationEventQueueCollector(
             configurationMetricsToReport,

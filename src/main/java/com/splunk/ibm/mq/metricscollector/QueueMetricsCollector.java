@@ -38,7 +38,7 @@ public final class QueueMetricsCollector implements MetricsPublisher {
   public QueueMetricsCollector(QueueCollectorSharedState sharedState, JobSubmitterContext context) {
     this.sharedState = sharedState;
     this.context = context;
-    this.metricCreator = context.newMetricCreator(ARTIFACT);
+    this.metricCreator = context.newMetricCreator();
   }
 
   @Override

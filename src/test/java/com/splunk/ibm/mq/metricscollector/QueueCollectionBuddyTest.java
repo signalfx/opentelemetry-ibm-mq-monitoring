@@ -66,8 +66,7 @@ public class QueueCollectionBuddyTest {
     queueMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE);
     QueueCollectorSharedState.getInstance().resetForTest();
     pathCaptor = ArgumentCaptor.forClass(List.class);
-    metricCreator =
-        new MetricCreator(config.getMetricPrefix(), queueManager, QueueMetricsCollector.ARTIFACT);
+    metricCreator = new MetricCreator(queueManager.getName());
     collectorContext =
         new MetricsCollectorContext(
             queueMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
@@ -101,19 +100,19 @@ public class QueueCollectionBuddyTest {
   private static void verifyStatusRow(
       List<Metric> metrics, String component, List<Integer> values) {
     assertThatMetric(metrics.get(0))
-        .hasName("mq.current.queue.depth")
+        .hasName("mq.queue.depth")
         .hasValue(String.valueOf(values.get(0)))
-        .withPropertiesMatching(standardPropsForAlias("mq.current.queue.depth"));
+        .withPropertiesMatching(standardPropsForAlias("mq.queue.depth"));
 
     assertThatMetric(metrics.get(1))
-        .hasName("mq.onqtime_1")
+        .hasName("mq.onqtime.1")
         .hasValue(String.valueOf(values.get(1)))
-        .withPropertiesMatching(standardPropsForAlias("mq.onqtime_1"));
+        .withPropertiesMatching(standardPropsForAlias("mq.onqtime.1"));
 
     assertThatMetric(metrics.get(2))
-        .hasName("mq.onqtime_2")
+        .hasName("mq.onqtime.2")
         .hasValue(String.valueOf(values.get(2)))
-        .withPropertiesMatching(standardPropsForAlias("mq.onqtime_2"));
+        .withPropertiesMatching(standardPropsForAlias("mq.onqtime.2"));
 
     assertThatMetric(metrics.get(3))
         .hasName("mq.oldest.msg.age")
@@ -121,9 +120,9 @@ public class QueueCollectionBuddyTest {
         .withPropertiesMatching(standardPropsForAlias("mq.oldest.msg.age"));
 
     assertThatMetric(metrics.get(4))
-        .hasName("mq.uncommitted.msgs")
+        .hasName("mq.uncommitted.messages")
         .hasValue(String.valueOf(values.get(4)))
-        .withPropertiesMatching(standardPropsForAlias("mq.uncommitted.msgs"));
+        .withPropertiesMatching(standardPropsForAlias("mq.uncommitted.messages"));
   }
 
   @Test
@@ -156,9 +155,9 @@ public class QueueCollectionBuddyTest {
         .withPropertiesMatching(standardPropsForAlias("mq.max.queue.depth"));
 
     assertThatMetric(metrics.get(1))
-        .hasName("mq.current.queue.depth")
+        .hasName("mq.queue.depth")
         .hasValue(String.valueOf(values.get(1)))
-        .withPropertiesMatching(standardPropsForAlias("mq.current.queue.depth"));
+        .withPropertiesMatching(standardPropsForAlias("mq.queue.depth"));
 
     assertThatMetric(metrics.get(2))
         .hasName("mq.open.input.count")

@@ -15,31 +15,14 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import io.opentelemetry.api.common.Attributes;
-import javax.annotation.Nullable;
 
 public final class MetricCreator {
 
-  private final String metricPrefix;
   private final String queueManagerName;
-  @Nullable private final String firstPathComponent;
 
-  public MetricCreator(String metricPrefix, QueueManager queueManager) {
-    this(metricPrefix, queueManager.getName(), null);
-  }
-
-  public MetricCreator(
-      String metricPrefix, QueueManager queueManager, @Nullable String firstPathComponent) {
-    this(metricPrefix, queueManager.getName(), firstPathComponent);
-  }
-
-  public MetricCreator(
-      String metricPrefix, String queueManagerName, @Nullable String firstPathComponent) {
-    this.metricPrefix = metricPrefix;
+  public MetricCreator(String queueManagerName) {
     this.queueManagerName = queueManagerName;
-    this.firstPathComponent = firstPathComponent;
   }
 
   Metric createMetric(String metricName, int metricValue, Attributes attributes) {
@@ -47,30 +30,5 @@ public final class MetricCreator {
         metricName,
         String.valueOf(metricValue),
         Attributes.builder().putAll(attributes).put("queue.manager", queueManagerName).build());
-  }
-
-  Metric createMetric(
-      String metricName, int metricValue, WMQMetricOverride wmqOverride, String... pathElements) {
-    String metricPath = getMetricsName(queueManagerName, pathElements);
-    if (wmqOverride != null) {
-      return new Metric(
-          metricName, String.valueOf(metricValue), metricPath, wmqOverride.getMetricProperties());
-    }
-    return new Metric(metricName, String.valueOf(metricValue), metricPath);
-  }
-
-  private String getMetricsName(String qmNameToBeDisplayed, String... pathElements) {
-    StringBuilder pathBuilder = new StringBuilder(metricPrefix);
-    pathBuilder.append("|").append(qmNameToBeDisplayed).append("|");
-    if (firstPathComponent != null) {
-      pathBuilder.append(firstPathComponent).append("|");
-    }
-    for (int i = 0; i < pathElements.length; i++) {
-      pathBuilder.append(pathElements[i]);
-      if (i != pathElements.length - 1) {
-        pathBuilder.append("|");
-      }
-    }
-    return pathBuilder.toString();
   }
 }

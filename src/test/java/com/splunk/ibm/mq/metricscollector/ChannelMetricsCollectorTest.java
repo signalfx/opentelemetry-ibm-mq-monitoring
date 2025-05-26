@@ -85,8 +85,7 @@ class ChannelMetricsCollectorTest {
     Map<String, WMQMetricOverride> channelMetricsToReport =
         metricsByCommand.get("MQCMD_INQUIRE_CHANNEL_STATUS");
     pathCaptor = ArgumentCaptor.forClass(List.class);
-    metricCreator =
-        new MetricCreator(config.getMetricPrefix(), queueManager, ChannelMetricsCollector.ARTIFACT);
+    metricCreator = new MetricCreator(queueManager.getName());
     IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(channelMetricsToReport);
     context =
         new MetricsCollectorContext(

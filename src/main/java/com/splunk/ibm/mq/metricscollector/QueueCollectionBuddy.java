@@ -200,13 +200,13 @@ final class QueueCollectionBuddy {
   private static String getMetricName(int constantValue) {
     switch (constantValue) {
       case CMQC.MQIA_CURRENT_Q_DEPTH:
-        return "mq.current.queue.depth";
+        return "mq.queue.depth";
       case CMQC.MQIA_MAX_Q_DEPTH:
         return "mq.max.queue.depth";
-       case CMQC.MQIA_OPEN_INPUT_COUNT:
-         return "mq.open.input.count";
-        case CMQC.MQIA_OPEN_OUTPUT_COUNT:
-          return "mq.open.output.count";
+      case CMQC.MQIA_OPEN_INPUT_COUNT:
+        return "mq.open.input.count";
+      case CMQC.MQIA_OPEN_OUTPUT_COUNT:
+        return "mq.open.output.count";
       case CMQC.MQIA_Q_SERVICE_INTERVAL:
         return "mq.service.interval";
       case CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT:
@@ -216,23 +216,24 @@ final class QueueCollectionBuddy {
       case CMQCFC.MQIACF_OLDEST_MSG_AGE:
         return "mq.oldest.msg.age";
       case CMQCFC.MQIACF_UNCOMMITTED_MSGS:
-        return "mq.uncommitted.msgs";
+        return "mq.uncommitted.messages";
       case CMQC.MQIA_MSG_DEQ_COUNT:
         return "mq.message.deq.count";
       case CMQC.MQIA_MSG_ENQ_COUNT:
         return "mq.message.enq.count";
       case CMQC.MQIA_HIGH_Q_DEPTH:
         return "mq.high.queue.depth";
+      case CMQCFC.MQIACF_CUR_Q_FILE_SIZE:
+        return "mq.current.queue.filesize";
+      case CMQCFC.MQIACF_CUR_MAX_FILE_SIZE:
+        return "mq.current.max.queue.filesize";
       default:
         throw new IllegalArgumentException("Unknown constantValue " + constantValue);
     }
   }
 
   private List<Metric> buildMetrics(
-      PCFMessage pcfMessage,
-      String queueName,
-      String queueType,
-      int constantValue)
+      PCFMessage pcfMessage, String queueName, String queueType, int constantValue)
       throws PCFException {
     PCFParameter pcfParam = pcfMessage.getParameter(constantValue);
     String metricKey = getMetricName(constantValue);
@@ -259,7 +260,7 @@ final class QueueCollectionBuddy {
       int count = 0;
       for (int val : metricVals) {
         count++;
-        String metricName = metricKey + "_" + count;
+        String metricName = metricKey + "." + count;
         Metric metric =
             metricCreator.createMetric(
                 metricName,
