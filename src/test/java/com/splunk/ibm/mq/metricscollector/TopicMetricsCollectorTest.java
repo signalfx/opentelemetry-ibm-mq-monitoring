@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
@@ -80,13 +79,6 @@ public class TopicMetricsCollectorTest {
 
     classUnderTest.publishMetrics();
     verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
-    List<String> metricPathsList = Lists.newArrayList();
-    metricPathsList.add(
-        "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|test|PublishCount");
-    metricPathsList.add(
-        "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|dev|SubscriptionCount");
-    metricPathsList.add(
-        "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Topics|system|PublishCount");
 
     List<List<Metric>> allValues = pathCaptor.getAllValues();
     assertThat(allValues).hasSize(2);
@@ -94,28 +86,24 @@ public class TopicMetricsCollectorTest {
     assertThat(allValues.get(1)).hasSize(2);
 
     assertThatMetric(allValues.get(0).get(0))
-        .hasName("SubscriptionCount")
-        .hasPath("Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Topics|test|SubscriptionCount")
-        .hasValue("3")
-        .withPropertiesMatching(standardPropsForAlias("Subscription Count"));
+        .hasName("mq.publish.count")
+        .hasValue("2")
+        .withPropertiesMatching(standardPropsForAlias("mq.publish.count"));
 
     assertThatMetric(allValues.get(0).get(1))
-        .hasName("PublishCount")
-        .hasPath("Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Topics|test|PublishCount")
-        .hasValue("2")
-        .withPropertiesMatching(standardPropsForAlias("Publish Count"));
+        .hasName("mq.subscription.count")
+        .hasValue("3")
+        .withPropertiesMatching(standardPropsForAlias("mq.subscription.count"));
 
     assertThatMetric(allValues.get(1).get(0))
-        .hasName("SubscriptionCount")
-        .hasPath("Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Topics|dev|SubscriptionCount")
-        .hasValue("4")
-        .withPropertiesMatching(standardPropsForAlias("Subscription Count"));
+        .hasName("mq.publish.count")
+        .hasValue("3")
+        .withPropertiesMatching(standardPropsForAlias("mq.publish.count"));
 
     assertThatMetric(allValues.get(1).get(1))
-        .hasName("PublishCount")
-        .hasPath("Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Topics|dev|PublishCount")
-        .hasValue("3")
-        .withPropertiesMatching(standardPropsForAlias("Publish Count"));
+        .hasName("mq.subscription.count")
+        .hasValue("4")
+        .withPropertiesMatching(standardPropsForAlias("mq.subscription.count"));
   }
 
   private PCFMessage[] createPCFResponseForInquireTopicStatusCmd() {
