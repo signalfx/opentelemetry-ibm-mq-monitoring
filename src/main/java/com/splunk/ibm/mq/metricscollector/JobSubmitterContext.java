@@ -45,9 +45,8 @@ public final class JobSubmitterContext {
     threadPool.submit(wrappedJob);
   }
 
-  MetricCreator newMetricCreator(String firstPathComponent) {
-    return new MetricCreator(
-        config.getMetricPrefix(), collectorContext.getQueueManagerName(), firstPathComponent);
+  MetricCreator newMetricCreator() {
+    return new MetricCreator(collectorContext.getQueueManagerName());
   }
 
   public int getConfigInt(String key, int defaultValue) {

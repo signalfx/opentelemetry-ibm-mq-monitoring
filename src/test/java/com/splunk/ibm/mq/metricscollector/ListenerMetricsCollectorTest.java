@@ -63,9 +63,7 @@ class ListenerMetricsCollectorTest {
     Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
     listenerMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_LISTENER);
     pathCaptor = ArgumentCaptor.forClass(List.class);
-    metricCreator =
-        new MetricCreator(
-            config.getMetricPrefix(), queueManager, ListenerMetricsCollector.ARTIFACT);
+    metricCreator = new MetricCreator(queueManager.getName());
   }
 
   @Test

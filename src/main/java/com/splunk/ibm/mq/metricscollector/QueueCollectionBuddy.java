@@ -21,9 +21,11 @@ import static java.util.Collections.singletonList;
 
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
+import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.*;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -176,11 +178,12 @@ final class QueueCollectionBuddy {
   private List<Metric> getMetrics(PCFMessage pcfMessage, String queueName, String queueType)
       throws PCFException {
     List<Metric> responseMetrics = Lists.newArrayList();
+
     context.forEachMetric(
         (metricKey, wmqOverride) -> {
           try {
             List<Metric> tempMetrics =
-                buildMetrics(pcfMessage, queueName, queueType, metricKey, wmqOverride);
+                buildMetrics(pcfMessage, queueName, queueType, wmqOverride.getConstantValue());
             responseMetrics.addAll(tempMetrics);
           } catch (PCFException pcfe) {
             logger.error(
@@ -194,33 +197,62 @@ final class QueueCollectionBuddy {
     return responseMetrics;
   }
 
-  private List<Metric> buildMetrics(
-      PCFMessage pcfMessage,
-      String queueName,
-      String queueType,
-      String metricKey,
-      WMQMetricOverride wmqOverride)
-      throws PCFException {
-    PCFParameter pcfParam = pcfMessage.getParameter(wmqOverride.getConstantValue());
-    if (pcfParam == null) {
-      logger.warn(
-          "PCF parameter {} is null in response for Queue: {} for metric: {} in command {}",
-          wmqOverride.getConstantValue(),
-          queueName,
-          wmqOverride.getIbmCommand(),
-          command);
-      return emptyList();
+  private static String getMetricName(int constantValue) {
+    switch (constantValue) {
+      case CMQC.MQIA_CURRENT_Q_DEPTH:
+        return "mq.queue.depth";
+      case CMQC.MQIA_MAX_Q_DEPTH:
+        return "mq.max.queue.depth";
+      case CMQC.MQIA_OPEN_INPUT_COUNT:
+        return "mq.open.input.count";
+      case CMQC.MQIA_OPEN_OUTPUT_COUNT:
+        return "mq.open.output.count";
+      case CMQC.MQIA_Q_SERVICE_INTERVAL:
+        return "mq.service.interval";
+      case CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT:
+        return "mq.service.interval.event";
+      case CMQCFC.MQIACF_Q_TIME_INDICATOR:
+        return "mq.onqtime";
+      case CMQCFC.MQIACF_OLDEST_MSG_AGE:
+        return "mq.oldest.msg.age";
+      case CMQCFC.MQIACF_UNCOMMITTED_MSGS:
+        return "mq.uncommitted.messages";
+      case CMQC.MQIA_MSG_DEQ_COUNT:
+        return "mq.message.deq.count";
+      case CMQC.MQIA_MSG_ENQ_COUNT:
+        return "mq.message.enq.count";
+      case CMQC.MQIA_HIGH_Q_DEPTH:
+        return "mq.high.queue.depth";
+      case CMQCFC.MQIACF_CUR_Q_FILE_SIZE:
+        return "mq.current.queue.filesize";
+      case CMQCFC.MQIACF_CUR_MAX_FILE_SIZE:
+        return "mq.current.max.queue.filesize";
+      default:
+        throw new IllegalArgumentException("Unknown constantValue " + constantValue);
     }
+  }
+
+  private List<Metric> buildMetrics(
+      PCFMessage pcfMessage, String queueName, String queueType, int constantValue)
+      throws PCFException {
+    PCFParameter pcfParam = pcfMessage.getParameter(constantValue);
+    String metricKey = getMetricName(constantValue);
     if (pcfParam instanceof MQCFIN) {
-      int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
+      int metricVal = pcfMessage.getIntParameterValue(constantValue);
       Metric metric =
           metricCreator.createMetric(
-              metricKey, metricVal, wmqOverride, queueName, queueType, metricKey);
+              metricKey,
+              metricVal,
+              Attributes.of(
+                  AttributeKey.stringKey("queue.name"),
+                  queueName,
+                  AttributeKey.stringKey("queue.type"),
+                  queueType));
       return singletonList(metric);
     }
     List<Metric> tempMetrics = new ArrayList<>();
     if (pcfParam instanceof MQCFIL) {
-      int[] metricVals = pcfMessage.getIntListParameterValue(wmqOverride.getConstantValue());
+      int[] metricVals = pcfMessage.getIntListParameterValue(constantValue);
       if (metricVals == null) {
         return emptyList();
       }
@@ -228,10 +260,16 @@ final class QueueCollectionBuddy {
       int count = 0;
       for (int val : metricVals) {
         count++;
-        String metricName = metricKey + "_" + count;
+        String metricName = metricKey + "." + count;
         Metric metric =
             metricCreator.createMetric(
-                metricName, val, wmqOverride, queueName, queueType, metricName);
+                metricName,
+                val,
+                Attributes.of(
+                    AttributeKey.stringKey("queue.name"),
+                    queueName,
+                    AttributeKey.stringKey("queue.type"),
+                    queueType));
         tempMetrics.add(metric);
       }
     }

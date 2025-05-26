@@ -42,7 +42,7 @@ public final class TopicMetricsCollector implements MetricsPublisher {
     Map<String, WMQMetricOverride> metricsForInquireTStatusCmd =
         context.getMetricsForCommand(InquireTStatusCmdCollector.COMMAND);
     if (!metricsForInquireTStatusCmd.isEmpty()) {
-      MetricCreator metricCreator = context.newMetricCreator(InquireTStatusCmdCollector.ARTIFACT);
+      MetricCreator metricCreator = context.newMetricCreator();
       MetricsCollectorContext collectorContext =
           context.newCollectorContext(metricsForInquireTStatusCmd);
       InquireTStatusCmdCollector metricsPublisher =
