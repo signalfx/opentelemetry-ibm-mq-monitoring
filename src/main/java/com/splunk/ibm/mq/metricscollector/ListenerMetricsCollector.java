@@ -19,6 +19,8 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -113,14 +115,15 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
   private @NotNull List<Metric> getMetrics(PCFMessage message, String listenerName)
       throws PCFException {
     List<Metric> responseMetrics = Lists.newArrayList();
-    context.forEachMetric(
-        (metricKey, wmqOverride) -> {
-          int metricVal = message.getIntParameterValue(wmqOverride.getConstantValue());
-          Metric metric =
-              metricCreator.createMetric(
-                  metricKey, metricVal, wmqOverride, listenerName, metricKey);
-          responseMetrics.add(metric);
-        });
+    {
+      int interval = message.getIntParameterValue(CMQCFC.MQIACH_LISTENER_STATUS);
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.listener.status",
+              interval,
+              Attributes.of(AttributeKey.stringKey("listener.name"), listenerName));
+      responseMetrics.add(metric);
+    }
     return responseMetrics;
   }
 }
