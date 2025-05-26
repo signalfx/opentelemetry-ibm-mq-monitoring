@@ -19,10 +19,10 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
-import com.ibm.mq.headers.pcf.MQCFIN;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.ibm.mq.headers.pcf.PCFParameter;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -129,26 +129,30 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
   private List<Metric> extractMetrics(String command, PCFMessage pcfMessage, String topicString)
       throws PCFException {
     List<Metric> responseMetrics = Lists.newArrayList();
-    context.forEachMetric(
-        (metrickey, wmqOverride) -> {
-          try {
-            PCFParameter pcfParam = pcfMessage.getParameter(wmqOverride.getConstantValue());
-            if (pcfParam instanceof MQCFIN) {
-              int metricVal = pcfMessage.getIntParameterValue(wmqOverride.getConstantValue());
-              Metric metric =
-                  metricCreator.createMetric(
-                      metrickey, metricVal, wmqOverride, topicString, metrickey);
-              responseMetrics.add(metric);
-            }
-          } catch (PCFException pcfe) {
-            logger.error(
-                "PCFException caught while collecting metric for Topic: {} for metric: {} in command {}",
-                topicString,
-                wmqOverride.getIbmCommand(),
-                command,
-                pcfe);
-          }
-        });
+    {
+      int count = 0;
+      if (pcfMessage.getParameter(CMQC.MQIA_PUB_COUNT) != null) {
+        count = pcfMessage.getIntParameterValue(CMQC.MQIA_PUB_COUNT);
+      }
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.publish.count",
+              count,
+              Attributes.of(AttributeKey.stringKey("topic.name"), topicString));
+      responseMetrics.add(metric);
+    }
+    {
+      int count = 0;
+      if (pcfMessage.getParameter(CMQC.MQIA_SUB_COUNT) != null) {
+        count = pcfMessage.getIntParameterValue(CMQC.MQIA_SUB_COUNT);
+      }
+      Metric metric =
+          metricCreator.createMetric(
+              "mq.subscription.count",
+              count,
+              Attributes.of(AttributeKey.stringKey("topic.name"), topicString));
+      responseMetrics.add(metric);
+    }
     return responseMetrics;
   }
 }
