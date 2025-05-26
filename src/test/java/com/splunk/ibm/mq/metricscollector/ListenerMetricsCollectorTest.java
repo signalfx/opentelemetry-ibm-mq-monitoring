@@ -90,18 +90,14 @@ class ListenerMetricsCollectorTest {
     assertThat(allValues.get(1)).hasSize(1);
 
     assertThatMetric(allValues.get(0).get(0))
-        .hasName("Status")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Listeners|DEV.DEFAULT.LISTENER.TCP|Status")
+        .hasName("mq.listener.status")
         .hasValue("2")
-        .withPropertiesMatching(standardPropsForAlias("Status"));
+        .withPropertiesMatching(standardPropsForAlias("mq.listener.status"));
 
     assertThatMetric(allValues.get(1).get(0))
-        .hasName("Status")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Listeners|DEV.LISTENER.TCP|Status")
+        .hasName("mq.listener.status")
         .hasValue("3")
-        .withPropertiesMatching(standardPropsForAlias("Status"));
+        .withPropertiesMatching(standardPropsForAlias("mq.listener.status"));
   }
 
   /*
