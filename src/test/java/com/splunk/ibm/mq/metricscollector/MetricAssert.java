@@ -15,10 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.metricPropertiesMatching;
-
-import com.appdynamics.extensions.metrics.MetricProperties;
-import java.util.function.Function;
 import org.assertj.core.api.Assertions;
 
 public class MetricAssert {
@@ -40,20 +36,6 @@ public class MetricAssert {
 
   MetricAssert hasValue(String value) {
     Assertions.assertThat(metric.getMetricValue()).isEqualTo(value);
-    return this;
-  }
-
-  MetricPropertiesAssert withPropertiesMatching() {
-    return metricPropertiesMatching(metric.getMetricProperties());
-  }
-
-  MetricPropertiesAssert withPropertiesMatching(
-      Function<MetricProperties, MetricPropertiesAssert> fn) {
-    return fn.apply(metric.getMetricProperties());
-  }
-
-  MetricAssert hasPath(String path) {
-    Assertions.assertThat(metric.getMetricPath()).isEqualTo(path);
     return this;
   }
 }

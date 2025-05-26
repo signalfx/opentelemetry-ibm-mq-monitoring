@@ -78,21 +78,17 @@ class QueueManagerMetricsCollectorTest {
     classUnderTest = new QueueManagerMetricsCollector(context, metricCreator);
     classUnderTest.publishMetrics();
     verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
-    List<String> metricPathsList = Lists.newArrayList();
-    metricPathsList.add("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Status");
+    List<String> metricsList = Lists.newArrayList("mq.manager.status");
 
     for (List<Metric> metricList : pathCaptor.getAllValues()) {
       for (Metric metric : metricList) {
-        if (metricPathsList.contains(metric.getMetricPath())) {
-          if (metric
-              .getMetricPath()
-              .equals("Server|Component:Tier1|Custom Metrics|WebsphereMQ|QM1|Status")) {
-            assertThat(metric.getMetricValue()).isEqualTo("2");
-            assertThat(metric.getMetricValue()).isNotEqualTo("10");
-          }
+        if (metricsList.remove(metric.getMetricName())) {
+          assertThat(metric.getMetricValue()).isEqualTo("2");
+          assertThat(metric.getMetricValue()).isNotEqualTo("10");
         }
       }
     }
+    assertThat(metricsList).isEmpty();
   }
 
   /*  Request

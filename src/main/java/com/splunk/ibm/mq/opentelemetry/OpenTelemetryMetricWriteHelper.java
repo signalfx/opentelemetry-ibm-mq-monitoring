@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq.opentelemetry;
 
 import com.splunk.ibm.mq.metricscollector.Metric;
-import com.splunk.ibm.mq.metricscollector.Transformer;
 import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricExporter;
@@ -43,8 +42,6 @@ public class OpenTelemetryMetricWriteHelper {
   }
 
   public void transformAndPrintMetrics(List<Metric> metrics) {
-    Transformer transformer = new Transformer(metrics);
-    transformer.transform();
     MQOtelTranslator mqOtelTransformer = new MQOtelTranslator();
     Collection<MetricData> translated = mqOtelTransformer.translate(metrics);
     this.exportMetrics(translated);

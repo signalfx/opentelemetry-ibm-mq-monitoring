@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
-import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.standardPropsForAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
@@ -87,15 +86,9 @@ class ListenerMetricsCollectorTest {
     assertThat(allValues.get(0)).hasSize(1);
     assertThat(allValues.get(1)).hasSize(1);
 
-    assertThatMetric(allValues.get(0).get(0))
-        .hasName("mq.listener.status")
-        .hasValue("2")
-        .withPropertiesMatching(standardPropsForAlias("mq.listener.status"));
+    assertThatMetric(allValues.get(0).get(0)).hasName("mq.listener.status").hasValue("2");
 
-    assertThatMetric(allValues.get(1).get(0))
-        .hasName("mq.listener.status")
-        .hasValue("3")
-        .withPropertiesMatching(standardPropsForAlias("mq.listener.status"));
+    assertThatMetric(allValues.get(1).get(0)).hasName("mq.listener.status").hasValue("3");
   }
 
   /*

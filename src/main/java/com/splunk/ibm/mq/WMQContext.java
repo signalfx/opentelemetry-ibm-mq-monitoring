@@ -52,7 +52,7 @@ public class WMQContext {
 
     if (Constants.TRANSPORT_TYPE_CLIENT.equalsIgnoreCase(queueManager.getTransportType())) {
       addEnvProperty(env, CMQC.TRANSPORT_PROPERTY, CMQC.TRANSPORT_MQSERIES_CLIENT);
-    } else if (Constants.TRANSPORT_TYPE_BINGINGS.equalsIgnoreCase(
+    } else if (Constants.TRANSPORT_TYPE_BINDINGS.equalsIgnoreCase(
         queueManager.getTransportType())) {
       addEnvProperty(env, CMQC.TRANSPORT_PROPERTY, CMQC.TRANSPORT_MQSERIES_BINDINGS);
     } else {
@@ -100,7 +100,7 @@ public class WMQContext {
           errorMsg.append("Channel cannot be null or empty for client type connection. ");
         }
       }
-      if (Constants.TRANSPORT_TYPE_BINGINGS.equalsIgnoreCase(queueManager.getTransportType())) {
+      if (Constants.TRANSPORT_TYPE_BINDINGS.equalsIgnoreCase(queueManager.getTransportType())) {
         if (queueManager.getName() == null || queueManager.getName().trim().isEmpty()) {
           validArgs = false;
           errorMsg.append("queuemanager cannot be null or empty for bindings type connection. ");

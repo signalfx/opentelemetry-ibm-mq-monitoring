@@ -93,37 +93,25 @@ class InquireChannelCmdCollectorTest {
     classUnderTest = new InquireChannelCmdCollector(context, metricCreator);
     classUnderTest.publishMetrics();
     verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
-    List<String> metricPathsList = Lists.newArrayList();
-    metricPathsList.add(
-        "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|my.channel|MsgRetryCount");
-    metricPathsList.add(
-        "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|my.channel|MsgsReceived");
-    metricPathsList.add(
-        "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|my.channel|MsgsSent");
 
     for (List<Metric> metricList : pathCaptor.getAllValues()) {
+      List<String> metricsList =
+          Lists.newArrayList(
+              "mq.message.retry.count", "mq.message.received.count", "mq.message.sent.count");
       for (Metric metric : metricList) {
-        if (metricPathsList.contains(metric.getMetricPath())) {
-          if (metric
-              .getMetricPath()
-              .equals(
-                  "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|my.channel|MsgRetryCount")) {
+        if (metricsList.remove(metric.getMetricName())) {
+          if (metric.getMetricName().equals("mq.message.retry.count")) {
             assertThat(metric.getMetricValue()).isEqualTo("22");
           }
-          if (metric
-              .getMetricPath()
-              .equals(
-                  "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|my.channel|MsgsReceived")) {
+          if (metric.getMetricName().equals("mq.message.received.count")) {
             assertThat(metric.getMetricValue()).isEqualTo("42");
           }
-          if (metric
-              .getMetricPath()
-              .equals(
-                  "Server|Component:Tier1|Custom Metrics|WebsphereMQ|QueueManager1|Channels|my.channel|MsgsSent")) {
+          if (metric.getMetricName().equals("mq.message.sent.count")) {
             assertThat(metric.getMetricValue()).isEqualTo("64");
           }
         }
       }
+      assertThat(metricsList).isEmpty();
     }
   }
 

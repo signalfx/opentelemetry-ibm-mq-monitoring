@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
-import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.standardPropsForAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -85,25 +84,12 @@ public class TopicMetricsCollectorTest {
     assertThat(allValues.get(0)).hasSize(2);
     assertThat(allValues.get(1)).hasSize(2);
 
-    assertThatMetric(allValues.get(0).get(0))
-        .hasName("mq.publish.count")
-        .hasValue("2")
-        .withPropertiesMatching(standardPropsForAlias("mq.publish.count"));
+    assertThatMetric(allValues.get(0).get(0)).hasName("mq.publish.count").hasValue("2");
 
-    assertThatMetric(allValues.get(0).get(1))
-        .hasName("mq.subscription.count")
-        .hasValue("3")
-        .withPropertiesMatching(standardPropsForAlias("mq.subscription.count"));
+    assertThatMetric(allValues.get(0).get(1)).hasName("mq.subscription.count").hasValue("3");
 
-    assertThatMetric(allValues.get(1).get(0))
-        .hasName("mq.publish.count")
-        .hasValue("3")
-        .withPropertiesMatching(standardPropsForAlias("mq.publish.count"));
-
-    assertThatMetric(allValues.get(1).get(1))
-        .hasName("mq.subscription.count")
-        .hasValue("4")
-        .withPropertiesMatching(standardPropsForAlias("mq.subscription.count"));
+    assertThatMetric(allValues.get(1).get(0)).hasName("mq.publish.count").hasValue("3");
+    assertThatMetric(allValues.get(1).get(1)).hasName("mq.subscription.count").hasValue("4");
   }
 
   private PCFMessage[] createPCFResponseForInquireTopicStatusCmd() {
