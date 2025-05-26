@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
-import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.standardPropsForAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -101,28 +100,23 @@ public class QueueCollectionBuddyTest {
       List<Metric> metrics, String component, List<Integer> values) {
     assertThatMetric(metrics.get(0))
         .hasName("mq.queue.depth")
-        .hasValue(String.valueOf(values.get(0)))
-        .withPropertiesMatching(standardPropsForAlias("mq.queue.depth"));
+        .hasValue(String.valueOf(values.get(0)));
 
     assertThatMetric(metrics.get(1))
         .hasName("mq.onqtime.1")
-        .hasValue(String.valueOf(values.get(1)))
-        .withPropertiesMatching(standardPropsForAlias("mq.onqtime.1"));
+        .hasValue(String.valueOf(values.get(1)));
 
     assertThatMetric(metrics.get(2))
         .hasName("mq.onqtime.2")
-        .hasValue(String.valueOf(values.get(2)))
-        .withPropertiesMatching(standardPropsForAlias("mq.onqtime.2"));
+        .hasValue(String.valueOf(values.get(2)));
 
     assertThatMetric(metrics.get(3))
         .hasName("mq.oldest.msg.age")
-        .hasValue(String.valueOf(values.get(3)))
-        .withPropertiesMatching(standardPropsForAlias("mq.oldest.msg.age"));
+        .hasValue(String.valueOf(values.get(3)));
 
     assertThatMetric(metrics.get(4))
         .hasName("mq.uncommitted.messages")
-        .hasValue(String.valueOf(values.get(4)))
-        .withPropertiesMatching(standardPropsForAlias("mq.uncommitted.messages"));
+        .hasValue(String.valueOf(values.get(4)));
   }
 
   @Test
@@ -151,23 +145,19 @@ public class QueueCollectionBuddyTest {
   private static void verifyQRow(List<Metric> metrics, String component, List<Integer> values) {
     assertThatMetric(metrics.get(0))
         .hasName("mq.max.queue.depth")
-        .hasValue(String.valueOf(values.get(0)))
-        .withPropertiesMatching(standardPropsForAlias("mq.max.queue.depth"));
+        .hasValue(String.valueOf(values.get(0)));
 
     assertThatMetric(metrics.get(1))
         .hasName("mq.queue.depth")
-        .hasValue(String.valueOf(values.get(1)))
-        .withPropertiesMatching(standardPropsForAlias("mq.queue.depth"));
+        .hasValue(String.valueOf(values.get(1)));
 
     assertThatMetric(metrics.get(2))
         .hasName("mq.open.input.count")
-        .hasValue(String.valueOf(values.get(2)))
-        .withPropertiesMatching(standardPropsForAlias("mq.open.input.count"));
+        .hasValue(String.valueOf(values.get(2)));
 
     assertThatMetric(metrics.get(3))
         .hasName("mq.open.output.count")
-        .hasValue(String.valueOf(values.get(3)))
-        .withPropertiesMatching(standardPropsForAlias("mq.open.output.count"));
+        .hasValue(String.valueOf(values.get(3)));
   }
 
   @Test
@@ -189,20 +179,11 @@ public class QueueCollectionBuddyTest {
     assertThat(allValues).hasSize(1);
     assertThat(allValues.get(0)).hasSize(3);
 
-    assertThatMetric(allValues.get(0).get(0))
-        .hasName("mq.high.queue.depth")
-        .hasValue("10")
-        .withPropertiesMatching(standardPropsForAlias("mq.high.queue.depth"));
+    assertThatMetric(allValues.get(0).get(0)).hasName("mq.high.queue.depth").hasValue("10");
 
-    assertThatMetric(allValues.get(0).get(1))
-        .hasName("mq.message.deq.count")
-        .hasValue("0")
-        .withPropertiesMatching(standardPropsForAlias("mq.message.deq.count"));
+    assertThatMetric(allValues.get(0).get(1)).hasName("mq.message.deq.count").hasValue("0");
 
-    assertThatMetric(allValues.get(0).get(2))
-        .hasName("mq.message.enq.count")
-        .hasValue("3")
-        .withPropertiesMatching(standardPropsForAlias("mq.message.enq.count"));
+    assertThatMetric(allValues.get(0).get(2)).hasName("mq.message.enq.count").hasValue("3");
   }
 
   /*

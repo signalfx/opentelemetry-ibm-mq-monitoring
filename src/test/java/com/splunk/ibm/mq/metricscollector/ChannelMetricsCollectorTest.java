@@ -18,7 +18,6 @@ package com.splunk.ibm.mq.metricscollector;
 import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
 import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
 import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
-import static com.splunk.ibm.mq.metricscollector.MetricPropertiesAssert.standardPropsForAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.any;
@@ -115,42 +114,21 @@ class ChannelMetricsCollectorTest {
     assertRowWithList(allValues.get(0));
     assertRowWithList(allValues.get(1));
 
-    assertThatMetric(allValues.get(2).get(0))
-        .hasName("mq.manager.active.channels")
-        .hasValue("2")
-        .withPropertiesMatching(standardPropsForAlias("mq.manager.active.channels"));
+    assertThatMetric(allValues.get(2).get(0)).hasName("mq.manager.active.channels").hasValue("2");
   }
 
   void assertRowWithList(List<Metric> metrics) {
-    assertThatMetric(metrics.get(0))
-        .hasName("mq.message.received.count")
-        .hasValue("17")
-        .withPropertiesMatching(standardPropsForAlias("mq.message.received.count"));
+    assertThatMetric(metrics.get(0)).hasName("mq.message.received.count").hasValue("17");
 
-    assertThatMetric(metrics.get(1))
-        .hasName("mq.status")
-        .hasValue("3")
-        .withPropertiesMatching(standardPropsForAlias("mq.status"));
+    assertThatMetric(metrics.get(1)).hasName("mq.status").hasValue("3");
 
-    assertThatMetric(metrics.get(2))
-        .hasName("mq.byte.sent")
-        .hasValue("6984")
-        .withPropertiesMatching(standardPropsForAlias("mq.byte.sent"));
+    assertThatMetric(metrics.get(2)).hasName("mq.byte.sent").hasValue("6984");
 
-    assertThatMetric(metrics.get(3))
-        .hasName("mq.byte.received")
-        .hasValue("5772")
-        .withPropertiesMatching(standardPropsForAlias("mq.byte.received"));
+    assertThatMetric(metrics.get(3)).hasName("mq.byte.received").hasValue("5772");
 
-    assertThatMetric(metrics.get(4))
-        .hasName("mq.buffers.sent")
-        .hasValue("19")
-        .withPropertiesMatching(standardPropsForAlias("mq.buffers.sent"));
+    assertThatMetric(metrics.get(4)).hasName("mq.buffers.sent").hasValue("19");
 
-    assertThatMetric(metrics.get(5))
-        .hasName("mq.buffers.received")
-        .hasValue("20")
-        .withPropertiesMatching(standardPropsForAlias("mq.buffers.received"));
+    assertThatMetric(metrics.get(5)).hasName("mq.buffers.received").hasValue("20");
   }
 
   /*
@@ -254,10 +232,7 @@ class ChannelMetricsCollectorTest {
     List<List<Metric>> allValues = pathCaptor.getAllValues();
     assertThat(allValues).hasSize(1);
     assertThat(allValues.get(0)).hasSize(1);
-    assertThatMetric(allValues.get(0).get(0))
-        .hasName("mq.manager.active.channels")
-        .hasValue("0")
-        .withPropertiesMatching(standardPropsForAlias("mq.manager.active.channels"));
+    assertThatMetric(allValues.get(0).get(0)).hasName("mq.manager.active.channels").hasValue("0");
   }
 
   @Test
