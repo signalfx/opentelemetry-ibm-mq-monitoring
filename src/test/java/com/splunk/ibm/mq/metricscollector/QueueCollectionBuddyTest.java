@@ -101,49 +101,29 @@ public class QueueCollectionBuddyTest {
   private static void verifyStatusRow(
       List<Metric> metrics, String component, List<Integer> values) {
     assertThatMetric(metrics.get(0))
-        .hasName("CurrentQueueDepth")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
-                + component
-                + "|local-transmission|CurrentQueueDepth")
+        .hasName("mq.current.queue.depth")
         .hasValue(String.valueOf(values.get(0)))
-        .withPropertiesMatching(standardPropsForAlias("Current Queue Depth"));
+        .withPropertiesMatching(standardPropsForAlias("mq.current.queue.depth"));
 
     assertThatMetric(metrics.get(1))
-        .hasName("OnQTime_1")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
-                + component
-                + "|local-transmission|OnQTime_1")
+        .hasName("mq.onqtime_1")
         .hasValue(String.valueOf(values.get(1)))
-        .withPropertiesMatching(standardPropsForAlias("OnQTime"));
+        .withPropertiesMatching(standardPropsForAlias("mq.onqtime_1"));
 
     assertThatMetric(metrics.get(2))
-        .hasName("OnQTime_2")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
-                + component
-                + "|local-transmission|OnQTime_2")
+        .hasName("mq.onqtime_2")
         .hasValue(String.valueOf(values.get(2)))
-        .withPropertiesMatching(standardPropsForAlias("OnQTime"));
+        .withPropertiesMatching(standardPropsForAlias("mq.onqtime_2"));
 
     assertThatMetric(metrics.get(3))
-        .hasName("OldestMsgAge")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
-                + component
-                + "|local-transmission|OldestMsgAge")
+        .hasName("mq.oldest.msg.age")
         .hasValue(String.valueOf(values.get(3)))
-        .withPropertiesMatching(standardPropsForAlias("OldestMsgAge"));
+        .withPropertiesMatching(standardPropsForAlias("mq.oldest.msg.age"));
 
     assertThatMetric(metrics.get(4))
-        .hasName("UncommittedMsgs")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
-                + component
-                + "|local-transmission|UncommittedMsgs")
+        .hasName("mq.uncommitted.msgs")
         .hasValue(String.valueOf(values.get(4)))
-        .withPropertiesMatching(standardPropsForAlias("UncommittedMsgs"));
+        .withPropertiesMatching(standardPropsForAlias("mq.uncommitted.msgs"));
   }
 
   @Test
@@ -171,40 +151,24 @@ public class QueueCollectionBuddyTest {
 
   private static void verifyQRow(List<Metric> metrics, String component, List<Integer> values) {
     assertThatMetric(metrics.get(0))
-        .hasName("MaxQueueDepth")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
-                + component
-                + "|local-transmission|MaxQueueDepth")
+        .hasName("mq.max.queue.depth")
         .hasValue(String.valueOf(values.get(0)))
-        .withPropertiesMatching(standardPropsForAlias("Max Queue Depth"));
+        .withPropertiesMatching(standardPropsForAlias("mq.max.queue.depth"));
 
     assertThatMetric(metrics.get(1))
-        .hasName("CurrentQueueDepth")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
-                + component
-                + "|local-transmission|CurrentQueueDepth")
+        .hasName("mq.current.queue.depth")
         .hasValue(String.valueOf(values.get(1)))
-        .withPropertiesMatching(standardPropsForAlias("Current Queue Depth"));
+        .withPropertiesMatching(standardPropsForAlias("mq.current.queue.depth"));
 
     assertThatMetric(metrics.get(2))
-        .hasName("OpenInputCount")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
-                + component
-                + "|local-transmission|OpenInputCount")
+        .hasName("mq.open.input.count")
         .hasValue(String.valueOf(values.get(2)))
-        .withPropertiesMatching(standardPropsForAlias("Open Input Count"));
+        .withPropertiesMatching(standardPropsForAlias("mq.open.input.count"));
 
     assertThatMetric(metrics.get(3))
-        .hasName("OpenOutputCount")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|"
-                + component
-                + "|local-transmission|OpenOutputCount")
+        .hasName("mq.open.output.count")
         .hasValue(String.valueOf(values.get(3)))
-        .withPropertiesMatching(standardPropsForAlias("Open Output Count"));
+        .withPropertiesMatching(standardPropsForAlias("mq.open.output.count"));
   }
 
   @Test
@@ -227,25 +191,19 @@ public class QueueCollectionBuddyTest {
     assertThat(allValues.get(0)).hasSize(3);
 
     assertThatMetric(allValues.get(0).get(0))
-        .hasName("HighQDepth")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|HighQDepth")
+        .hasName("mq.high.queue.depth")
         .hasValue("10")
-        .withPropertiesMatching(standardPropsForAlias("HighQDepth"));
+        .withPropertiesMatching(standardPropsForAlias("mq.high.queue.depth"));
 
     assertThatMetric(allValues.get(0).get(1))
-        .hasName("MsgDeqCount")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|MsgDeqCount")
+        .hasName("mq.message.deq.count")
         .hasValue("0")
-        .withPropertiesMatching(standardPropsForAlias("MsgDeqCount"));
+        .withPropertiesMatching(standardPropsForAlias("mq.message.deq.count"));
 
     assertThatMetric(allValues.get(0).get(2))
-        .hasName("MsgEnqCount")
-        .hasPath(
-            "Server|Component:mq|Custom Metrics|WebsphereMQ|QM1|Queues|DEV.DEAD.LETTER.QUEUE|local-transmission|MsgEnqCount")
+        .hasName("mq.message.enq.count")
         .hasValue("3")
-        .withPropertiesMatching(standardPropsForAlias("MsgEnqCount"));
+        .withPropertiesMatching(standardPropsForAlias("mq.message.enq.count"));
   }
 
   /*

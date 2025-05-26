@@ -38,13 +38,9 @@ final class InquireQCmdCollector implements MetricsPublisher {
   @Override
   public void publishMetrics() {
     logger.info("Collecting metrics for command {}", COMMAND);
-    /*
-     * attrs = { CMQC.MQCA_Q_NAME, CMQC.MQIA_CURRENT_Q_DEPTH, CMQC.MQIA_MAX_Q_DEPTH, CMQC.MQIA_OPEN_INPUT_COUNT, CMQC.MQIA_OPEN_OUTPUT_COUNT };
-     */
     long entryTime = System.currentTimeMillis();
 
-    int[] attrs =
-        context.buildIntAttributesArray(CMQC.MQCA_Q_NAME, CMQC.MQIA_USAGE, CMQC.MQIA_Q_TYPE);
+    int[] attrs = new int[] {CMQC.MQCA_Q_NAME, CMQC.MQIA_USAGE, CMQC.MQIA_Q_TYPE, CMQC.MQIA_CURRENT_Q_DEPTH, CMQC.MQIA_MAX_Q_DEPTH, CMQC.MQIA_OPEN_INPUT_COUNT, CMQC.MQIA_OPEN_OUTPUT_COUNT, CMQC.MQIA_Q_SERVICE_INTERVAL, CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT};
     logger.debug(
         "Attributes being sent along PCF agent request to query queue metrics: {} for command {}",
         Arrays.toString(attrs),
