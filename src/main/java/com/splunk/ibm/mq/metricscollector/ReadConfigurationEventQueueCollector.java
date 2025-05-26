@@ -29,8 +29,8 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import io.opentelemetry.api.common.Attributes;
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -147,15 +147,11 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
 
       if (candidate != null) {
         List<Metric> metrics = Lists.newArrayList();
-        Iterator<String> overrideItr = metricsToReport.keySet().iterator();
-        while (overrideItr.hasNext()) {
-          String metrickey = overrideItr.next();
-          WMQMetricOverride wmqOverride = metricsToReport.get(metrickey);
-          if (candidate.getParameter(wmqOverride.getConstantValue()) != null) {
-            int metricValue = candidate.getIntParameterValue(wmqOverride.getConstantValue());
-            Metric m = metricCreator.createMetric(metrickey, metricValue, wmqOverride, metrickey);
-            metrics.add(m);
-          }
+        {
+          int maxHandles = candidate.getIntParameterValue(CMQC.MQIA_MAX_HANDLES);
+          Metric metric =
+              metricCreator.createMetric("mq.manager.max.handles", maxHandles, Attributes.empty());
+          metrics.add(metric);
         }
         this.metricWriteHelper.transformAndPrintMetrics(metrics);
       }
