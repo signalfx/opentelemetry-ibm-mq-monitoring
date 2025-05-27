@@ -23,7 +23,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class InquireQCmdCollector implements MetricsPublisher {
+final class InquireQCmdCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(InquireQCmdCollector.class);
 
@@ -50,7 +50,7 @@ final class InquireQCmdCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     logger.info("Collecting metrics for command {}", COMMAND);
     long entryTime = System.currentTimeMillis();
 

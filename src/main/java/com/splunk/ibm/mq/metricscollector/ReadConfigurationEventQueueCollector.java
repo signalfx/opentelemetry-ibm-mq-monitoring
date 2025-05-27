@@ -34,7 +34,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class ReadConfigurationEventQueueCollector implements MetricsPublisher {
+public final class ReadConfigurationEventQueueCollector implements Runnable {
 
   private static final Logger logger =
       LoggerFactory.getLogger(ReadConfigurationEventQueueCollector.class);
@@ -115,7 +115,7 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     long entryTime = System.currentTimeMillis();
     String configurationQueueName = this.queueManager.getConfigurationQueueName();
     logger.info(

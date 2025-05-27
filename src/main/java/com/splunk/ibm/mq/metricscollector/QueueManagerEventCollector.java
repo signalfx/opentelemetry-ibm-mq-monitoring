@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // Reads queue manager events and counts them as metrics
-public final class QueueManagerEventCollector implements MetricsPublisher {
+public final class QueueManagerEventCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(QueueManagerEventCollector.class);
   private final QueueManager queueManager;
@@ -101,7 +101,7 @@ public final class QueueManagerEventCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     long entryTime = System.currentTimeMillis();
     String queueManagerEventsQueueName = this.queueManager.getQueueManagerEventsQueueName();
     logger.info(

@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class QueueMetricsCollector implements MetricsPublisher {
+public final class QueueMetricsCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
 
@@ -39,30 +39,30 @@ public final class QueueMetricsCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     logger.info("Collecting queue metrics...");
 
-    List<MetricsPublisher> publishers = Lists.newArrayList();
+    List<Runnable> publishers = Lists.newArrayList();
     // first collect all queue types.
     {
       MetricsCollectorContext collectorContext = context.newCollectorContext();
       QueueCollectionBuddy queueBuddy =
           new QueueCollectionBuddy(collectorContext, sharedState, metricCreator);
-      MetricsPublisher publisher = new InquireQCmdCollector(collectorContext, queueBuddy);
-      publisher.publishMetrics();
+      Runnable publisher = new InquireQCmdCollector(collectorContext, queueBuddy);
+      publisher.run();
     }
 
     // schedule all other jobs in parallel.
     MetricsCollectorContext collectorContext = context.newCollectorContext();
     QueueCollectionBuddy queueBuddy =
         new QueueCollectionBuddy(collectorContext, sharedState, metricCreator);
-    MetricsPublisher publisher = new InquireQStatusCmdCollector(collectorContext, queueBuddy);
+    Runnable publisher = new InquireQStatusCmdCollector(collectorContext, queueBuddy);
     publishers.add(publisher);
-    MetricsPublisher collector = new ResetQStatsCmdCollector(collectorContext, queueBuddy);
+    Runnable collector = new ResetQStatsCmdCollector(collectorContext, queueBuddy);
     publishers.add(collector);
 
     CountDownLatch latch = new CountDownLatch(publishers.size());
-    for (MetricsPublisher p : publishers) {
+    for (Runnable p : publishers) {
       context.submitPublishJob(p, latch);
     }
 

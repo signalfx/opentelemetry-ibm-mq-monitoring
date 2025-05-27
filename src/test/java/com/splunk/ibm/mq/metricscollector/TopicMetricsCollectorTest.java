@@ -69,7 +69,7 @@ public class TopicMetricsCollectorTest {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireTopicStatusCmd());
 
-    classUnderTest.publishMetrics();
+    classUnderTest.run();
     verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
 
     List<List<Metric>> allValues = pathCaptor.getAllValues();

@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
  *
  * <p>It utilizes WMQMetricOverride to map metrics from the configuration to their IBM MQ constants.
  */
-public final class ListenerMetricsCollector implements MetricsPublisher {
+public final class ListenerMetricsCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
   private final MetricCreator metricCreator;
@@ -55,7 +55,7 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     long entryTime = System.currentTimeMillis();
 
     int[] attrs = new int[] {CMQCFC.MQCACH_LISTENER_NAME, CMQCFC.MQIACH_LISTENER_STATUS};
