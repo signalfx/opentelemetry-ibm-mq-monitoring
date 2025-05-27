@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 
 final class ResetQStatsCmdCollector implements MetricsPublisher {
 
+  static final int[] ATTRIBUTES =
+      new int[] {CMQC.MQIA_HIGH_Q_DEPTH, CMQC.MQIA_MSG_DEQ_COUNT, CMQC.MQIA_MSG_ENQ_COUNT};
+
   private static final Logger logger = LoggerFactory.getLogger(ResetQStatsCmdCollector.class);
 
   static final String COMMAND = "MQCMD_RESET_Q_STATS";
@@ -39,22 +42,11 @@ final class ResetQStatsCmdCollector implements MetricsPublisher {
   @Override
   public void publishMetrics() {
     logger.info("Collecting metrics for command {}", COMMAND);
-    /*
-     * attrs = { CMQC.MQCA_Q_NAME, MQIA_HIGH_Q_DEPTH,MQIA_MSG_DEQ_COUNT, MQIA_MSG_ENQ_COUNT };
-     */
     long entryTime = System.currentTimeMillis();
 
-    if (context.hasNoMetricsToReport()) {
-      logger.debug(
-          "Queue metrics to report from the config is null or empty, nothing to publish for command {}",
-          COMMAND);
-      return;
-    }
-
-    int[] attrs = context.buildIntAttributesArray(CMQC.MQCA_Q_NAME);
     logger.debug(
         "Attributes being sent along PCF agent request to query queue metrics: {} for command {}",
-        Arrays.toString(attrs),
+        Arrays.toString(ATTRIBUTES),
         COMMAND);
 
     Set<String> queueGenericNames = context.getQueueIncludeFilterNames();
@@ -63,7 +55,7 @@ final class ResetQStatsCmdCollector implements MetricsPublisher {
       // https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ref.adm.doc/q088310_.htm
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_RESET_Q_STATS);
       request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
-      queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName);
+      queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName, ATTRIBUTES);
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(

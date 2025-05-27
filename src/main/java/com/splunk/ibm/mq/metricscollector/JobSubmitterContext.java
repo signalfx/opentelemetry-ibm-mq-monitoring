@@ -16,9 +16,7 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import com.splunk.ibm.mq.TaskJob;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 
@@ -53,17 +51,10 @@ public final class JobSubmitterContext {
     return config.getInt(key, defaultValue);
   }
 
-  MetricsCollectorContext newCollectorContext(Map<String, WMQMetricOverride> newMetrics) {
-    IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(newMetrics);
+  MetricsCollectorContext newCollectorContext() {
     return new MetricsCollectorContext(
-        newMetrics,
-        attributesBuilder,
         collectorContext.getQueueManager(),
         collectorContext.getAgent(),
         collectorContext.getMetricWriteHelper());
-  }
-
-  Map<String, WMQMetricOverride> getMetricsForCommand(String command) {
-    return collectorContext.getMetricsForCommand(command);
   }
 }

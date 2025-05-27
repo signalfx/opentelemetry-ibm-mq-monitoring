@@ -27,13 +27,10 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +47,6 @@ class QueueManagerMetricsCollectorTest {
 
   @Mock OpenTelemetryMetricWriteHelper metricWriteHelper;
 
-  Map<String, WMQMetricOverride> queueMgrMetricsToReport;
   QueueManager queueManager;
   ArgumentCaptor<List> pathCaptor;
   MetricCreator metricCreator;
@@ -62,13 +58,9 @@ class QueueManagerMetricsCollectorTest {
     ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
-    queueMgrMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER);
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator = new MetricCreator(queueManager.getName());
-    context =
-        new MetricsCollectorContext(
-            queueMgrMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
+    context = new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
   }
 
   @Test

@@ -23,7 +23,11 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
-import com.ibm.mq.headers.pcf.*;
+import com.ibm.mq.headers.pcf.MQCFIL;
+import com.ibm.mq.headers.pcf.MQCFIN;
+import com.ibm.mq.headers.pcf.PCFException;
+import com.ibm.mq.headers.pcf.PCFMessage;
+import com.ibm.mq.headers.pcf.PCFParameter;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import java.io.IOException;
@@ -42,32 +46,27 @@ final class QueueCollectionBuddy {
   private final MetricsCollectorContext context;
   private final QueueCollectorSharedState sharedState;
   private final MetricCreator metricCreator;
-  private final String command;
 
   QueueCollectionBuddy(
       MetricsCollectorContext context,
       QueueCollectorSharedState sharedState,
-      MetricCreator metricCreator,
-      String command) {
+      MetricCreator metricCreator) {
     this.context = context;
     this.sharedState = sharedState;
     this.metricCreator = metricCreator;
-    this.command = command;
   }
 
   /**
    * Sends a PCFMessage request, reads the response, and generates metrics from the response. It
    * handles all exceptions.
    */
-  void processPCFRequestAndPublishQMetrics(PCFMessage request, String queueGenericName) {
+  void processPCFRequestAndPublishQMetrics(
+      PCFMessage request, String queueGenericName, int[] fields) {
     try {
-      doProcessPCFRequestAndPublishQMetrics(request, queueGenericName);
+      doProcessPCFRequestAndPublishQMetrics(request, queueGenericName, fields);
     } catch (PCFException pcfe) {
       logger.error(
-          "PCFException caught while collecting metric for Queue: {} for command {}",
-          queueGenericName,
-          command,
-          pcfe);
+          "PCFException caught while collecting metric for Queue: {}", queueGenericName, pcfe);
       if (pcfe.exceptionSource instanceof PCFMessage[]) {
         PCFMessage[] msgs = (PCFMessage[]) pcfe.exceptionSource;
         for (PCFMessage msg : msgs) {
@@ -85,23 +84,20 @@ final class QueueCollectionBuddy {
     }
   }
 
-  private void doProcessPCFRequestAndPublishQMetrics(PCFMessage request, String queueGenericName)
+  private void doProcessPCFRequestAndPublishQMetrics(
+      PCFMessage request, String queueGenericName, int[] fields)
       throws IOException, MQDataException {
     logger.debug(
-        "sending PCF agent request to query metrics for generic queue {} for command {}",
-        queueGenericName,
-        command);
+        "sending PCF agent request to query metrics for generic queue {}", queueGenericName);
     long startTime = System.currentTimeMillis();
     List<PCFMessage> response = context.send(request);
     long endTime = System.currentTimeMillis() - startTime;
     logger.debug(
-        "PCF agent queue metrics query response for generic queue {} for command {} received in {} milliseconds",
+        "PCF agent queue metrics query response for generic queue {} received in {} milliseconds",
         queueGenericName,
-        command,
         endTime);
     if (response.isEmpty()) {
-      logger.debug(
-          "Unexpected error while PCFMessage.send() for command {}, response is empty", command);
+      logger.debug("Unexpected error while PCFMessage.send(), response is empty");
       return;
     }
 
@@ -112,11 +108,11 @@ final class QueueCollectionBuddy {
             .filter(response);
 
     for (PCFMessage message : messages) {
-      handleMessage(message);
+      handleMessage(message, fields);
     }
   }
 
-  private void handleMessage(PCFMessage message) throws PCFException {
+  private void handleMessage(PCFMessage message, int[] fields) throws PCFException {
     String queueName = MessageBuddy.queueName(message);
     String queueType = getQueueTypeFromName(message, queueName);
     if (queueType == null) {
@@ -124,8 +120,8 @@ final class QueueCollectionBuddy {
       return;
     }
 
-    logger.debug("Pulling out metrics for queue name {} for command {}", queueName, command);
-    List<Metric> responseMetrics = getMetrics(message, queueName, queueType);
+    logger.debug("Pulling out metrics for queue name {}", queueName);
+    List<Metric> responseMetrics = getMetrics(message, queueName, queueType, fields);
     context.transformAndPrintMetrics(responseMetrics);
   }
 
@@ -175,25 +171,17 @@ final class QueueCollectionBuddy {
     return "unknown";
   }
 
-  private List<Metric> getMetrics(PCFMessage pcfMessage, String queueName, String queueType)
-      throws PCFException {
+  private List<Metric> getMetrics(
+      PCFMessage pcfMessage, String queueName, String queueType, int[] fields) throws PCFException {
     List<Metric> responseMetrics = Lists.newArrayList();
 
-    context.forEachMetric(
-        (metricKey, wmqOverride) -> {
-          try {
-            List<Metric> tempMetrics =
-                buildMetrics(pcfMessage, queueName, queueType, wmqOverride.getConstantValue());
-            responseMetrics.addAll(tempMetrics);
-          } catch (PCFException pcfe) {
-            logger.error(
-                "PCFException caught while collecting metric for Queue: {} for metric: {} in command {}",
-                queueName,
-                wmqOverride.getIbmCommand(),
-                command,
-                pcfe);
-          }
-        });
+    for (int field : fields) {
+      if (field == CMQC.MQCA_Q_NAME || field == CMQC.MQIA_USAGE || field == CMQC.MQIA_Q_TYPE) {
+        continue;
+      }
+      List<Metric> tempMetrics = buildMetrics(pcfMessage, queueName, queueType, field);
+      responseMetrics.addAll(tempMetrics);
+    }
     return responseMetrics;
   }
 

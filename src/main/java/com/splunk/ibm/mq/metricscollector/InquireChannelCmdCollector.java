@@ -45,12 +45,6 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
   public void publishMetrics() {
     long entryTime = System.currentTimeMillis();
 
-    if (context.hasNoMetricsToReport()) {
-      logger.debug(
-          "Channel metrics to report from the config is null or empty, nothing to publish");
-      return;
-    }
-
     Set<String> channelGenericNames = context.getChannelIncludeFilterNames();
 
     for (String channelGenericName : channelGenericNames) {

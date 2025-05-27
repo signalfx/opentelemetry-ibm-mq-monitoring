@@ -16,9 +16,7 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import com.google.common.collect.Lists;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -39,16 +37,11 @@ public final class TopicMetricsCollector implements MetricsPublisher {
 
     //  to query the current status of topics, which is essential for monitoring and managing the
     // publish/subscribe environment in IBM MQ.
-    Map<String, WMQMetricOverride> metricsForInquireTStatusCmd =
-        context.getMetricsForCommand(InquireTStatusCmdCollector.COMMAND);
-    if (!metricsForInquireTStatusCmd.isEmpty()) {
-      MetricCreator metricCreator = context.newMetricCreator();
-      MetricsCollectorContext collectorContext =
-          context.newCollectorContext(metricsForInquireTStatusCmd);
-      InquireTStatusCmdCollector metricsPublisher =
-          new InquireTStatusCmdCollector(collectorContext, metricCreator);
-      publishers.add(metricsPublisher);
-    }
+    MetricCreator metricCreator = context.newMetricCreator();
+    MetricsCollectorContext collectorContext = context.newCollectorContext();
+    InquireTStatusCmdCollector metricsPublisher =
+        new InquireTStatusCmdCollector(collectorContext, metricCreator);
+    publishers.add(metricsPublisher);
     CountDownLatch latch = new CountDownLatch(publishers.size());
     for (MetricsPublisher publisher : publishers) {
       context.submitPublishJob(publisher, latch);

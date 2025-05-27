@@ -26,14 +26,10 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,30 +56,9 @@ class InquireChannelCmdCollectorTest {
     ObjectMapper mapper = new ObjectMapper();
     QueueManager queueManager =
         mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
-    Map<String, WMQMetricOverride> channelMetrics = metricsMap.get(Constants.METRIC_TYPE_CHANNEL);
-    Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
-    for (String key : channelMetrics.keySet()) {
-      WMQMetricOverride wmqOverride = channelMetrics.get(key);
-      String cmd =
-          wmqOverride.getIbmCommand() == null
-              ? "MQCMD_INQUIRE_CHANNEL_STATUS"
-              : wmqOverride.getIbmCommand();
-      metricsByCommand.putIfAbsent(cmd, new HashMap<>());
-      metricsByCommand.get(cmd).put(key, wmqOverride);
-    }
-    Map<String, WMQMetricOverride> channelMetricsToReport =
-        metricsByCommand.get("MQCMD_INQUIRE_CHANNEL");
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator = new MetricCreator(queueManager.getName());
-    IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(channelMetricsToReport);
-    context =
-        new MetricsCollectorContext(
-            channelMetricsToReport,
-            attributesBuilder,
-            queueManager,
-            pcfMessageAgent,
-            metricWriteHelper);
+    context = new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
   }
 
   @Test

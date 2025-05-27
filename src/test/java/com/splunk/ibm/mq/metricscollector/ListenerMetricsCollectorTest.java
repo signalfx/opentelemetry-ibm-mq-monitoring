@@ -26,13 +26,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -49,7 +46,6 @@ class ListenerMetricsCollectorTest {
 
   @Mock private OpenTelemetryMetricWriteHelper metricWriteHelper;
 
-  private Map<String, WMQMetricOverride> listenerMetricsToReport;
   private QueueManager queueManager;
   private ArgumentCaptor<List<Metric>> pathCaptor;
   private MetricCreator metricCreator;
@@ -59,8 +55,6 @@ class ListenerMetricsCollectorTest {
     ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
-    listenerMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_LISTENER);
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator = new MetricCreator(queueManager.getName());
   }
@@ -69,14 +63,8 @@ class ListenerMetricsCollectorTest {
   public void testPublishMetrics() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireListenerStatusCmd());
-    IntAttributesBuilder attributesBuilder = new IntAttributesBuilder(listenerMetricsToReport);
     MetricsCollectorContext context =
-        new MetricsCollectorContext(
-            listenerMetricsToReport,
-            attributesBuilder,
-            queueManager,
-            pcfMessageAgent,
-            metricWriteHelper);
+        new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
     classUnderTest = new ListenerMetricsCollector(context, metricCreator);
     classUnderTest.publishMetrics();
     verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());

@@ -18,7 +18,6 @@ package com.splunk.ibm.mq.metricscollector;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import java.util.Arrays;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,9 +41,19 @@ import org.slf4j.LoggerFactory;
  */
 final class InquireQStatusCmdCollector implements MetricsPublisher {
 
+  static final int[] ATTRIBUTES =
+      new int[] {
+        CMQC.MQCA_Q_NAME,
+        CMQCFC.MQIACF_CUR_Q_FILE_SIZE,
+        CMQCFC.MQIACF_CUR_MAX_FILE_SIZE,
+        CMQCFC.MQIACF_OLDEST_MSG_AGE,
+        CMQCFC.MQIACF_UNCOMMITTED_MSGS,
+        CMQCFC.MQIACF_Q_TIME_INDICATOR,
+        CMQC.MQIA_CURRENT_Q_DEPTH,
+      };
+
   private static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);
 
-  static final String COMMAND = "MQCMD_INQUIRE_Q_STATUS";
   private final MetricsCollectorContext context;
   private final QueueCollectionBuddy queueBuddy;
 
@@ -55,26 +64,8 @@ final class InquireQStatusCmdCollector implements MetricsPublisher {
 
   @Override
   public void publishMetrics() {
-    logger.info("Collecting metrics for command {}", COMMAND);
+    logger.info("Collecting metrics for command MQCMD_INQUIRE_Q_STATUS");
     long entryTime = System.currentTimeMillis();
-
-    if (context.hasNoMetricsToReport()) {
-      logger.debug(
-          "Queue metrics to report from the config is null or empty, nothing to publish for command {}",
-          COMMAND);
-      return;
-    }
-
-    //
-    // attrs = { CMQC.MQCA_Q_NAME, MQIACF_OLDEST_MSG_AGE, MQIACF_Q_TIME_INDICATOR };
-    //
-    int[] attrs = context.buildIntAttributesArray(CMQC.MQCA_Q_NAME);
-    if (logger.isDebugEnabled()) {
-      logger.debug(
-          "Attributes being sent along PCF agent request to query queue metrics: {} for command {}",
-          Arrays.toString(attrs),
-          COMMAND);
-    }
 
     Set<String> queueGenericNames = context.getQueueIncludeFilterNames();
     for (String queueGenericName : queueGenericNames) {
@@ -82,13 +73,12 @@ final class InquireQStatusCmdCollector implements MetricsPublisher {
       // https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ref.adm.doc/q087880_.htm
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS);
       request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
-      request.addParameter(CMQCFC.MQIACF_Q_STATUS_ATTRS, attrs);
-      queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName);
+      request.addParameter(CMQCFC.MQIACF_Q_STATUS_ATTRS, ATTRIBUTES);
+      queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName, ATTRIBUTES);
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(
-        "Time taken to publish metrics for all queues is {} milliseconds for command {}",
-        exitTime,
-        COMMAND);
+        "Time taken to publish metrics for all queues is {} milliseconds for command MQCMD_INQUIRE_Q_STATUS",
+        exitTime);
   }
 }

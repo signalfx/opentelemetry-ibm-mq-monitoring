@@ -16,9 +16,7 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import com.google.common.collect.Lists;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -47,43 +45,25 @@ public final class QueueMetricsCollector implements MetricsPublisher {
     List<MetricsPublisher> publishers = Lists.newArrayList();
     // first collect all queue types.
     {
-      Map<String, WMQMetricOverride> metricsForInquireQCmd =
-          context.getMetricsForCommand(InquireQCmdCollector.COMMAND);
-      MetricsCollectorContext collectorContext = context.newCollectorContext(metricsForInquireQCmd);
+      MetricsCollectorContext collectorContext = context.newCollectorContext();
       QueueCollectionBuddy queueBuddy =
-          new QueueCollectionBuddy(
-              collectorContext, sharedState, metricCreator, InquireQCmdCollector.COMMAND);
+          new QueueCollectionBuddy(collectorContext, sharedState, metricCreator);
       MetricsPublisher publisher = new InquireQCmdCollector(collectorContext, queueBuddy);
       publisher.publishMetrics();
     }
 
     // schedule all other jobs in parallel.
-    Map<String, WMQMetricOverride> metricsForInquireQStatusCmd =
-        context.getMetricsForCommand(InquireQStatusCmdCollector.COMMAND);
-    if (!metricsForInquireQStatusCmd.isEmpty()) {
-      MetricsCollectorContext collectorContext =
-          context.newCollectorContext(metricsForInquireQStatusCmd);
-      QueueCollectionBuddy queueBuddy =
-          new QueueCollectionBuddy(
-              collectorContext, sharedState, metricCreator, InquireQStatusCmdCollector.COMMAND);
-      MetricsPublisher publisher = new InquireQStatusCmdCollector(collectorContext, queueBuddy);
-      publishers.add(publisher);
-    }
-    Map<String, WMQMetricOverride> metricsForResetQStatsCmd =
-        context.getMetricsForCommand(ResetQStatsCmdCollector.COMMAND);
-    if (!metricsForResetQStatsCmd.isEmpty()) {
-      MetricsCollectorContext collectorContext =
-          context.newCollectorContext(metricsForResetQStatsCmd);
-      QueueCollectionBuddy queueBuddy =
-          new QueueCollectionBuddy(
-              collectorContext, sharedState, metricCreator, ResetQStatsCmdCollector.COMMAND);
-      MetricsPublisher collector = new ResetQStatsCmdCollector(collectorContext, queueBuddy);
-      publishers.add(collector);
-    }
+    MetricsCollectorContext collectorContext = context.newCollectorContext();
+    QueueCollectionBuddy queueBuddy =
+        new QueueCollectionBuddy(collectorContext, sharedState, metricCreator);
+    MetricsPublisher publisher = new InquireQStatusCmdCollector(collectorContext, queueBuddy);
+    publishers.add(publisher);
+    MetricsPublisher collector = new ResetQStatsCmdCollector(collectorContext, queueBuddy);
+    publishers.add(collector);
 
     CountDownLatch latch = new CountDownLatch(publishers.size());
-    for (MetricsPublisher publisher : publishers) {
-      context.submitPublishJob(publisher, latch);
+    for (MetricsPublisher p : publishers) {
+      context.submitPublishJob(p, latch);
     }
 
     try {

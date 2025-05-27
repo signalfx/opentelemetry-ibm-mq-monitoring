@@ -58,13 +58,7 @@ public final class ListenerMetricsCollector implements MetricsPublisher {
   public void publishMetrics() {
     long entryTime = System.currentTimeMillis();
 
-    if (context.hasNoMetricsToReport()) {
-      logger.debug(
-          "Listener metrics to report from the config is null or empty, nothing to publish");
-      return;
-    }
-
-    int[] attrs = context.buildIntAttributesArray(CMQCFC.MQCACH_LISTENER_NAME);
+    int[] attrs = new int[] {CMQCFC.MQCACH_LISTENER_NAME, CMQCFC.MQIACH_LISTENER_STATUS};
     logger.debug(
         "Attributes being sent along PCF agent request to query channel metrics: "
             + Arrays.toString(attrs));

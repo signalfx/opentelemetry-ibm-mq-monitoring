@@ -26,6 +26,20 @@ import org.slf4j.LoggerFactory;
 final class InquireQCmdCollector implements MetricsPublisher {
 
   private static final Logger logger = LoggerFactory.getLogger(InquireQCmdCollector.class);
+
+  static final int[] ATTRIBUTES =
+      new int[] {
+        CMQC.MQCA_Q_NAME,
+        CMQC.MQIA_USAGE,
+        CMQC.MQIA_Q_TYPE,
+        CMQC.MQIA_CURRENT_Q_DEPTH,
+        CMQC.MQIA_MAX_Q_DEPTH,
+        CMQC.MQIA_OPEN_INPUT_COUNT,
+        CMQC.MQIA_OPEN_OUTPUT_COUNT,
+        CMQC.MQIA_Q_SERVICE_INTERVAL,
+        CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT
+      };
+
   static final String COMMAND = "MQCMD_INQUIRE_Q";
   private final MetricsCollectorContext context;
   private final QueueCollectionBuddy queueBuddy;
@@ -40,21 +54,9 @@ final class InquireQCmdCollector implements MetricsPublisher {
     logger.info("Collecting metrics for command {}", COMMAND);
     long entryTime = System.currentTimeMillis();
 
-    int[] attrs =
-        new int[] {
-          CMQC.MQCA_Q_NAME,
-          CMQC.MQIA_USAGE,
-          CMQC.MQIA_Q_TYPE,
-          CMQC.MQIA_CURRENT_Q_DEPTH,
-          CMQC.MQIA_MAX_Q_DEPTH,
-          CMQC.MQIA_OPEN_INPUT_COUNT,
-          CMQC.MQIA_OPEN_OUTPUT_COUNT,
-          CMQC.MQIA_Q_SERVICE_INTERVAL,
-          CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT
-        };
     logger.debug(
         "Attributes being sent along PCF agent request to query queue metrics: {} for command {}",
-        Arrays.toString(attrs),
+        Arrays.toString(ATTRIBUTES),
         COMMAND);
 
     Set<String> queueGenericNames = context.getQueueIncludeFilterNames();
@@ -64,9 +66,9 @@ final class InquireQCmdCollector implements MetricsPublisher {
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q);
       request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
       request.addParameter(CMQC.MQIA_Q_TYPE, CMQC.MQQT_ALL);
-      request.addParameter(CMQCFC.MQIACF_Q_ATTRS, attrs);
+      request.addParameter(CMQCFC.MQIACF_Q_ATTRS, ATTRIBUTES);
 
-      queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName);
+      queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName, ATTRIBUTES);
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(
