@@ -15,11 +15,6 @@
  */
 package com.splunk.ibm.mq.config;
 
-import static java.util.Collections.unmodifiableMap;
-
-import com.sun.istack.NotNull;
-import java.util.HashMap;
-import java.util.Map;
 import javax.annotation.concurrent.Immutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,13 +33,11 @@ public final class WMQMetricOverride {
   private final String ibmConstant;
   private final String ibmCommand;
   private final int constantValue;
-  private final Map<String, ?> metricProperties;
 
   private WMQMetricOverride(Builder builder, int constantValue) {
     this.ibmCommand = builder.ibmCommand;
     this.ibmConstant = builder.ibmConstant;
     this.constantValue = constantValue;
-    this.metricProperties = new HashMap<>(builder.metricProperties);
   }
 
   public String getIbmConstant() {
@@ -61,11 +54,6 @@ public final class WMQMetricOverride {
 
   public boolean hasInvalidConstant() {
     return constantValue == INVALID_CONSTANT;
-  }
-
-  @NotNull
-  public Map<String, ?> getMetricProperties() {
-    return unmodifiableMap(metricProperties);
   }
 
   private static int computeConstantValue(String ibmConstant) {
@@ -93,7 +81,6 @@ public final class WMQMetricOverride {
   public static class Builder {
     private String ibmConstant;
     private String ibmCommand;
-    private Map<String, ?> metricProperties = new HashMap<>();
 
     public Builder ibmConstant(String ibmConstant) {
       this.ibmConstant = ibmConstant;
@@ -102,11 +89,6 @@ public final class WMQMetricOverride {
 
     public Builder ibmCommand(String ibmCommand) {
       this.ibmCommand = ibmCommand;
-      return this;
-    }
-
-    public Builder metricProperties(Map<String, ?> metricProperties) {
-      this.metricProperties = new HashMap<>(metricProperties);
       return this;
     }
 

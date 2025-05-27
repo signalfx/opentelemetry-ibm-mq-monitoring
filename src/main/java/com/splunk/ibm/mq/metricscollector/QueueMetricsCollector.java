@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 public final class QueueMetricsCollector implements MetricsPublisher {
 
   private static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
-  public static final String ARTIFACT = "Queues";
 
   // hack to share state of queue type between collectors.
   // The queue information is only available as response of some commands.

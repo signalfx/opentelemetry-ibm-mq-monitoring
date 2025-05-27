@@ -73,7 +73,6 @@ public class WMQUtil {
           WMQMetricOverride.builder()
               .ibmCommand((String) metricPropsMap.get("ibmCommand"))
               .ibmConstant((String) metricPropsMap.get("ibmConstant"))
-              .metricProperties(metricPropsMap)
               .build();
 
       if (override.hasInvalidConstant()) {

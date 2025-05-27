@@ -46,7 +46,6 @@ import org.slf4j.LoggerFactory;
 public final class ListenerMetricsCollector implements MetricsPublisher {
 
   private static final Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
-  public static final String ARTIFACT = "Listeners";
   private final MetricCreator metricCreator;
   private final MetricsCollectorContext context;
 

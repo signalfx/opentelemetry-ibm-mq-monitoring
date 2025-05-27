@@ -31,7 +31,6 @@ public final class InquireQueueManagerCmdCollector implements MetricsPublisher {
 
   private static final Logger logger =
       LoggerFactory.getLogger(InquireQueueManagerCmdCollector.class);
-  public static final String ARTIFACT = "Queue Manager";
   private final MetricCreator metricCreator;
   private final MetricsCollectorContext context;
 

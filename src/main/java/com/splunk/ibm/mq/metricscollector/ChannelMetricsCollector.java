@@ -37,7 +37,6 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
 
   private static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 
-  public static final String ARTIFACT = "Channels";
   private final MetricCreator metricCreator;
   private final MetricsCollectorContext context;
 
