@@ -26,14 +26,11 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +47,6 @@ public class QueueCollectionBuddyTest {
 
   @Mock private OpenTelemetryMetricWriteHelper metricWriteHelper;
 
-  private Map<String, WMQMetricOverride> queueMetricsToReport;
   private QueueManager queueManager;
   ArgumentCaptor<List<Metric>> pathCaptor;
   MetricCreator metricCreator;
@@ -61,14 +57,11 @@ public class QueueCollectionBuddyTest {
     ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
-    queueMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_QUEUE);
     QueueCollectorSharedState.getInstance().resetForTest();
     pathCaptor = ArgumentCaptor.forClass(List.class);
     metricCreator = new MetricCreator(queueManager.getName());
     collectorContext =
-        new MetricsCollectorContext(
-            queueMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
+        new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
   }
 
   @Test
@@ -80,10 +73,9 @@ public class QueueCollectionBuddyTest {
     PCFMessage request = createPCFRequestForInquireQStatusCmd();
     when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQStatusCmd());
 
-    classUnderTest =
-        new QueueCollectionBuddy(
-            collectorContext, sharedState, metricCreator, "MQCMD_INQUIRE_Q_STATUS");
-    classUnderTest.processPCFRequestAndPublishQMetrics(request, "*");
+    classUnderTest = new QueueCollectionBuddy(collectorContext, sharedState, metricCreator);
+    classUnderTest.processPCFRequestAndPublishQMetrics(
+        request, "*", InquireQStatusCmdCollector.ATTRIBUTES);
 
     verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
 
@@ -92,30 +84,30 @@ public class QueueCollectionBuddyTest {
     assertThat(allValues.get(0)).hasSize(5);
     assertThat(allValues.get(1)).hasSize(5);
 
-    verifyStatusRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", Arrays.asList(0, -1, -1, -1, 0));
-    verifyStatusRow(allValues.get(1), "DEV.QUEUE.1", Arrays.asList(1, -1, -1, -1, 10));
+    verifyStatusRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", Arrays.asList(-1, 0, -1, -1, 0));
+    verifyStatusRow(allValues.get(1), "DEV.QUEUE.1", Arrays.asList(-1, 10, -1, -1, 1));
   }
 
   private static void verifyStatusRow(
       List<Metric> metrics, String component, List<Integer> values) {
     assertThatMetric(metrics.get(0))
-        .hasName("mq.queue.depth")
+        .hasName("mq.oldest.msg.age")
         .hasValue(String.valueOf(values.get(0)));
 
     assertThatMetric(metrics.get(1))
-        .hasName("mq.onqtime.1")
+        .hasName("mq.uncommitted.messages")
         .hasValue(String.valueOf(values.get(1)));
 
     assertThatMetric(metrics.get(2))
-        .hasName("mq.onqtime.2")
+        .hasName("mq.onqtime.1")
         .hasValue(String.valueOf(values.get(2)));
 
     assertThatMetric(metrics.get(3))
-        .hasName("mq.oldest.msg.age")
+        .hasName("mq.onqtime.2")
         .hasValue(String.valueOf(values.get(3)));
 
     assertThatMetric(metrics.get(4))
-        .hasName("mq.uncommitted.messages")
+        .hasName("mq.queue.depth")
         .hasValue(String.valueOf(values.get(4)));
   }
 
@@ -125,11 +117,9 @@ public class QueueCollectionBuddyTest {
     when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQCmd());
     classUnderTest =
         new QueueCollectionBuddy(
-            collectorContext,
-            QueueCollectorSharedState.getInstance(),
-            metricCreator,
-            "MQCMD_INQUIRE_Q");
-    classUnderTest.processPCFRequestAndPublishQMetrics(request, "*");
+            collectorContext, QueueCollectorSharedState.getInstance(), metricCreator);
+    classUnderTest.processPCFRequestAndPublishQMetrics(
+        request, "*", InquireQCmdCollector.ATTRIBUTES);
 
     verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
 
@@ -138,17 +128,17 @@ public class QueueCollectionBuddyTest {
     assertThat(allValues.get(0)).hasSize(4);
     assertThat(allValues.get(1)).hasSize(4);
 
-    verifyQRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", Arrays.asList(5000, 2, 2, 2));
-    verifyQRow(allValues.get(1), "DEV.QUEUE.1", Arrays.asList(5000, 3, 3, 3));
+    verifyQRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", Arrays.asList(2, 5000, 2, 2));
+    verifyQRow(allValues.get(1), "DEV.QUEUE.1", Arrays.asList(3, 5000, 3, 3));
   }
 
   private static void verifyQRow(List<Metric> metrics, String component, List<Integer> values) {
     assertThatMetric(metrics.get(0))
-        .hasName("mq.max.queue.depth")
+        .hasName("mq.queue.depth")
         .hasValue(String.valueOf(values.get(0)));
 
     assertThatMetric(metrics.get(1))
-        .hasName("mq.queue.depth")
+        .hasName("mq.max.queue.depth")
         .hasValue(String.valueOf(values.get(1)));
 
     assertThatMetric(metrics.get(2))
@@ -168,10 +158,9 @@ public class QueueCollectionBuddyTest {
     sharedState.putQueueType("DEV.QUEUE.1", "local-transmission");
     PCFMessage request = createPCFRequestForResetQStatsCmd();
     when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForResetQStatsCmd());
-    classUnderTest =
-        new QueueCollectionBuddy(
-            collectorContext, sharedState, metricCreator, "MQCMD_RESET_Q_STATUS");
-    classUnderTest.processPCFRequestAndPublishQMetrics(request, "*");
+    classUnderTest = new QueueCollectionBuddy(collectorContext, sharedState, metricCreator);
+    classUnderTest.processPCFRequestAndPublishQMetrics(
+        request, "*", ResetQStatsCmdCollector.ATTRIBUTES);
 
     verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
 

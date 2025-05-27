@@ -53,14 +53,19 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
     logger.info("Collecting metrics for command MQCMD_INQUIRE_CHANNEL_STATUS");
     long entryTime = System.currentTimeMillis();
 
-    if (context.hasNoMetricsToReport()) {
-      logger.debug(
-          "Channel metrics to report from the config is null or empty, nothing to publish");
-      return;
-    }
-
     int[] attrs =
-        context.buildIntAttributesArray(CMQCFC.MQCACH_CHANNEL_NAME, CMQCFC.MQCACH_CONNECTION_NAME);
+        new int[] {
+          CMQCFC.MQCACH_CHANNEL_NAME,
+          CMQCFC.MQCACH_CONNECTION_NAME,
+          CMQCFC.MQIACH_MSGS,
+          CMQCFC.MQIACH_CHANNEL_STATUS,
+          CMQCFC.MQIACH_BYTES_SENT,
+          CMQCFC.MQIACH_BYTES_RECEIVED,
+          CMQCFC.MQIACH_BUFFERS_SENT,
+          CMQCFC.MQIACH_BUFFERS_RECEIVED,
+          CMQCFC.MQIACH_CURRENT_SHARING_CONVS,
+          CMQCFC.MQIACH_MAX_SHARING_CONVS
+        };
     if (logger.isDebugEnabled()) {
       logger.debug(
           "Attributes being sent along PCF agent request to query channel metrics: {}",

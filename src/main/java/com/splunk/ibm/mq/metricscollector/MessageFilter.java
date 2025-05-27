@@ -61,7 +61,6 @@ class MessageFilter {
 
     private Collection<ExcludeFilters> filters;
     private String kind;
-    private ResourceExtractor extractor;
 
     public MessageFilterBuilder(String kind) {
       this.kind = kind;
@@ -73,7 +72,6 @@ class MessageFilter {
     }
 
     public MessageFilter withResourceExtractor(ResourceExtractor extractor) {
-      this.extractor = extractor;
       return new MessageFilter(kind, filters, extractor);
     }
   }

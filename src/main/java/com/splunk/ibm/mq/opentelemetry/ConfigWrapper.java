@@ -17,8 +17,6 @@ package com.splunk.ibm.mq.opentelemetry;
 
 import static java.util.Collections.emptyList;
 
-import com.splunk.ibm.mq.common.WMQUtil;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.time.Duration;
@@ -100,15 +98,6 @@ public final class ConfigWrapper {
       return Collections.emptyMap();
     }
     return result;
-  }
-
-  public String getMetricPrefix() {
-    return "Server|Component:mq|Custom Metrics|WebsphereMQ";
-  }
-
-  public Map<String, Map<String, WMQMetricOverride>> getMQMetrics() {
-    List<Map> mqMetrics = (List<Map>) config.get("mqMetrics");
-    return WMQUtil.getMetricsToReportFromConfigYml(mqMetrics);
   }
 
   public int getInt(String key, int defaultValue) {

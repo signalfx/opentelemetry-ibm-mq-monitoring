@@ -24,13 +24,10 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +45,6 @@ public class TopicMetricsCollectorTest {
 
   @Mock private OpenTelemetryMetricWriteHelper metricWriteHelper;
 
-  private Map<String, WMQMetricOverride> topicMetricsToReport;
   private QueueManager queueManager;
   private ArgumentCaptor<List<Metric>> pathCaptor;
   private ConfigWrapper config;
@@ -60,16 +56,13 @@ public class TopicMetricsCollectorTest {
     threadPool = Executors.newFixedThreadPool(config.getNumberOfThreads());
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
-    topicMetricsToReport = metricsMap.get(Constants.METRIC_TYPE_TOPIC);
     pathCaptor = ArgumentCaptor.forClass(List.class);
   }
 
   @Test
   void testPublishMetrics() throws Exception {
     MetricsCollectorContext collectorContext =
-        new MetricsCollectorContext(
-            topicMetricsToReport, queueManager, pcfMessageAgent, metricWriteHelper);
+        new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
     JobSubmitterContext jobContext = new JobSubmitterContext(collectorContext, threadPool, config);
     classUnderTest = new TopicMetricsCollector(jobContext);
 

@@ -27,12 +27,10 @@ import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import io.opentelemetry.api.common.Attributes;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,18 +42,15 @@ public final class ReadConfigurationEventQueueCollector implements MetricsPublis
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
   private final MQQueueManager mqQueueManager;
-  private final Map<String, WMQMetricOverride> metricsToReport;
   private final long bootTime;
   private final MetricCreator metricCreator;
 
   public ReadConfigurationEventQueueCollector(
-      Map<String, WMQMetricOverride> metricsToReport,
       PCFMessageAgent agent,
       MQQueueManager mqQueueManager,
       QueueManager queueManager,
       OpenTelemetryMetricWriteHelper metricWriteHelper,
       MetricCreator metricCreator) {
-    this.metricsToReport = metricsToReport;
     this.agent = agent;
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;

@@ -47,12 +47,6 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
     logger.info("Collecting metrics for command {}", COMMAND);
     long entryTime = System.currentTimeMillis();
 
-    if (context.hasNoMetricsToReport()) {
-      logger.debug(
-          "Topic metrics to report from the config is null or empty, nothing to publish for command {}",
-          COMMAND);
-      return;
-    }
     Set<String> topicGenericNames = context.getTopicIncludeFilterNames();
     //  to query the current status of topics, which is essential for monitoring and managing the
     // publish/subscribe environment in IBM MQ.

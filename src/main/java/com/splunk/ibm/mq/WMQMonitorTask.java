@@ -20,9 +20,7 @@ import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.config.WMQMetricOverride;
 import com.splunk.ibm.mq.metricscollector.ChannelMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.InquireChannelCmdCollector;
 import com.splunk.ibm.mq.metricscollector.InquireQueueManagerCmdCollector;
@@ -45,10 +43,8 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiFunction;
@@ -166,28 +162,20 @@ public class WMQMonitorTask implements Runnable {
   }
 
   private void extractAndReportMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
-    // Step 1: Retrieve metrics from configuration
-    Map<String, Map<String, WMQMetricOverride>> metricsMap = config.getMQMetrics();
     pendingJobs.clear();
 
     // Step 2: Inquire each metric type
-    inquireQueueManagerMetrics(metricsMap.get(Constants.METRIC_TYPE_QUEUE_MANAGER), agent);
+    inquireQueueManagerMetrics(agent);
 
-    inquireChannelMetrics(metricsMap.get(Constants.METRIC_TYPE_CHANNEL), agent);
+    inquireChannelMetrics(agent);
 
-    inquireQueueMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_QUEUE),
-        QueueCollectorSharedState.getInstance(),
-        agent);
+    inquireQueueMetrics(QueueCollectorSharedState.getInstance(), agent);
 
-    inquireListenerMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_LISTENER), ListenerMetricsCollector::new, agent);
+    inquireListenerMetrics(ListenerMetricsCollector::new, agent);
 
-    inquireTopicMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_TOPIC), TopicMetricsCollector::new, agent);
+    inquireTopicMetrics(TopicMetricsCollector::new, agent);
 
-    inquireConfigurationMetrics(
-        metricsMap.get(Constants.METRIC_TYPE_CONFIGURATION), mqQueueManager, agent);
+    inquireConfigurationMetrics(mqQueueManager, agent);
 
     inquirePerformanceMetrics(mqQueueManager);
 
@@ -210,94 +198,43 @@ public class WMQMonitorTask implements Runnable {
     }
   }
 
-  private void inquireQueueManagerMetrics(
-      Map<String, WMQMetricOverride> metricsToReport, PCFMessageAgent agent) {
-    if (metricsToReport == null) {
-      logger.warn("No metrics to report for type Queue Manager.");
-      return;
-    }
+  private void inquireQueueManagerMetrics(PCFMessageAgent agent) {
 
-    Map<String, Map<String, WMQMetricOverride>> metricsByCommand =
-        groupMetricsByCommand(metricsToReport);
-
-    processMetricType(
-        metricsByCommand, "MQCMD_INQUIRE_Q_MGR_STATUS", QueueManagerMetricsCollector::new, agent);
-    processMetricType(
-        metricsByCommand, "MQCMD_INQUIRE_Q_MGR", InquireQueueManagerCmdCollector::new, agent);
+    processMetricType(QueueManagerMetricsCollector::new, agent);
+    processMetricType(InquireQueueManagerCmdCollector::new, agent);
   }
 
-  private void inquireChannelMetrics(
-      Map<String, WMQMetricOverride> metricsToReport, PCFMessageAgent agent) {
-    if (metricsToReport == null) {
-      logger.warn("No metrics to report for type Channel.");
-      return;
-    }
-
-    Map<String, Map<String, WMQMetricOverride>> metricsByCommand =
-        groupMetricsByCommand(metricsToReport);
-
-    processMetricType(
-        metricsByCommand, "MQCMD_INQUIRE_CHANNEL_STATUS", ChannelMetricsCollector::new, agent);
-    processMetricType(
-        metricsByCommand, "MQCMD_INQUIRE_CHANNEL", InquireChannelCmdCollector::new, agent);
+  private void inquireChannelMetrics(PCFMessageAgent agent) {
+    processMetricType(ChannelMetricsCollector::new, agent);
+    processMetricType(InquireChannelCmdCollector::new, agent);
   }
 
   // Helper to process general metric types
   private void processMetricType(
-      Map<String, Map<String, WMQMetricOverride>> metricsByCommand,
-      String primaryCommand,
       BiFunction<MetricsCollectorContext, MetricCreator, MetricsPublisher>
           primaryCollectorConstructor,
       PCFMessageAgent agent) {
 
-    if (metricsByCommand.containsKey(primaryCommand)) {
-      submitJob(
-          metricsByCommand.get(primaryCommand), primaryCollectorConstructor, primaryCommand, agent);
-    }
+    submitJob(primaryCollectorConstructor, agent);
   }
 
   // Helper to submit metrics collector jobs
   private void submitJob(
-      Map<String, WMQMetricOverride> metrics,
       BiFunction<MetricsCollectorContext, MetricCreator, MetricsPublisher> collectorConstructor,
-      String commandType,
       PCFMessageAgent agent) {
 
     MetricCreator metricCreator = new MetricCreator(queueManager.getName());
     MetricsCollectorContext context =
-        new MetricsCollectorContext(metrics, queueManager, agent, metricWriteHelper);
+        new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
     MetricsPublisher collector = collectorConstructor.apply(context, metricCreator);
     pendingJobs.add(collector);
   }
 
-  // Helper to group metrics by IBM command
-  private Map<String, Map<String, WMQMetricOverride>> groupMetricsByCommand(
-      Map<String, WMQMetricOverride> metricsToReport) {
-
-    Map<String, Map<String, WMQMetricOverride>> metricsByCommand = new HashMap<>();
-    for (Map.Entry<String, WMQMetricOverride> entry : metricsToReport.entrySet()) {
-      WMQMetricOverride wmqOverride = entry.getValue();
-      String command =
-          wmqOverride.getIbmCommand() != null ? wmqOverride.getIbmCommand() : "UNKNOWN_COMMAND";
-      metricsByCommand.putIfAbsent(command, new HashMap<>());
-      metricsByCommand.get(command).put(entry.getKey(), wmqOverride);
-    }
-    return metricsByCommand;
-  }
-
   // Inquire for queue metrics
-  private void inquireQueueMetrics(
-      Map<String, WMQMetricOverride> queueMetrics,
-      QueueCollectorSharedState sharedState,
-      PCFMessageAgent agent) {
-
-    if (queueMetrics == null) {
-      logger.warn("No queue metrics to report");
-      return;
-    }
+  private void inquireQueueMetrics(QueueCollectorSharedState sharedState, PCFMessageAgent agent) {
 
     MetricsCollectorContext collectorContext =
-        new MetricsCollectorContext(queueMetrics, queueManager, agent, metricWriteHelper);
+        new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
     JobSubmitterContext jobSubmitterContext =
         new JobSubmitterContext(collectorContext, threadPool, config);
     MetricsPublisher queueMetricsCollector =
@@ -307,17 +244,11 @@ public class WMQMonitorTask implements Runnable {
 
   // Inquire for listener metrics
   private void inquireListenerMetrics(
-      Map<String, WMQMetricOverride> metricsToReport,
       BiFunction<MetricsCollectorContext, MetricCreator, MetricsPublisher> collectorConstructor,
       PCFMessageAgent agent) {
 
-    if (metricsToReport == null) {
-      logger.warn("No metrics to report for Listener.");
-      return;
-    }
-
     MetricsCollectorContext context =
-        new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
+        new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
     MetricCreator metricCreator = new MetricCreator(queueManager.getName());
     MetricsPublisher metricsCollector = collectorConstructor.apply(context, metricCreator);
     pendingJobs.add(metricsCollector);
@@ -325,42 +256,22 @@ public class WMQMonitorTask implements Runnable {
 
   // Inquire for topic metrics
   private void inquireTopicMetrics(
-      Map<String, WMQMetricOverride> metricsToReport,
-      Function<JobSubmitterContext, MetricsPublisher> collectorConstructor,
-      PCFMessageAgent agent) {
-
-    if (metricsToReport == null) {
-      logger.warn("No metrics to report for Topic.");
-      return;
-    }
+      Function<JobSubmitterContext, MetricsPublisher> collectorConstructor, PCFMessageAgent agent) {
 
     MetricsCollectorContext context =
-        new MetricsCollectorContext(metricsToReport, queueManager, agent, metricWriteHelper);
+        new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
     JobSubmitterContext jobSubmitterContext = new JobSubmitterContext(context, threadPool, config);
     MetricsPublisher metricsCollector = collectorConstructor.apply(jobSubmitterContext);
     pendingJobs.add(metricsCollector);
   }
 
   // Inquire configuration-specific metrics
-  private void inquireConfigurationMetrics(
-      Map<String, WMQMetricOverride> configurationMetricsToReport,
-      MQQueueManager mqQueueManager,
-      PCFMessageAgent agent) {
-
-    if (configurationMetricsToReport == null) {
-      logger.warn("No configuration metrics to report");
-      return;
-    }
+  private void inquireConfigurationMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
 
     MetricCreator metricCreator = new MetricCreator(queueManager.getName());
     ReadConfigurationEventQueueCollector collector =
         new ReadConfigurationEventQueueCollector(
-            configurationMetricsToReport,
-            agent,
-            mqQueueManager,
-            queueManager,
-            metricWriteHelper,
-            metricCreator);
+            agent, mqQueueManager, queueManager, metricWriteHelper, metricCreator);
     pendingJobs.add(collector);
   }
 
