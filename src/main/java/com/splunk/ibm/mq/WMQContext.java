@@ -17,7 +17,6 @@ package com.splunk.ibm.mq;
 
 import com.google.common.base.Strings;
 import com.ibm.mq.constants.CMQC;
-import com.splunk.ibm.mq.common.Constants;
 import com.splunk.ibm.mq.config.QueueManager;
 import java.util.Hashtable;
 import org.slf4j.Logger;
@@ -29,6 +28,8 @@ import org.slf4j.LoggerFactory;
  * It also validates the arguments passed for various scenarios.
  */
 public class WMQContext {
+  private static final String TRANSPORT_TYPE_CLIENT = "Client";
+  private static final String TRANSPORT_TYPE_BINDINGS = "Bindings";
 
   public static final Logger logger = LoggerFactory.getLogger(WMQContext.class);
   private final QueueManager queueManager;
@@ -50,10 +51,9 @@ public class WMQContext {
     addEnvProperty(env, CMQC.SSL_CIPHER_SUITE_PROPERTY, queueManager.getCipherSuite());
     // TODO: investigate on CIPHER_SPEC property No Available in MQ 7.5 Jar
 
-    if (Constants.TRANSPORT_TYPE_CLIENT.equalsIgnoreCase(queueManager.getTransportType())) {
+    if (TRANSPORT_TYPE_CLIENT.equalsIgnoreCase(queueManager.getTransportType())) {
       addEnvProperty(env, CMQC.TRANSPORT_PROPERTY, CMQC.TRANSPORT_MQSERIES_CLIENT);
-    } else if (Constants.TRANSPORT_TYPE_BINDINGS.equalsIgnoreCase(
-        queueManager.getTransportType())) {
+    } else if (TRANSPORT_TYPE_BINDINGS.equalsIgnoreCase(queueManager.getTransportType())) {
       addEnvProperty(env, CMQC.TRANSPORT_PROPERTY, CMQC.TRANSPORT_MQSERIES_BINDINGS);
     } else {
       addEnvProperty(env, CMQC.TRANSPORT_PROPERTY, CMQC.TRANSPORT_MQSERIES);
@@ -85,7 +85,7 @@ public class WMQContext {
       validArgs = false;
       errorMsg.append("Queue manager cannot be null");
     } else {
-      if (Constants.TRANSPORT_TYPE_CLIENT.equalsIgnoreCase(queueManager.getTransportType())) {
+      if (TRANSPORT_TYPE_CLIENT.equalsIgnoreCase(queueManager.getTransportType())) {
         if (queueManager.getHost() == null || queueManager.getHost().trim().isEmpty()) {
           validArgs = false;
           errorMsg.append("Host cannot be null or empty for client type connection. ");
@@ -100,7 +100,7 @@ public class WMQContext {
           errorMsg.append("Channel cannot be null or empty for client type connection. ");
         }
       }
-      if (Constants.TRANSPORT_TYPE_BINDINGS.equalsIgnoreCase(queueManager.getTransportType())) {
+      if (TRANSPORT_TYPE_BINDINGS.equalsIgnoreCase(queueManager.getTransportType())) {
         if (queueManager.getName() == null || queueManager.getName().trim().isEmpty()) {
           validArgs = false;
           errorMsg.append("queuemanager cannot be null or empty for bindings type connection. ");
