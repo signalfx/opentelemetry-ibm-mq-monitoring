@@ -17,8 +17,6 @@ package com.splunk.ibm.mq.metricscollector;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,13 +26,18 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
+import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.data.MetricData;
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -45,12 +48,12 @@ class QueueManagerMetricsCollectorTest {
 
   @Mock PCFMessageAgent pcfMessageAgent;
 
-  @Mock OpenTelemetryMetricWriteHelper metricWriteHelper;
+  OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   QueueManager queueManager;
-  ArgumentCaptor<List> pathCaptor;
-  MetricCreator metricCreator;
   MetricsCollectorContext context;
+  private TestResultMetricExporter testExporter;
+  private PeriodicMetricReader reader;
 
   @BeforeEach
   public void setup() throws Exception {
@@ -58,8 +61,16 @@ class QueueManagerMetricsCollectorTest {
     ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    pathCaptor = ArgumentCaptor.forClass(List.class);
-    metricCreator = new MetricCreator(queueManager.getName());
+    testExporter = new TestResultMetricExporter();
+    reader =
+        PeriodicMetricReader.builder(testExporter)
+            .setExecutor(Executors.newScheduledThreadPool(1))
+            .build();
+    SdkMeterProvider meterProvider =
+        SdkMeterProvider.builder().registerMetricReader(reader).build();
+    metricWriteHelper =
+        new OpenTelemetryMetricWriteHelper(
+            reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     context = new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
   }
 
@@ -67,17 +78,14 @@ class QueueManagerMetricsCollectorTest {
   public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireQMgrStatusCmd());
-    classUnderTest = new QueueManagerMetricsCollector(context, metricCreator);
+    classUnderTest = new QueueManagerMetricsCollector(context);
     classUnderTest.run();
-    verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
     List<String> metricsList = Lists.newArrayList("mq.manager.status");
 
-    for (List<Metric> metricList : pathCaptor.getAllValues()) {
-      for (Metric metric : metricList) {
-        if (metricsList.remove(metric.getMetricName())) {
-          assertThat(metric.getMetricValue()).isEqualTo("2");
-          assertThat(metric.getMetricValue()).isNotEqualTo("10");
-        }
+    for (MetricData metric : testExporter.getExportedMetrics()) {
+      if (metricsList.remove(metric.getName())) {
+        assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue()).isEqualTo(2);
       }
     }
     assertThat(metricsList).isEmpty();

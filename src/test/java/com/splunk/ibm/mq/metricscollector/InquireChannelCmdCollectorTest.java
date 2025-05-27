@@ -17,8 +17,6 @@ package com.splunk.ibm.mq.metricscollector;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,13 +25,18 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
+import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.data.MetricData;
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -44,11 +47,11 @@ class InquireChannelCmdCollectorTest {
 
   @Mock PCFMessageAgent pcfMessageAgent;
 
-  @Mock OpenTelemetryMetricWriteHelper metricWriteHelper;
+  OpenTelemetryMetricWriteHelper metricWriteHelper;
 
-  ArgumentCaptor<List> pathCaptor;
-  MetricCreator metricCreator;
   MetricsCollectorContext context;
+  private TestResultMetricExporter testExporter;
+  private PeriodicMetricReader reader;
 
   @BeforeEach
   public void setup() throws Exception {
@@ -56,8 +59,16 @@ class InquireChannelCmdCollectorTest {
     ObjectMapper mapper = new ObjectMapper();
     QueueManager queueManager =
         mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    pathCaptor = ArgumentCaptor.forClass(List.class);
-    metricCreator = new MetricCreator(queueManager.getName());
+    testExporter = new TestResultMetricExporter();
+    reader =
+        PeriodicMetricReader.builder(testExporter)
+            .setExecutor(Executors.newScheduledThreadPool(1))
+            .build();
+    SdkMeterProvider meterProvider =
+        SdkMeterProvider.builder().registerMetricReader(reader).build();
+    metricWriteHelper =
+        new OpenTelemetryMetricWriteHelper(
+            reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     context = new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
   }
 
@@ -65,29 +76,29 @@ class InquireChannelCmdCollectorTest {
   public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireChannelCmd());
-    classUnderTest = new InquireChannelCmdCollector(context, metricCreator);
+    classUnderTest = new InquireChannelCmdCollector(context);
     classUnderTest.run();
-    verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
-
-    for (List<Metric> metricList : pathCaptor.getAllValues()) {
-      List<String> metricsList =
-          Lists.newArrayList(
-              "mq.message.retry.count", "mq.message.received.count", "mq.message.sent.count");
-      for (Metric metric : metricList) {
-        if (metricsList.remove(metric.getMetricName())) {
-          if (metric.getMetricName().equals("mq.message.retry.count")) {
-            assertThat(metric.getMetricValue()).isEqualTo("22");
-          }
-          if (metric.getMetricName().equals("mq.message.received.count")) {
-            assertThat(metric.getMetricValue()).isEqualTo("42");
-          }
-          if (metric.getMetricName().equals("mq.message.sent.count")) {
-            assertThat(metric.getMetricValue()).isEqualTo("64");
-          }
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
+    List<String> metricsList =
+        Lists.newArrayList(
+            "mq.message.retry.count", "mq.message.received.count", "mq.message.sent.count");
+    for (MetricData metric : testExporter.getExportedMetrics()) {
+      if (metricsList.remove(metric.getName())) {
+        if (metric.getName().equals("mq.message.retry.count")) {
+          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+              .isEqualTo(22);
+        }
+        if (metric.getName().equals("mq.message.received.count")) {
+          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+              .isEqualTo(42);
+        }
+        if (metric.getName().equals("mq.message.sent.count")) {
+          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+              .isEqualTo(64);
         }
       }
-      assertThat(metricsList).isEmpty();
     }
+    assertThat(metricsList).isEmpty();
   }
 
   private PCFMessage[] createPCFResponseForInquireChannelCmd() {

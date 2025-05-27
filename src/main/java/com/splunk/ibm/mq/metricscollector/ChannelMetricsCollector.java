@@ -25,10 +25,10 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongGauge;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,15 +37,94 @@ public final class ChannelMetricsCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 
-  private final MetricCreator metricCreator;
   private final MetricsCollectorContext context;
+  private final LongGauge activeChannelsGauge;
+  private final LongGauge channelStatusGauge;
+  private final LongGauge receivedCountGauge;
+  private final LongGauge byteSentGauge;
+  private final LongGauge byteReceivedGauge;
+  private final LongGauge buffersSentGauge;
+  private final LongGauge buffersReceivedGauge;
+  private final LongGauge currentSharingConvsGauge;
+  private final LongGauge maxSharingConvsGauge;
 
   /*
    * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
    */
-  public ChannelMetricsCollector(MetricsCollectorContext context, MetricCreator metricCreator) {
+  public ChannelMetricsCollector(MetricsCollectorContext context) {
     this.context = context;
-    this.metricCreator = metricCreator;
+    this.activeChannelsGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.manager.active.channels")
+            .ofLongs()
+            .setUnit("1")
+            .build();
+    this.channelStatusGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.status")
+            .ofLongs()
+            .setUnit("1")
+            .build();
+    this.receivedCountGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.message.received.count")
+            .ofLongs()
+            .setUnit("1")
+            .build();
+    this.byteSentGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.byte.sent")
+            .ofLongs()
+            .setUnit("1")
+            .build();
+    this.byteReceivedGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.byte.received")
+            .ofLongs()
+            .setUnit("1")
+            .build();
+    this.buffersSentGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.buffers.sent")
+            .ofLongs()
+            .setUnit("1")
+            .build();
+    this.buffersReceivedGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.buffers.received")
+            .ofLongs()
+            .setUnit("1")
+            .build();
+    this.currentSharingConvsGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.current.sharing.conversations")
+            .ofLongs()
+            .setUnit("1")
+            .build();
+    this.maxSharingConvsGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.max.sharing.conversations")
+            .ofLongs()
+            .setUnit("1")
+            .build();
   }
 
   @Override
@@ -57,6 +136,7 @@ public final class ChannelMetricsCollector implements Runnable {
         new int[] {
           CMQCFC.MQCACH_CHANNEL_NAME,
           CMQCFC.MQCACH_CONNECTION_NAME,
+          CMQCFC.MQIACH_CHANNEL_TYPE,
           CMQCFC.MQIACH_MSGS,
           CMQCFC.MQIACH_CHANNEL_STATUS,
           CMQCFC.MQIACH_BYTES_SENT,
@@ -108,10 +188,10 @@ public final class ChannelMetricsCollector implements Runnable {
 
         for (PCFMessage message : messages) {
           String channelName = MessageBuddy.channelName(message);
+          String channelType = MessageBuddy.channelType(message);
 
           logger.debug("Pulling out metrics for channel name {}", channelName);
-          List<Metric> responseMetrics = getMetrics(message, channelName, activeChannels);
-          context.transformAndPrintMetrics(responseMetrics);
+          updateMetrics(message, channelName, channelType, activeChannels);
         }
       } catch (PCFException pcfe) {
         if (pcfe.getReason() == MQRCCF_CHL_STATUS_NOT_FOUND) {
@@ -135,35 +215,40 @@ public final class ChannelMetricsCollector implements Runnable {
 
     logger.info(
         "Active Channels in queueManager {} are {}", context.getQueueManagerName(), activeChannels);
-    Metric activeChannelsCountMetric =
-        metricCreator.createMetric(
-            "mq.manager.active.channels", activeChannels.size(), Attributes.empty());
-    context.transformAndPrintMetric(activeChannelsCountMetric);
+    activeChannelsGauge.set(
+        activeChannels.size(),
+        Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
 
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
   }
 
-  private @NotNull List<Metric> getMetrics(
-      PCFMessage message, String channelName, List<String> activeChannels) throws PCFException {
-    List<Metric> responseMetrics = Lists.newArrayList();
+  private void updateMetrics(
+      PCFMessage message, String channelName, String channelType, List<String> activeChannels)
+      throws PCFException {
     {
       int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.message.received.count",
-              received,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      receivedCountGauge.set(
+          received,
+          Attributes.of(
+              AttributeKey.stringKey("channel.name"),
+              channelName,
+              AttributeKey.stringKey("channel.type"),
+              channelType,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
     }
     {
       int status = message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_STATUS);
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.status",
-              status,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      channelStatusGauge.set(
+          status,
+          Attributes.of(
+              AttributeKey.stringKey("channel.name"),
+              channelName,
+              AttributeKey.stringKey("channel.type"),
+              channelType,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
       // We follow the definition of active channel as documented in
       // https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
       if (status != CMQCFC.MQCHS_RETRYING
@@ -174,64 +259,81 @@ public final class ChannelMetricsCollector implements Runnable {
     }
     {
       int bytesSent = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT);
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.byte.sent",
-              bytesSent,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      byteSentGauge.set(
+          bytesSent,
+          Attributes.of(
+              AttributeKey.stringKey("channel.name"),
+              channelName,
+              AttributeKey.stringKey("channel.type"),
+              channelType,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
     }
     {
       int bytesReceived = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED);
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.byte.received",
-              bytesReceived,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      byteReceivedGauge.set(
+          bytesReceived,
+          Attributes.of(
+              AttributeKey.stringKey("channel.name"),
+              channelName,
+              AttributeKey.stringKey("channel.type"),
+              channelType,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
     }
     {
       int buffersSent = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT);
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.buffers.sent",
-              buffersSent,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      buffersSentGauge.set(
+          buffersSent,
+          Attributes.of(
+              AttributeKey.stringKey("channel.name"),
+              channelName,
+              AttributeKey.stringKey("channel.type"),
+              channelType,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
     }
     {
       int buffersReceived = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED);
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.buffers.received",
-              buffersReceived,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      buffersReceivedGauge.set(
+          buffersReceived,
+          Attributes.of(
+              AttributeKey.stringKey("channel.name"),
+              channelName,
+              AttributeKey.stringKey("channel.type"),
+              channelType,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
     }
     {
       int currentSharingConvs = 0;
       if (message.getParameter(CMQCFC.MQIACH_CURRENT_SHARING_CONVS) != null) {
         currentSharingConvs = message.getIntParameterValue(CMQCFC.MQIACH_CURRENT_SHARING_CONVS);
       }
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.current.sharing.conversations",
-              currentSharingConvs,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      currentSharingConvsGauge.set(
+          currentSharingConvs,
+          Attributes.of(
+              AttributeKey.stringKey("channel.name"),
+              channelName,
+              AttributeKey.stringKey("channel.type"),
+              channelType,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
     }
     {
       int maxSharingConvs = 0;
       if (message.getParameter(CMQCFC.MQIACH_MAX_SHARING_CONVS) != null) {
         maxSharingConvs = message.getIntParameterValue(CMQCFC.MQIACH_MAX_SHARING_CONVS);
       }
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.max.sharing.conversations",
-              maxSharingConvs,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      maxSharingConvsGauge.set(
+          maxSharingConvs,
+          Attributes.of(
+              AttributeKey.stringKey("channel.name"),
+              channelName,
+              AttributeKey.stringKey("channel.type"),
+              channelType,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
     }
-    return responseMetrics;
   }
 }

@@ -17,24 +17,28 @@ package com.splunk.ibm.mq.metricscollector;
 
 import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
 import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
-import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
+import static com.splunk.ibm.mq.metricscollector.OtelMetricAssert.assertThatMetric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
+import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.data.MetricData;
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +46,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -53,20 +56,28 @@ class ChannelMetricsCollectorTest {
 
   @Mock PCFMessageAgent pcfMessageAgent;
 
-  @Mock OpenTelemetryMetricWriteHelper metricWriteHelper;
+  OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   QueueManager queueManager;
-  ArgumentCaptor<List<Metric>> pathCaptor;
-  MetricCreator metricCreator;
   MetricsCollectorContext context;
+  private TestResultMetricExporter testExporter;
+  private PeriodicMetricReader reader;
 
   @BeforeEach
   void setup() throws Exception {
     ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    pathCaptor = ArgumentCaptor.forClass(List.class);
-    metricCreator = new MetricCreator(queueManager.getName());
+    testExporter = new TestResultMetricExporter();
+    reader =
+        PeriodicMetricReader.builder(testExporter)
+            .setExecutor(Executors.newScheduledThreadPool(1))
+            .build();
+    SdkMeterProvider meterProvider =
+        SdkMeterProvider.builder().registerMetricReader(reader).build();
+    metricWriteHelper =
+        new OpenTelemetryMetricWriteHelper(
+            reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     context = new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
   }
 
@@ -74,36 +85,50 @@ class ChannelMetricsCollectorTest {
   void testPublishMetrics() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireChannelStatusCmd());
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
+    classUnderTest = new ChannelMetricsCollector(context);
 
     classUnderTest.run();
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
 
-    verify(metricWriteHelper, times(3)).transformAndPrintMetrics(pathCaptor.capture());
+    List<String> metricsList =
+        Lists.newArrayList(
+            "mq.message.received.count",
+            "mq.status",
+            "mq.byte.sent",
+            "mq.byte.received",
+            "mq.buffers.sent",
+            "mq.buffers.received");
 
-    List<List<Metric>> allValues = pathCaptor.getAllValues();
-    assertThat(allValues).hasSize(3);
-    assertThat(allValues.get(0)).hasSize(8);
-    assertThat(allValues.get(1)).hasSize(8);
-    assertThat(allValues.get(2)).hasSize(1);
+    for (MetricData metric : testExporter.getExportedMetrics()) {
+      if (metricsList.remove(metric.getName())) {
+        if (metric.getName().equals("mq.message.received.count")) {
+          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+              .isEqualTo(17);
+        }
 
-    assertRowWithList(allValues.get(0));
-    assertRowWithList(allValues.get(1));
-
-    assertThatMetric(allValues.get(2).get(0)).hasName("mq.manager.active.channels").hasValue("2");
-  }
-
-  void assertRowWithList(List<Metric> metrics) {
-    assertThatMetric(metrics.get(0)).hasName("mq.message.received.count").hasValue("17");
-
-    assertThatMetric(metrics.get(1)).hasName("mq.status").hasValue("3");
-
-    assertThatMetric(metrics.get(2)).hasName("mq.byte.sent").hasValue("6984");
-
-    assertThatMetric(metrics.get(3)).hasName("mq.byte.received").hasValue("5772");
-
-    assertThatMetric(metrics.get(4)).hasName("mq.buffers.sent").hasValue("19");
-
-    assertThatMetric(metrics.get(5)).hasName("mq.buffers.received").hasValue("20");
+        if (metric.getName().equals("mq.status")) {
+          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+              .isEqualTo(3);
+        }
+        if (metric.getName().equals("mq.byte.sent")) {
+          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+              .isEqualTo(6984);
+        }
+        if (metric.getName().equals("mq.byte.received")) {
+          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+              .isEqualTo(5772);
+        }
+        if (metric.getName().equals("mq.buffers.sent")) {
+          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+              .isEqualTo(19);
+        }
+        if (metric.getName().equals("mq.buffers.received")) {
+          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+              .isEqualTo(20);
+        }
+      }
+    }
+    assertThat(metricsList).isEmpty();
   }
 
   /*
@@ -176,48 +201,35 @@ class ChannelMetricsCollectorTest {
   @Test
   void testPublishMetrics_nullResponse() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(null);
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
+    classUnderTest = new ChannelMetricsCollector(context);
 
     classUnderTest.run();
-
-    verifyNoInteractions(metricWriteHelper);
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
+    assertThat(testExporter.getExportedMetrics()).isEmpty();
   }
 
   @Test
   void testPublishMetrics_emptyResponse() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(new PCFMessage[] {});
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
+    classUnderTest = new ChannelMetricsCollector(context);
 
     classUnderTest.run();
-
-    verifyNoInteractions(metricWriteHelper);
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
+    assertThat(testExporter.getExportedMetrics()).isEmpty();
   }
 
   @ParameterizedTest
   @MethodSource("exceptionsToThrow")
   void testPublishMetrics_pfException(Exception exceptionToThrow) throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenThrow(exceptionToThrow);
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
+    classUnderTest = new ChannelMetricsCollector(context);
 
     classUnderTest.run();
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
 
-    verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
-
-    // Even when exception is thrown, the active channels are still reported
-    List<List<Metric>> allValues = pathCaptor.getAllValues();
-    assertThat(allValues).hasSize(1);
-    assertThat(allValues.get(0)).hasSize(1);
-    assertThatMetric(allValues.get(0).get(0)).hasName("mq.manager.active.channels").hasValue("0");
-  }
-
-  @Test
-  void noMetricsToReport() throws Exception {
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
-    classUnderTest.run();
-    verifyNoInteractions(metricWriteHelper);
-    classUnderTest = new ChannelMetricsCollector(context, metricCreator);
-    classUnderTest.run();
-    verifyNoInteractions(metricWriteHelper);
+    List<MetricData> exported = testExporter.getExportedMetrics();
+    assertThat(exported.get(0).getLongGaugeData().getPoints()).hasSize(1);
+    assertThatMetric(exported.get(0), 0).hasName("mq.manager.active.channels").hasValue(0);
   }
 
   static Stream<Arguments> exceptionsToThrow() {
