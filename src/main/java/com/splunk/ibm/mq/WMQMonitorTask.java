@@ -26,7 +26,6 @@ import com.splunk.ibm.mq.metricscollector.InquireChannelCmdCollector;
 import com.splunk.ibm.mq.metricscollector.InquireQueueManagerCmdCollector;
 import com.splunk.ibm.mq.metricscollector.JobSubmitterContext;
 import com.splunk.ibm.mq.metricscollector.ListenerMetricsCollector;
-import com.splunk.ibm.mq.metricscollector.MetricCreator;
 import com.splunk.ibm.mq.metricscollector.MetricsCollectorContext;
 import com.splunk.ibm.mq.metricscollector.MetricsPublisherJob;
 import com.splunk.ibm.mq.metricscollector.PerformanceEventQueueCollector;
@@ -46,7 +45,6 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -239,13 +237,11 @@ public class WMQMonitorTask implements Runnable {
 
   // Inquire for listener metrics
   private void inquireListenerMetrics(
-      BiFunction<MetricsCollectorContext, MetricCreator, Runnable> collectorConstructor,
-      PCFMessageAgent agent) {
+      Function<MetricsCollectorContext, Runnable> collectorConstructor, PCFMessageAgent agent) {
 
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
-    MetricCreator metricCreator = new MetricCreator(queueManager.getName());
-    Runnable metricsCollector = collectorConstructor.apply(context, metricCreator);
+    Runnable metricsCollector = collectorConstructor.apply(context);
     pendingJobs.add(metricsCollector);
   }
 
@@ -263,10 +259,9 @@ public class WMQMonitorTask implements Runnable {
   // Inquire configuration-specific metrics
   private void inquireConfigurationMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
 
-    MetricCreator metricCreator = new MetricCreator(queueManager.getName());
     ReadConfigurationEventQueueCollector collector =
         new ReadConfigurationEventQueueCollector(
-            agent, mqQueueManager, queueManager, metricWriteHelper, metricCreator);
+            agent, mqQueueManager, queueManager, metricWriteHelper);
     pendingJobs.add(collector);
   }
 

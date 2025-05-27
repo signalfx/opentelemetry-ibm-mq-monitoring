@@ -15,25 +15,33 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
+import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.data.LongPointData;
+import io.opentelemetry.sdk.metrics.data.MetricData;
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -43,10 +51,7 @@ public class TopicMetricsCollectorTest {
 
   @Mock private PCFMessageAgent pcfMessageAgent;
 
-  @Mock private OpenTelemetryMetricWriteHelper metricWriteHelper;
-
   private QueueManager queueManager;
-  private ArgumentCaptor<List<Metric>> pathCaptor;
   private ConfigWrapper config;
   private ExecutorService threadPool;
 
@@ -56,33 +61,58 @@ public class TopicMetricsCollectorTest {
     threadPool = Executors.newFixedThreadPool(config.getNumberOfThreads());
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    pathCaptor = ArgumentCaptor.forClass(List.class);
   }
 
   @Test
   void testPublishMetrics() throws Exception {
-    MetricsCollectorContext collectorContext =
+    TestResultMetricExporter testExporter = new TestResultMetricExporter();
+    PeriodicMetricReader reader =
+        PeriodicMetricReader.builder(testExporter)
+            .setExecutor(Executors.newScheduledThreadPool(1))
+            .build();
+    SdkMeterProvider meterProvider =
+        SdkMeterProvider.builder().registerMetricReader(reader).build();
+    OpenTelemetryMetricWriteHelper metricWriteHelper =
+        new OpenTelemetryMetricWriteHelper(
+            reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
+    MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
-    JobSubmitterContext jobContext = new JobSubmitterContext(collectorContext, threadPool, config);
+    JobSubmitterContext jobContext = new JobSubmitterContext(context, threadPool, config);
     classUnderTest = new TopicMetricsCollector(jobContext);
 
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireTopicStatusCmd());
 
     classUnderTest.run();
-    verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
 
-    List<List<Metric>> allValues = pathCaptor.getAllValues();
-    assertThat(allValues).hasSize(2);
-    assertThat(allValues.get(0)).hasSize(2);
-    assertThat(allValues.get(1)).hasSize(2);
+    List<String> metricsList = Lists.newArrayList("mq.publish.count", "mq.subscription.count");
 
-    assertThatMetric(allValues.get(0).get(0)).hasName("mq.publish.count").hasValue("2");
-
-    assertThatMetric(allValues.get(0).get(1)).hasName("mq.subscription.count").hasValue("3");
-
-    assertThatMetric(allValues.get(1).get(0)).hasName("mq.publish.count").hasValue("3");
-    assertThatMetric(allValues.get(1).get(1)).hasName("mq.subscription.count").hasValue("4");
+    for (MetricData metric : testExporter.getExportedMetrics()) {
+      if (metricsList.remove(metric.getName())) {
+        if (metric.getName().equals("mq.publish.count")) {
+          Set<Long> values = new HashSet<>();
+          values.add(2L);
+          values.add(3L);
+          assertThat(
+                  metric.getLongGaugeData().getPoints().stream()
+                      .map(LongPointData::getValue)
+                      .collect(Collectors.toSet()))
+              .isEqualTo(values);
+        }
+        if (metric.getName().equals("mq.subscription.count")) {
+          Set<Long> values = new HashSet<>();
+          values.add(3L);
+          values.add(4L);
+          assertThat(
+                  metric.getLongGaugeData().getPoints().stream()
+                      .map(LongPointData::getValue)
+                      .collect(Collectors.toSet()))
+              .isEqualTo(values);
+        }
+      }
+    }
+    assertThat(metricsList).isEmpty();
   }
 
   private PCFMessage[] createPCFResponseForInquireTopicStatusCmd() {

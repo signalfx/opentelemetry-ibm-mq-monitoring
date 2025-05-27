@@ -15,16 +15,15 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongGauge;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,12 +45,18 @@ import org.slf4j.LoggerFactory;
 public final class ListenerMetricsCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
-  private final MetricCreator metricCreator;
   private final MetricsCollectorContext context;
+  private final LongGauge listenerStatusGauge;
 
-  public ListenerMetricsCollector(MetricsCollectorContext context, MetricCreator metricCreator) {
-    this.metricCreator = metricCreator;
+  public ListenerMetricsCollector(MetricsCollectorContext context) {
     this.context = context;
+    this.listenerStatusGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.listener.status")
+            .ofLongs()
+            .build();
   }
 
   @Override
@@ -93,8 +98,7 @@ public final class ListenerMetricsCollector implements Runnable {
         for (PCFMessage message : messages) {
           String listenerName = MessageBuddy.listenerName(message);
           logger.debug("Pulling out metrics for listener name {}", listenerName);
-          List<Metric> responseMetrics = getMetrics(message, listenerName);
-          context.transformAndPrintMetrics(responseMetrics);
+          updateMetrics(message, listenerName);
         }
       } catch (Exception e) {
         logger.error(
@@ -105,18 +109,16 @@ public final class ListenerMetricsCollector implements Runnable {
     logger.debug("Time taken to publish metrics for all listener is {} milliseconds", exitTime);
   }
 
-  private @NotNull List<Metric> getMetrics(PCFMessage message, String listenerName)
-      throws PCFException {
-    List<Metric> responseMetrics = Lists.newArrayList();
+  private void updateMetrics(PCFMessage message, String listenerName) throws PCFException {
     {
-      int interval = message.getIntParameterValue(CMQCFC.MQIACH_LISTENER_STATUS);
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.listener.status",
-              interval,
-              Attributes.of(AttributeKey.stringKey("listener.name"), listenerName));
-      responseMetrics.add(metric);
+      int status = message.getIntParameterValue(CMQCFC.MQIACH_LISTENER_STATUS);
+      listenerStatusGauge.set(
+          status,
+          Attributes.of(
+              AttributeKey.stringKey("listener.name"),
+              listenerName,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
     }
-    return responseMetrics;
   }
 }

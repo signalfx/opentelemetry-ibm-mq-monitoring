@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.google.common.collect.Lists;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQGetMessageOptions;
 import com.ibm.mq.MQMessage;
@@ -28,9 +27,10 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongGauge;
 import java.io.IOException;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,25 +38,23 @@ public final class ReadConfigurationEventQueueCollector implements Runnable {
 
   private static final Logger logger =
       LoggerFactory.getLogger(ReadConfigurationEventQueueCollector.class);
-  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
   private final MQQueueManager mqQueueManager;
   private final long bootTime;
-  private final MetricCreator metricCreator;
+  private final LongGauge maxHandlesGauge;
 
   public ReadConfigurationEventQueueCollector(
       PCFMessageAgent agent,
       MQQueueManager mqQueueManager,
       QueueManager queueManager,
-      OpenTelemetryMetricWriteHelper metricWriteHelper,
-      MetricCreator metricCreator) {
+      OpenTelemetryMetricWriteHelper metricWriteHelper) {
     this.agent = agent;
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;
-    this.metricWriteHelper = metricWriteHelper;
     this.bootTime = System.currentTimeMillis();
-    this.metricCreator = metricCreator;
+    this.maxHandlesGauge =
+        metricWriteHelper.getMeter().gaugeBuilder("mq.manager.max.handles").ofLongs().build();
   }
 
   private PCFMessage findLastUpdate(long entryTime, String configurationQueueName)
@@ -141,14 +139,10 @@ public final class ReadConfigurationEventQueueCollector implements Runnable {
       }
 
       if (candidate != null) {
-        List<Metric> metrics = Lists.newArrayList();
-        {
-          int maxHandles = candidate.getIntParameterValue(CMQC.MQIA_MAX_HANDLES);
-          Metric metric =
-              metricCreator.createMetric("mq.manager.max.handles", maxHandles, Attributes.empty());
-          metrics.add(metric);
-        }
-        this.metricWriteHelper.transformAndPrintMetrics(metrics);
+        int maxHandles = candidate.getIntParameterValue(CMQC.MQIA_MAX_HANDLES);
+        maxHandlesGauge.set(
+            maxHandles,
+            Attributes.of(AttributeKey.stringKey("queue.manager"), this.queueManager.getName()));
       }
 
     } catch (Exception e) {
