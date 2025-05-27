@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
@@ -23,6 +22,7 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongGauge;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -32,14 +32,28 @@ import org.slf4j.LoggerFactory;
 final class InquireTStatusCmdCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(InquireTStatusCmdCollector.class);
-  private final MetricCreator metricCreator;
 
   static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";
   private final MetricsCollectorContext context;
+  private final LongGauge publishCountGauge;
+  private final LongGauge subscriptionCountGauge;
 
-  public InquireTStatusCmdCollector(MetricsCollectorContext context, MetricCreator metricCreator) {
+  public InquireTStatusCmdCollector(MetricsCollectorContext context) {
     this.context = context;
-    this.metricCreator = metricCreator;
+    this.publishCountGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.publish.count")
+            .ofLongs()
+            .build();
+    this.subscriptionCountGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.subscription.count")
+            .ofLongs()
+            .build();
   }
 
   @Override
@@ -114,38 +128,36 @@ final class InquireTStatusCmdCollector implements Runnable {
     for (PCFMessage message : messages) {
       String topicName = MessageBuddy.topicName(message);
       logger.debug("Pulling out metrics for topic name {} for command {}", topicName, command);
-      List<Metric> responseMetrics = extractMetrics(command, message, topicName);
-      context.transformAndPrintMetrics(responseMetrics);
+      extractMetrics(message, topicName);
     }
   }
 
-  private List<Metric> extractMetrics(String command, PCFMessage pcfMessage, String topicString)
-      throws PCFException {
-    List<Metric> responseMetrics = Lists.newArrayList();
+  private void extractMetrics(PCFMessage pcfMessage, String topicString) throws PCFException {
     {
       int count = 0;
       if (pcfMessage.getParameter(CMQC.MQIA_PUB_COUNT) != null) {
         count = pcfMessage.getIntParameterValue(CMQC.MQIA_PUB_COUNT);
       }
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.publish.count",
-              count,
-              Attributes.of(AttributeKey.stringKey("topic.name"), topicString));
-      responseMetrics.add(metric);
+      publishCountGauge.set(
+          count,
+          Attributes.of(
+              AttributeKey.stringKey("topic.name"),
+              topicString,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
     }
     {
       int count = 0;
       if (pcfMessage.getParameter(CMQC.MQIA_SUB_COUNT) != null) {
         count = pcfMessage.getIntParameterValue(CMQC.MQIA_SUB_COUNT);
       }
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.subscription.count",
-              count,
-              Attributes.of(AttributeKey.stringKey("topic.name"), topicString));
-      responseMetrics.add(metric);
+      subscriptionCountGauge.set(
+          count,
+          Attributes.of(
+              AttributeKey.stringKey("topic.name"),
+              topicString,
+              AttributeKey.stringKey("queue.manager"),
+              context.getQueueManagerName()));
     }
-    return responseMetrics;
   }
 }

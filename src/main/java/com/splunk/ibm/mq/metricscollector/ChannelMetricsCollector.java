@@ -40,7 +40,7 @@ public final class ChannelMetricsCollector implements Runnable {
   private final MetricsCollectorContext context;
   private final LongGauge activeChannelsGauge;
   private final LongGauge channelStatusGauge;
-  private final LongGauge receivedCountGauge;
+  private final LongGauge messageCountGauge;
   private final LongGauge byteSentGauge;
   private final LongGauge byteReceivedGauge;
   private final LongGauge buffersSentGauge;
@@ -69,11 +69,11 @@ public final class ChannelMetricsCollector implements Runnable {
             .ofLongs()
             .setUnit("1")
             .build();
-    this.receivedCountGauge =
+    this.messageCountGauge =
         context
             .getMetricWriteHelper()
             .getMeter()
-            .gaugeBuilder("mq.message.received.count")
+            .gaugeBuilder("mq.message.count")
             .ofLongs()
             .setUnit("1")
             .build();
@@ -228,7 +228,7 @@ public final class ChannelMetricsCollector implements Runnable {
       throws PCFException {
     {
       int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
-      receivedCountGauge.set(
+      messageCountGauge.set(
           received,
           Attributes.of(
               AttributeKey.stringKey("channel.name"),

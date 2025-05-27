@@ -92,7 +92,7 @@ class ChannelMetricsCollectorTest {
 
     List<String> metricsList =
         Lists.newArrayList(
-            "mq.message.received.count",
+            "mq.message.count",
             "mq.status",
             "mq.byte.sent",
             "mq.byte.received",
@@ -101,7 +101,7 @@ class ChannelMetricsCollectorTest {
 
     for (MetricData metric : testExporter.getExportedMetrics()) {
       if (metricsList.remove(metric.getName())) {
-        if (metric.getName().equals("mq.message.received.count")) {
+        if (metric.getName().equals("mq.message.count")) {
           assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
               .isEqualTo(17);
         }

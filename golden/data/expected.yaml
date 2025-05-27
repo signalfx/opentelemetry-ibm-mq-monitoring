@@ -9,54 +9,6 @@ resourceMetrics:
                     - key: queue.manager
                       value:
                         stringValue: QM1
-                    - key: topic.name
-                      value:
-                        stringValue: dev
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: topic.name
-                      value:
-                        stringValue: dev/
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.publish.count
-            unit: "1"
-          - gauge:
-              dataPoints:
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: topic.name
-                      value:
-                        stringValue: dev
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: topic.name
-                      value:
-                        stringValue: dev/
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.subscription.count
-            unit: "1"
-          - gauge:
-              dataPoints:
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
                     - key: queue.name
                       value:
                         stringValue: DEV.DEAD.LETTER.QUEUE
@@ -1074,19 +1026,6 @@ resourceMetrics:
                         stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "109"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.ADMIN.SVRCONN
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
             name: mq.message.received.count
           - gauge:
               dataPoints:
@@ -1228,6 +1167,52 @@ resourceMetrics:
             name: mq.archive.log.size
           - gauge:
               dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: topic.name
+                      value:
+                        stringValue: dev
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: topic.name
+                      value:
+                        stringValue: dev/
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.publish.count
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: topic.name
+                      value:
+                        stringValue: dev
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: topic.name
+                      value:
+                        stringValue: dev/
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.subscription.count
+          - gauge:
+              dataPoints:
                 - asInt: "114"
                   attributes:
                     - key: channel.name
@@ -1293,6 +1278,23 @@ resourceMetrics:
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
             name: mq.max.instances
+          - gauge:
+              dataPoints:
+                - asInt: "109"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.count
+            unit: "1"
           - gauge:
               dataPoints:
                 - asInt: "4200"

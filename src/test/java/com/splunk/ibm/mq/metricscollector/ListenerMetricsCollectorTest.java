@@ -15,11 +15,8 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,13 +24,21 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
+import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
-import java.util.List;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.data.LongPointData;
+import io.opentelemetry.sdk.metrics.data.MetricData;
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -44,39 +49,45 @@ class ListenerMetricsCollectorTest {
 
   @Mock private PCFMessageAgent pcfMessageAgent;
 
-  @Mock private OpenTelemetryMetricWriteHelper metricWriteHelper;
-
   private QueueManager queueManager;
-  private ArgumentCaptor<List<Metric>> pathCaptor;
-  private MetricCreator metricCreator;
 
   @BeforeEach
   public void setup() throws Exception {
     ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    pathCaptor = ArgumentCaptor.forClass(List.class);
-    metricCreator = new MetricCreator(queueManager.getName());
   }
 
   @Test
   public void testPublishMetrics() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireListenerStatusCmd());
+    TestResultMetricExporter testExporter = new TestResultMetricExporter();
+    PeriodicMetricReader reader =
+        PeriodicMetricReader.builder(testExporter)
+            .setExecutor(Executors.newScheduledThreadPool(1))
+            .build();
+    SdkMeterProvider meterProvider =
+        SdkMeterProvider.builder().registerMetricReader(reader).build();
+    OpenTelemetryMetricWriteHelper metricWriteHelper =
+        new OpenTelemetryMetricWriteHelper(
+            reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
-    classUnderTest = new ListenerMetricsCollector(context, metricCreator);
+    classUnderTest = new ListenerMetricsCollector(context);
     classUnderTest.run();
-    verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
 
-    List<List<Metric>> allValues = pathCaptor.getAllValues();
-    assertThat(allValues).hasSize(2);
-    assertThat(allValues.get(0)).hasSize(1);
-    assertThat(allValues.get(1)).hasSize(1);
-
-    assertThatMetric(allValues.get(0).get(0)).hasName("mq.listener.status").hasValue("2");
-
-    assertThatMetric(allValues.get(1).get(0)).hasName("mq.listener.status").hasValue("3");
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
+    MetricData metric = testExporter.getExportedMetrics().get(0);
+    assertThat(metric.getName()).isEqualTo("mq.listener.status");
+    Set<Long> values = new HashSet<>();
+    values.add(2L);
+    values.add(3L);
+    assertThat(
+            metric.getLongGaugeData().getPoints().stream()
+                .map(LongPointData::getValue)
+                .collect(Collectors.toSet()))
+        .isEqualTo(values);
   }
 
   /*
