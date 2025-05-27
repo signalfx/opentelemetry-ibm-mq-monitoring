@@ -27,7 +27,6 @@ import org.slf4j.LoggerFactory;
 public final class QueueManagerMetricsCollector implements MetricsPublisher {
 
   private static final Logger logger = LoggerFactory.getLogger(QueueManagerMetricsCollector.class);
-  public static final String ARTIFACT = "Queue Manager";
   private final MetricsCollectorContext context;
   private final MetricCreator metricCreator;
 

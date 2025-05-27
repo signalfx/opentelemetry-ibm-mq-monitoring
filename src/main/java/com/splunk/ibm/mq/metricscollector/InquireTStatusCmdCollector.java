@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory;
 final class InquireTStatusCmdCollector implements MetricsPublisher {
 
   private static final Logger logger = LoggerFactory.getLogger(InquireTStatusCmdCollector.class);
-  static final String ARTIFACT = "Topics";
   private final MetricCreator metricCreator;
 
   static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";

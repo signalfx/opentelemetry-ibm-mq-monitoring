@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 public final class InquireChannelCmdCollector implements MetricsPublisher {
 
   public static final Logger logger = LoggerFactory.getLogger(InquireChannelCmdCollector.class);
-  public static final String ARTIFACT = "Channels";
   private final MetricCreator metricCreator;
   private final MetricsCollectorContext context;
 
