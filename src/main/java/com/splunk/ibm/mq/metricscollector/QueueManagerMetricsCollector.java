@@ -15,10 +15,11 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongGauge;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,12 +29,57 @@ public final class QueueManagerMetricsCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(QueueManagerMetricsCollector.class);
   private final MetricsCollectorContext context;
-  private final MetricCreator metricCreator;
+  private final LongGauge statusGauge;
+  private final LongGauge connectionCountGauge;
+  private final LongGauge restartLogSizeGauge;
+  private final LongGauge reuseLogSizeGauge;
+  private final LongGauge archiveLogSizeGauge;
+  private final LongGauge maxActiveChannelsGauge;
 
-  public QueueManagerMetricsCollector(
-      MetricsCollectorContext context, MetricCreator metricCreator) {
+  public QueueManagerMetricsCollector(MetricsCollectorContext context) {
     this.context = context;
-    this.metricCreator = metricCreator;
+    this.statusGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.manager.status")
+            .ofLongs()
+            .build();
+    this.connectionCountGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.connection.count")
+            .ofLongs()
+            .build();
+    this.restartLogSizeGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.restart.log.size")
+            .ofLongs()
+            .build();
+    this.reuseLogSizeGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.reusable.log.size")
+            .ofLongs()
+            .build();
+    this.archiveLogSizeGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.archive.log.size")
+            .ofLongs()
+            .build();
+    this.maxActiveChannelsGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.manager.max.active.channels")
+            .ofLongs()
+            .build();
   }
 
   @Override
@@ -62,44 +108,42 @@ public final class QueueManagerMetricsCollector implements Runnable {
         logger.debug("Unexpected error while PCFMessage.send(), response is empty");
         return;
       }
-      List<Metric> responseMetrics = Lists.newArrayList();
       {
         int status = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_Q_MGR_STATUS);
-        Metric metric = metricCreator.createMetric("mq.manager.status", status, Attributes.empty());
-        responseMetrics.add(metric);
+        statusGauge.set(
+            status,
+            Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
       {
         int count = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_CONNECTION_COUNT);
-        Metric metric =
-            metricCreator.createMetric("mq.connection.count", count, Attributes.empty());
-        responseMetrics.add(metric);
+        connectionCountGauge.set(
+            count,
+            Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
       {
         int logSize = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_RESTART_LOG_SIZE);
-        Metric metric =
-            metricCreator.createMetric("mq.restart.log.size", logSize, Attributes.empty());
-        responseMetrics.add(metric);
+        restartLogSizeGauge.set(
+            logSize,
+            Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
       {
         int logSize = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_REUSABLE_LOG_SIZE);
-        Metric metric =
-            metricCreator.createMetric("mq.reusable.log.size", logSize, Attributes.empty());
-        responseMetrics.add(metric);
+        reuseLogSizeGauge.set(
+            logSize,
+            Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
       {
         int logSize = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_ARCHIVE_LOG_SIZE);
-        Metric metric =
-            metricCreator.createMetric("mq.archive.log.size", logSize, Attributes.empty());
-        responseMetrics.add(metric);
+        archiveLogSizeGauge.set(
+            logSize,
+            Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
       {
         int maxActiveChannels = this.context.getQueueManager().getMaxActiveChannels();
-        Metric metric =
-            metricCreator.createMetric(
-                "mq.manager.max.active.channels", maxActiveChannels, Attributes.empty());
-        responseMetrics.add(metric);
+        maxActiveChannelsGauge.set(
+            maxActiveChannels,
+            Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
-      context.transformAndPrintMetrics(responseMetrics);
     } catch (Exception e) {
       logger.error(e.getMessage());
       throw new RuntimeException(e);

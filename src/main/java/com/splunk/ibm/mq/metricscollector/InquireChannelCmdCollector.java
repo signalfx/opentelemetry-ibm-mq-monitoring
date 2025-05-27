@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
@@ -23,9 +22,9 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongGauge;
 import java.util.List;
 import java.util.Set;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,12 +32,50 @@ import org.slf4j.LoggerFactory;
 public final class InquireChannelCmdCollector implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(InquireChannelCmdCollector.class);
-  private final MetricCreator metricCreator;
   private final MetricsCollectorContext context;
+  private final LongGauge maxClientsGauge;
+  private final LongGauge instancesPerClientGauge;
+  private final LongGauge messageRetryCountGauge;
+  private final LongGauge messageReceivedCountGauge;
+  private final LongGauge messageSentCountGauge;
 
-  public InquireChannelCmdCollector(MetricsCollectorContext context, MetricCreator metricCreator) {
-    this.metricCreator = metricCreator;
+  public InquireChannelCmdCollector(MetricsCollectorContext context) {
     this.context = context;
+    this.maxClientsGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.max.instances")
+            .ofLongs()
+            .build();
+    this.instancesPerClientGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.instances.per.client")
+            .ofLongs()
+            .build();
+    this.messageRetryCountGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.message.retry.count")
+            .ofLongs()
+            .build();
+    this.messageReceivedCountGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.message.received.count")
+            .ofLongs()
+            .build();
+    this.messageSentCountGauge =
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.message.sent.count")
+            .ofLongs()
+            .build();
   }
 
   @Override
@@ -77,8 +114,7 @@ public final class InquireChannelCmdCollector implements Runnable {
         for (PCFMessage message : messages) {
           String channelName = MessageBuddy.channelName(message);
           logger.debug("Pulling out metrics for channel name {}", channelName);
-          List<Metric> responseMetrics = getMetrics(message, channelName);
-          context.transformAndPrintMetrics(responseMetrics);
+          updateMetrics(message, channelName);
         }
       } catch (PCFException pcfe) {
         if (pcfe.getReason() == MQConstants.MQRCCF_CHL_STATUS_NOT_FOUND) {
@@ -104,63 +140,41 @@ public final class InquireChannelCmdCollector implements Runnable {
     logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
   }
 
-  private @NotNull List<Metric> getMetrics(PCFMessage message, String channelName)
-      throws PCFException {
-    List<Metric> responseMetrics = Lists.newArrayList();
+  private void updateMetrics(PCFMessage message, String channelName) throws PCFException {
+    Attributes attributes =
+        Attributes.of(
+            AttributeKey.stringKey("channel.name"),
+            channelName,
+            AttributeKey.stringKey("queue.manager"),
+            context.getQueueManagerName());
     {
       int maxInstances = message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTANCES);
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.max.instances",
-              maxInstances,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      this.maxClientsGauge.set(maxInstances, attributes);
     }
     {
       int maxInstancesPerClient = message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT);
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.instances.per.client",
-              maxInstancesPerClient,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      this.instancesPerClientGauge.set(maxInstancesPerClient, attributes);
     }
     {
       int count = 0;
       if (message.getParameter(CMQCFC.MQIACH_MR_COUNT) != null) {
         count = message.getIntParameterValue(CMQCFC.MQIACH_MR_COUNT);
       }
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.message.retry.count",
-              count,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      this.messageRetryCountGauge.set(count, attributes);
     }
     {
       int received = 0;
       if (message.getParameter(CMQCFC.MQIACH_MSGS_RECEIVED) != null) {
         received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_RECEIVED);
       }
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.message.received.count",
-              received,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      this.messageReceivedCountGauge.set(received, attributes);
     }
     {
       int count = 0;
       if (message.getParameter(CMQCFC.MQIACH_MSGS_SENT) != null) {
         count = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_SENT);
       }
-      Metric metric =
-          metricCreator.createMetric(
-              "mq.message.sent.count",
-              count,
-              Attributes.of(AttributeKey.stringKey("channel.name"), channelName));
-      responseMetrics.add(metric);
+      this.messageSentCountGauge.set(count, attributes);
     }
-    return responseMetrics;
   }
 }

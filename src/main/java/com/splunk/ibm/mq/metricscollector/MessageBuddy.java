@@ -17,6 +17,7 @@ package com.splunk.ibm.mq.metricscollector;
 
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.constants.CMQXC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 
@@ -26,6 +27,31 @@ public class MessageBuddy {
 
   static String channelName(PCFMessage message) throws PCFException {
     return message.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_NAME).trim();
+  }
+
+  static String channelType(PCFMessage message) throws PCFException {
+    switch (message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_TYPE)) {
+      case CMQXC.MQCHT_SENDER:
+        return "sender";
+      case CMQXC.MQCHT_SERVER:
+        return "server";
+      case CMQXC.MQCHT_RECEIVER:
+        return "receiver";
+      case CMQXC.MQCHT_REQUESTER:
+        return "requester";
+      case CMQXC.MQCHT_SVRCONN:
+        return "server-connection";
+      case CMQXC.MQCHT_CLNTCONN:
+        return "client-connection";
+      case CMQXC.MQCHT_CLUSRCVR:
+        return "cluster-receiver";
+      case CMQXC.MQCHT_CLUSSDR:
+        return "cluster-sender";
+      default:
+        throw new IllegalArgumentException(
+            "Unsupported channel type: "
+                + message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_TYPE));
+    }
   }
 
   static String topicName(PCFMessage message) throws PCFException {

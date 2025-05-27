@@ -210,7 +210,7 @@ public class WMQMonitorTask implements Runnable {
 
   // Helper to process general metric types
   private void processMetricType(
-      BiFunction<MetricsCollectorContext, MetricCreator, Runnable> primaryCollectorConstructor,
+      Function<MetricsCollectorContext, Runnable> primaryCollectorConstructor,
       PCFMessageAgent agent) {
 
     submitJob(primaryCollectorConstructor, agent);
@@ -218,13 +218,11 @@ public class WMQMonitorTask implements Runnable {
 
   // Helper to submit metrics collector jobs
   private void submitJob(
-      BiFunction<MetricsCollectorContext, MetricCreator, Runnable> collectorConstructor,
-      PCFMessageAgent agent) {
+      Function<MetricsCollectorContext, Runnable> collectorConstructor, PCFMessageAgent agent) {
 
-    MetricCreator metricCreator = new MetricCreator(queueManager.getName());
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
-    Runnable collector = collectorConstructor.apply(context, metricCreator);
+    Runnable collector = collectorConstructor.apply(context);
     pendingJobs.add(collector);
   }
 
