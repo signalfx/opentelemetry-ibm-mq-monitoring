@@ -76,7 +76,7 @@ class ChannelMetricsCollectorTest {
         .thenReturn(createPCFResponseForInquireChannelStatusCmd());
     classUnderTest = new ChannelMetricsCollector(context, metricCreator);
 
-    classUnderTest.publishMetrics();
+    classUnderTest.run();
 
     verify(metricWriteHelper, times(3)).transformAndPrintMetrics(pathCaptor.capture());
 
@@ -178,7 +178,7 @@ class ChannelMetricsCollectorTest {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(null);
     classUnderTest = new ChannelMetricsCollector(context, metricCreator);
 
-    classUnderTest.publishMetrics();
+    classUnderTest.run();
 
     verifyNoInteractions(metricWriteHelper);
   }
@@ -188,7 +188,7 @@ class ChannelMetricsCollectorTest {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(new PCFMessage[] {});
     classUnderTest = new ChannelMetricsCollector(context, metricCreator);
 
-    classUnderTest.publishMetrics();
+    classUnderTest.run();
 
     verifyNoInteractions(metricWriteHelper);
   }
@@ -199,7 +199,7 @@ class ChannelMetricsCollectorTest {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenThrow(exceptionToThrow);
     classUnderTest = new ChannelMetricsCollector(context, metricCreator);
 
-    classUnderTest.publishMetrics();
+    classUnderTest.run();
 
     verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
 
@@ -213,10 +213,10 @@ class ChannelMetricsCollectorTest {
   @Test
   void noMetricsToReport() throws Exception {
     classUnderTest = new ChannelMetricsCollector(context, metricCreator);
-    classUnderTest.publishMetrics();
+    classUnderTest.run();
     verifyNoInteractions(metricWriteHelper);
     classUnderTest = new ChannelMetricsCollector(context, metricCreator);
-    classUnderTest.publishMetrics();
+    classUnderTest.run();
     verifyNoInteractions(metricWriteHelper);
   }
 

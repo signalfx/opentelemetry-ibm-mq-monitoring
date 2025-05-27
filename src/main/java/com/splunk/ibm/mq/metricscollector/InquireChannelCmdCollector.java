@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** This class is responsible for channel inquiry metric collection. */
-public final class InquireChannelCmdCollector implements MetricsPublisher {
+public final class InquireChannelCmdCollector implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(InquireChannelCmdCollector.class);
   private final MetricCreator metricCreator;
@@ -42,7 +42,7 @@ public final class InquireChannelCmdCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     long entryTime = System.currentTimeMillis();
 
     Set<String> channelGenericNames = context.getChannelIncludeFilterNames();

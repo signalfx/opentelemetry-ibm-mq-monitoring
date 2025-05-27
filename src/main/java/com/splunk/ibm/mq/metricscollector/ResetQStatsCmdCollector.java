@@ -23,7 +23,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class ResetQStatsCmdCollector implements MetricsPublisher {
+final class ResetQStatsCmdCollector implements Runnable {
 
   static final int[] ATTRIBUTES =
       new int[] {CMQC.MQIA_HIGH_Q_DEPTH, CMQC.MQIA_MSG_DEQ_COUNT, CMQC.MQIA_MSG_ENQ_COUNT};
@@ -40,7 +40,7 @@ final class ResetQStatsCmdCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     logger.info("Collecting metrics for command {}", COMMAND);
     long entryTime = System.currentTimeMillis();
 

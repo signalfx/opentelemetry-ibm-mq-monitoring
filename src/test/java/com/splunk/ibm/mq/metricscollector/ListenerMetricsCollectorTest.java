@@ -66,7 +66,7 @@ class ListenerMetricsCollectorTest {
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
     classUnderTest = new ListenerMetricsCollector(context, metricCreator);
-    classUnderTest.publishMetrics();
+    classUnderTest.run();
     verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
 
     List<List<Metric>> allValues = pathCaptor.getAllValues();

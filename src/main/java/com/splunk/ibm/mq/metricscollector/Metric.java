@@ -15,15 +15,12 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.appdynamics.extensions.util.AssertUtils;
 import io.opentelemetry.api.common.Attributes;
-import java.util.Map;
-import org.jetbrains.annotations.NotNull;
 
 public class Metric {
-  private String metricName;
-  private String metricValue;
-  private Attributes attributes;
+  private final String metricName;
+  private final String metricValue;
+  private final Attributes attributes;
 
   public Metric(String metricName, String metricValue, Attributes attributes) {
     this.metricName = metricName;
@@ -35,26 +32,12 @@ public class Metric {
     return attributes;
   }
 
-  public Metric(@NotNull String metricName, @NotNull String metricValue) {
-    this.metricName = metricName;
-    this.metricValue = metricValue;
-  }
-
-  public Metric(String metricName, String metricValue, Map<String, ?> metricProperties) {
-    this(metricName, metricValue);
-    AssertUtils.assertNotNull(metricProperties, "Metric Properties cannot be null");
-  }
-
   public String getMetricName() {
     return metricName;
   }
 
   public String getMetricValue() {
     return metricValue;
-  }
-
-  public void setMetricValue(String metricValue) {
-    this.metricValue = metricValue;
   }
 
   public String toString() {

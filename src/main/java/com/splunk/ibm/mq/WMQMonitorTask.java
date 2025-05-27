@@ -28,7 +28,6 @@ import com.splunk.ibm.mq.metricscollector.JobSubmitterContext;
 import com.splunk.ibm.mq.metricscollector.ListenerMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.MetricCreator;
 import com.splunk.ibm.mq.metricscollector.MetricsCollectorContext;
-import com.splunk.ibm.mq.metricscollector.MetricsPublisher;
 import com.splunk.ibm.mq.metricscollector.MetricsPublisherJob;
 import com.splunk.ibm.mq.metricscollector.PerformanceEventQueueCollector;
 import com.splunk.ibm.mq.metricscollector.QueueCollectorSharedState;
@@ -59,7 +58,7 @@ public class WMQMonitorTask implements Runnable {
   private final QueueManager queueManager;
   private final ConfigWrapper config;
   private final OpenTelemetryMetricWriteHelper metricWriteHelper;
-  private final List<MetricsPublisher> pendingJobs = new ArrayList<>();
+  private final List<Runnable> pendingJobs = new ArrayList<>();
   private final ExecutorService threadPool;
   private final LongGauge heartbeatGauge;
 
@@ -184,9 +183,9 @@ public class WMQMonitorTask implements Runnable {
     // Step 3: enqueue all jobs
     CountDownLatch countDownLatch = new CountDownLatch(pendingJobs.size());
     logger.debug("Queueing {} jobs", pendingJobs.size());
-    for (MetricsPublisher collector : pendingJobs) {
+    for (Runnable collector : pendingJobs) {
       Runnable job = new MetricsPublisherJob(collector, countDownLatch);
-      threadPool.submit(new TaskJob(collector.getName(), job));
+      threadPool.submit(new TaskJob(collector.getClass().getSimpleName(), job));
     }
     pendingJobs.clear();
 
@@ -211,8 +210,7 @@ public class WMQMonitorTask implements Runnable {
 
   // Helper to process general metric types
   private void processMetricType(
-      BiFunction<MetricsCollectorContext, MetricCreator, MetricsPublisher>
-          primaryCollectorConstructor,
+      BiFunction<MetricsCollectorContext, MetricCreator, Runnable> primaryCollectorConstructor,
       PCFMessageAgent agent) {
 
     submitJob(primaryCollectorConstructor, agent);
@@ -220,13 +218,13 @@ public class WMQMonitorTask implements Runnable {
 
   // Helper to submit metrics collector jobs
   private void submitJob(
-      BiFunction<MetricsCollectorContext, MetricCreator, MetricsPublisher> collectorConstructor,
+      BiFunction<MetricsCollectorContext, MetricCreator, Runnable> collectorConstructor,
       PCFMessageAgent agent) {
 
     MetricCreator metricCreator = new MetricCreator(queueManager.getName());
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
-    MetricsPublisher collector = collectorConstructor.apply(context, metricCreator);
+    Runnable collector = collectorConstructor.apply(context, metricCreator);
     pendingJobs.add(collector);
   }
 
@@ -237,31 +235,30 @@ public class WMQMonitorTask implements Runnable {
         new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
     JobSubmitterContext jobSubmitterContext =
         new JobSubmitterContext(collectorContext, threadPool, config);
-    MetricsPublisher queueMetricsCollector =
-        new QueueMetricsCollector(sharedState, jobSubmitterContext);
+    Runnable queueMetricsCollector = new QueueMetricsCollector(sharedState, jobSubmitterContext);
     pendingJobs.add(queueMetricsCollector);
   }
 
   // Inquire for listener metrics
   private void inquireListenerMetrics(
-      BiFunction<MetricsCollectorContext, MetricCreator, MetricsPublisher> collectorConstructor,
+      BiFunction<MetricsCollectorContext, MetricCreator, Runnable> collectorConstructor,
       PCFMessageAgent agent) {
 
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
     MetricCreator metricCreator = new MetricCreator(queueManager.getName());
-    MetricsPublisher metricsCollector = collectorConstructor.apply(context, metricCreator);
+    Runnable metricsCollector = collectorConstructor.apply(context, metricCreator);
     pendingJobs.add(metricsCollector);
   }
 
   // Inquire for topic metrics
   private void inquireTopicMetrics(
-      Function<JobSubmitterContext, MetricsPublisher> collectorConstructor, PCFMessageAgent agent) {
+      Function<JobSubmitterContext, Runnable> collectorConstructor, PCFMessageAgent agent) {
 
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
     JobSubmitterContext jobSubmitterContext = new JobSubmitterContext(context, threadPool, config);
-    MetricsPublisher metricsCollector = collectorConstructor.apply(jobSubmitterContext);
+    Runnable metricsCollector = collectorConstructor.apply(jobSubmitterContext);
     pendingJobs.add(metricsCollector);
   }
 

@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** This class is responsible for channel metric collection. */
-public final class ChannelMetricsCollector implements MetricsPublisher {
+public final class ChannelMetricsCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 
@@ -49,7 +49,7 @@ public final class ChannelMetricsCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     logger.info("Collecting metrics for command MQCMD_INQUIRE_CHANNEL_STATUS");
     long entryTime = System.currentTimeMillis();
 

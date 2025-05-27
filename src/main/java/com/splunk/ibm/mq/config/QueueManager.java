@@ -118,14 +118,6 @@ public class QueueManager {
     this.queueFilters = queueFilters;
   }
 
-  public List<String> getWriteStatsDirectory() {
-    return writeStatsDirectory;
-  }
-
-  public void setWriteStatsDirectory(List<String> writeStatsDirectory) {
-    this.writeStatsDirectory = writeStatsDirectory;
-  }
-
   public String getSslKeyRepository() {
     return sslKeyRepository;
   }

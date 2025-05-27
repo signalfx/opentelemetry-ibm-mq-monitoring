@@ -66,7 +66,7 @@ class InquireChannelCmdCollectorTest {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireChannelCmd());
     classUnderTest = new InquireChannelCmdCollector(context, metricCreator);
-    classUnderTest.publishMetrics();
+    classUnderTest.run();
     verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
 
     for (List<Metric> metricList : pathCaptor.getAllValues()) {

@@ -23,10 +23,10 @@ import org.slf4j.LoggerFactory;
 public final class MetricsPublisherJob implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(MetricsPublisherJob.class);
-  private final MetricsPublisher delegate;
+  private final Runnable delegate;
   private final CountDownLatch latch;
 
-  public MetricsPublisherJob(MetricsPublisher delegate, CountDownLatch latch) {
+  public MetricsPublisherJob(Runnable delegate, CountDownLatch latch) {
     this.delegate = delegate;
     this.latch = latch;
   }
@@ -34,7 +34,7 @@ public final class MetricsPublisherJob implements Runnable {
   @Override
   public void run() {
     try {
-      delegate.publishMetrics();
+      delegate.run();
     } catch (Exception e) {
       logger.error("Error executing " + delegate.getClass().getSimpleName(), e);
     } finally {

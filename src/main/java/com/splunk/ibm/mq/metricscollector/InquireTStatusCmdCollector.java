@@ -29,7 +29,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class InquireTStatusCmdCollector implements MetricsPublisher {
+final class InquireTStatusCmdCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(InquireTStatusCmdCollector.class);
   private final MetricCreator metricCreator;
@@ -43,7 +43,7 @@ final class InquireTStatusCmdCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     logger.info("Collecting metrics for command {}", COMMAND);
     long entryTime = System.currentTimeMillis();
 

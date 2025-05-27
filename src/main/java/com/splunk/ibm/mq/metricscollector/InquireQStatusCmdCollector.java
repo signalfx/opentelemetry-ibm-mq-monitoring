@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * of metrics to report, and shared state. - Invoke the run method to execute the queue metrics
  * collection process.
  */
-final class InquireQStatusCmdCollector implements MetricsPublisher {
+final class InquireQStatusCmdCollector implements Runnable {
 
   static final int[] ATTRIBUTES =
       new int[] {
@@ -63,7 +63,7 @@ final class InquireQStatusCmdCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     logger.info("Collecting metrics for command MQCMD_INQUIRE_Q_STATUS");
     long entryTime = System.currentTimeMillis();
 

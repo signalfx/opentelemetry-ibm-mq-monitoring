@@ -37,9 +37,9 @@ public final class JobSubmitterContext {
     this.threadPool = threadPool;
   }
 
-  void submitPublishJob(MetricsPublisher publisher, CountDownLatch latch) {
+  void submitPublishJob(Runnable publisher, CountDownLatch latch) {
     MetricsPublisherJob job = new MetricsPublisherJob(publisher, latch);
-    Runnable wrappedJob = new TaskJob(publisher.getName(), job);
+    Runnable wrappedJob = new TaskJob(publisher.getClass().getSimpleName(), job);
     threadPool.submit(wrappedJob);
   }
 

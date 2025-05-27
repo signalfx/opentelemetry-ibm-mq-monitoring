@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** This class is responsible for queue manager metric collection. */
-public final class QueueManagerMetricsCollector implements MetricsPublisher {
+public final class QueueManagerMetricsCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(QueueManagerMetricsCollector.class);
   private final MetricsCollectorContext context;
@@ -37,7 +37,7 @@ public final class QueueManagerMetricsCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     long entryTime = System.currentTimeMillis();
     logger.debug(
         "publishMetrics entry time for queuemanager {} is {} milliseconds",

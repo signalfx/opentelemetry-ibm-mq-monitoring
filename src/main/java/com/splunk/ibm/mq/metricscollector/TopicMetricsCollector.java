@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TopicMetricsCollector implements MetricsPublisher {
+public final class TopicMetricsCollector implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(TopicMetricsCollector.class);
   private final JobSubmitterContext context;
 
@@ -31,9 +31,9 @@ public final class TopicMetricsCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     logger.info("Collecting Topic metrics...");
-    List<MetricsPublisher> publishers = Lists.newArrayList();
+    List<Runnable> publishers = Lists.newArrayList();
 
     //  to query the current status of topics, which is essential for monitoring and managing the
     // publish/subscribe environment in IBM MQ.
@@ -43,7 +43,7 @@ public final class TopicMetricsCollector implements MetricsPublisher {
         new InquireTStatusCmdCollector(collectorContext, metricCreator);
     publishers.add(metricsPublisher);
     CountDownLatch latch = new CountDownLatch(publishers.size());
-    for (MetricsPublisher publisher : publishers) {
+    for (Runnable publisher : publishers) {
       context.submitPublishJob(publisher, latch);
     }
     try {

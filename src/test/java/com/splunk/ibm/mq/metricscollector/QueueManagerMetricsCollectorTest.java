@@ -68,7 +68,7 @@ class QueueManagerMetricsCollectorTest {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireQMgrStatusCmd());
     classUnderTest = new QueueManagerMetricsCollector(context, metricCreator);
-    classUnderTest.publishMetrics();
+    classUnderTest.run();
     verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
     List<String> metricsList = Lists.newArrayList("mq.manager.status");
 

@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // Captures metrics from events logged to the queue manager performance event queue.
-public final class PerformanceEventQueueCollector implements MetricsPublisher {
+public final class PerformanceEventQueueCollector implements Runnable {
 
   private static final Logger logger =
       LoggerFactory.getLogger(PerformanceEventQueueCollector.class);
@@ -151,7 +151,7 @@ public final class PerformanceEventQueueCollector implements MetricsPublisher {
   }
 
   @Override
-  public void publishMetrics() {
+  public void run() {
     long entryTime = System.currentTimeMillis();
     String performanceEventsQueueName = this.queueManager.getPerformanceEventsQueueName();
     logger.info(
