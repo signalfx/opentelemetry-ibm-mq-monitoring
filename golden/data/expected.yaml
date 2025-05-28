@@ -9,6 +9,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -19,6 +22,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.APP.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -423,6 +429,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -433,6 +442,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.APP.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -501,6 +513,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -511,6 +526,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.APP.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -579,6 +597,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -589,6 +610,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.APP.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -624,7 +648,7 @@ resourceMetrics:
             name: mq.connection.count
           - gauge:
               dataPoints:
-                - asInt: "11600"
+                - asInt: "17160"
                   attributes:
                     - key: channel.name
                       value:
@@ -651,7 +675,7 @@ resourceMetrics:
             name: mq.manager.status
           - gauge:
               dataPoints:
-                - asInt: "30284"
+                - asInt: "73080"
                   attributes:
                     - key: channel.name
                       value:
@@ -968,7 +992,7 @@ resourceMetrics:
             name: mq.service.interval
           - gauge:
               dataPoints:
-                - asInt: "50"
+                - asInt: "114"
                   attributes:
                     - key: channel.name
                       value:
@@ -1140,6 +1164,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -1150,6 +1177,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.APP.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -1158,7 +1188,7 @@ resourceMetrics:
             name: mq.max.instances
           - gauge:
               dataPoints:
-                - asInt: "45"
+                - asInt: "109"
                   attributes:
                     - key: channel.name
                       value:
@@ -1240,7 +1270,7 @@ resourceMetrics:
             name: mq.manager.max.active.channels
           - gauge:
               dataPoints:
-                - asInt: "49"
+                - asInt: "113"
                   attributes:
                     - key: channel.name
                       value:

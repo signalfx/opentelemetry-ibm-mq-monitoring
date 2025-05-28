@@ -113,8 +113,9 @@ public final class InquireChannelCmdCollector implements Runnable {
 
         for (PCFMessage message : messages) {
           String channelName = MessageBuddy.channelName(message);
+          String channelType = MessageBuddy.channelType(message);
           logger.debug("Pulling out metrics for channel name {}", channelName);
-          updateMetrics(message, channelName);
+          updateMetrics(message, channelName, channelType);
         }
       } catch (PCFException pcfe) {
         if (pcfe.getReason() == MQConstants.MQRCCF_CHL_STATUS_NOT_FOUND) {
@@ -140,13 +141,16 @@ public final class InquireChannelCmdCollector implements Runnable {
     logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
   }
 
-  private void updateMetrics(PCFMessage message, String channelName) throws PCFException {
+  private void updateMetrics(PCFMessage message, String channelName, String channelType)
+      throws PCFException {
     Attributes attributes =
         Attributes.of(
             AttributeKey.stringKey("channel.name"),
             channelName,
             AttributeKey.stringKey("queue.manager"),
-            context.getQueueManagerName());
+            context.getQueueManagerName(),
+            AttributeKey.stringKey("channel.type"),
+            channelType);
     {
       int maxInstances = message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTANCES);
       this.maxClientsGauge.set(maxInstances, attributes);

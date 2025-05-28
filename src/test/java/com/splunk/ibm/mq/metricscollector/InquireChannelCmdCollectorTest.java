@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.constants.CMQXC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
@@ -102,6 +103,7 @@ class InquireChannelCmdCollectorTest {
   private PCFMessage[] createPCFResponseForInquireChannelCmd() {
     PCFMessage response1 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_CHANNEL, 1, true);
     response1.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, "my.channel");
+    response1.addParameter(CMQCFC.MQIACH_CHANNEL_TYPE, CMQXC.MQCHT_SVRCONN);
     response1.addParameter(CMQCFC.MQIACH_MR_COUNT, 22);
     response1.addParameter(CMQCFC.MQIACH_MSGS_RECEIVED, 42);
     response1.addParameter(CMQCFC.MQIACH_MSGS_SENT, 64);
