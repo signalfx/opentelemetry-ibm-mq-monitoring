@@ -78,4 +78,8 @@ public class MessageBuddy {
     Instant parsed = Instant.parse(date + "T" + time.replaceAll("\\.", ":") + "Z");
     return parsed.getEpochSecond();
   }
+
+  public static String jobName(PCFMessage message) throws PCFException {
+    return message.getStringParameterValue(CMQCFC.MQCACH_MCA_JOB_NAME).trim();
+  }
 }

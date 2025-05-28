@@ -146,7 +146,8 @@ public final class ChannelMetricsCollector implements Runnable {
           CMQCFC.MQIACH_CURRENT_SHARING_CONVS,
           CMQCFC.MQIACH_MAX_SHARING_CONVS,
           CMQCFC.MQCACH_CHANNEL_START_DATE,
-          CMQCFC.MQCACH_CHANNEL_START_TIME
+          CMQCFC.MQCACH_CHANNEL_START_TIME,
+          CMQCFC.MQCACH_MCA_JOB_NAME
         };
     if (logger.isDebugEnabled()) {
       logger.debug(
@@ -192,9 +193,11 @@ public final class ChannelMetricsCollector implements Runnable {
           String channelName = MessageBuddy.channelName(message);
           String channelType = MessageBuddy.channelType(message);
           long channelStartTime = MessageBuddy.channelStartTime(message);
+          String jobName = MessageBuddy.jobName(message);
 
           logger.debug("Pulling out metrics for channel name {}", channelName);
-          updateMetrics(message, channelName, channelType, channelStartTime, activeChannels);
+          updateMetrics(
+              message, channelName, channelType, channelStartTime, jobName, activeChannels);
         }
       } catch (PCFException pcfe) {
         if (pcfe.getReason() == MQRCCF_CHL_STATUS_NOT_FOUND) {
@@ -233,6 +236,7 @@ public final class ChannelMetricsCollector implements Runnable {
       String channelName,
       String channelType,
       long channelStartTime,
+      String jobName,
       List<String> activeChannels)
       throws PCFException {
     Attributes attributes =
@@ -241,6 +245,7 @@ public final class ChannelMetricsCollector implements Runnable {
             .put("channel.type", channelType)
             .put("queue.manager", context.getQueueManagerName())
             .put("channel.start.time", channelStartTime)
+            .put("job.name", jobName)
             .build();
     int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
     messageCountGauge.set(received, attributes);
