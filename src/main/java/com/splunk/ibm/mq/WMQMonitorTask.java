@@ -208,14 +208,6 @@ public class WMQMonitorTask implements Runnable {
 
   // Helper to process general metric types
   private void processMetricType(
-      Function<MetricsCollectorContext, Runnable> primaryCollectorConstructor,
-      PCFMessageAgent agent) {
-
-    submitJob(primaryCollectorConstructor, agent);
-  }
-
-  // Helper to submit metrics collector jobs
-  private void submitJob(
       Function<MetricsCollectorContext, Runnable> collectorConstructor, PCFMessageAgent agent) {
 
     MetricsCollectorContext context =

@@ -51,7 +51,7 @@ public final class InquireQueueManagerCmdCollector implements Runnable {
     long entryTime = System.currentTimeMillis();
     logger.debug(
         "publishMetrics entry time for queuemanager {} is {} milliseconds",
-        context.getAgentQueueManagerName(),
+        context.getQueueManagerName(),
         entryTime);
     // CMQCFC.MQCMD_INQUIRE_Q_MGR is 2
     PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_MGR);
@@ -62,13 +62,13 @@ public final class InquireQueueManagerCmdCollector implements Runnable {
     try {
       // Note that agent.send() method is synchronized
       logger.debug(
-          "sending PCF agent request to query queuemanager {}", context.getAgentQueueManagerName());
+          "sending PCF agent request to query queuemanager {}", context.getQueueManagerName());
       long startTime = System.currentTimeMillis();
       List<PCFMessage> responses = context.send(request);
       long endTime = System.currentTimeMillis() - startTime;
       logger.debug(
           "PCF agent queuemanager metrics query response for {} received in {} milliseconds",
-          context.getAgentQueueManagerName(),
+          context.getQueueManagerName(),
           endTime);
       if (responses.isEmpty()) {
         logger.debug("Unexpected error while PCFMessage.send(), response is either null or empty");

@@ -117,19 +117,13 @@ public final class PerformanceEventQueueCollector implements Runnable {
             queueName);
     switch (receivedMsg.getReason()) {
       case CMQC.MQRC_Q_FULL:
-        {
-          fullQueueDepthCounter.add(1, attributes);
-        }
+        fullQueueDepthCounter.add(1, attributes);
         break;
       case CMQC.MQRC_Q_DEPTH_HIGH:
-        {
-          highQueueDepthCounter.add(1, attributes);
-        }
+        highQueueDepthCounter.add(1, attributes);
         break;
       case CMQC.MQRC_Q_DEPTH_LOW:
-        {
-          lowQueueDepthCounter.add(1, attributes);
-        }
+        lowQueueDepthCounter.add(1, attributes);
         break;
       default:
         logger.debug("Unknown event reason {}", receivedMsg.getReason());
