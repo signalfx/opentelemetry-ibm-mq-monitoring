@@ -20,7 +20,6 @@ import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
 import java.util.List;
@@ -144,41 +143,33 @@ public final class InquireChannelCmdCollector implements Runnable {
   private void updateMetrics(PCFMessage message, String channelName, String channelType)
       throws PCFException {
     Attributes attributes =
-        Attributes.of(
-            AttributeKey.stringKey("channel.name"),
-            channelName,
-            AttributeKey.stringKey("queue.manager"),
-            context.getQueueManagerName(),
-            AttributeKey.stringKey("channel.type"),
-            channelType);
-    {
-      int maxInstances = message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTANCES);
-      this.maxClientsGauge.set(maxInstances, attributes);
+        Attributes.builder()
+            .put("channel.name", channelName)
+            .put("channel.type", channelType)
+            .put("queue.manager", context.getQueueManagerName())
+            .build();
+    if (message.getParameter(CMQCFC.MQIACH_MAX_INSTANCES) != null) {
+      this.maxClientsGauge.set(
+          message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTANCES), attributes);
     }
-    {
-      int maxInstancesPerClient = message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT);
-      this.instancesPerClientGauge.set(maxInstancesPerClient, attributes);
+    if (message.getParameter(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT) != null) {
+      this.instancesPerClientGauge.set(
+          message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT), attributes);
     }
-    {
-      int count = 0;
-      if (message.getParameter(CMQCFC.MQIACH_MR_COUNT) != null) {
-        count = message.getIntParameterValue(CMQCFC.MQIACH_MR_COUNT);
-      }
-      this.messageRetryCountGauge.set(count, attributes);
+    int count = 0;
+    if (message.getParameter(CMQCFC.MQIACH_MR_COUNT) != null) {
+      count = message.getIntParameterValue(CMQCFC.MQIACH_MR_COUNT);
     }
-    {
-      int received = 0;
-      if (message.getParameter(CMQCFC.MQIACH_MSGS_RECEIVED) != null) {
-        received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_RECEIVED);
-      }
-      this.messageReceivedCountGauge.set(received, attributes);
+    this.messageRetryCountGauge.set(count, attributes);
+    int received = 0;
+    if (message.getParameter(CMQCFC.MQIACH_MSGS_RECEIVED) != null) {
+      received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_RECEIVED);
     }
-    {
-      int count = 0;
-      if (message.getParameter(CMQCFC.MQIACH_MSGS_SENT) != null) {
-        count = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_SENT);
-      }
-      this.messageSentCountGauge.set(count, attributes);
+    this.messageReceivedCountGauge.set(received, attributes);
+    int sent = 0;
+    if (message.getParameter(CMQCFC.MQIACH_MSGS_SENT) != null) {
+      sent = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_SENT);
     }
+    this.messageSentCountGauge.set(sent, attributes);
   }
 }

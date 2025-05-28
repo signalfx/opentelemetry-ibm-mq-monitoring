@@ -144,7 +144,9 @@ public final class ChannelMetricsCollector implements Runnable {
           CMQCFC.MQIACH_BUFFERS_SENT,
           CMQCFC.MQIACH_BUFFERS_RECEIVED,
           CMQCFC.MQIACH_CURRENT_SHARING_CONVS,
-          CMQCFC.MQIACH_MAX_SHARING_CONVS
+          CMQCFC.MQIACH_MAX_SHARING_CONVS,
+          CMQCFC.MQCACH_CHANNEL_START_DATE,
+          CMQCFC.MQCACH_CHANNEL_START_TIME
         };
     if (logger.isDebugEnabled()) {
       logger.debug(
@@ -189,9 +191,10 @@ public final class ChannelMetricsCollector implements Runnable {
         for (PCFMessage message : messages) {
           String channelName = MessageBuddy.channelName(message);
           String channelType = MessageBuddy.channelType(message);
+          long channelStartTime = MessageBuddy.channelStartTime(message);
 
           logger.debug("Pulling out metrics for channel name {}", channelName);
-          updateMetrics(message, channelName, channelType, activeChannels);
+          updateMetrics(message, channelName, channelType, channelStartTime, activeChannels);
         }
       } catch (PCFException pcfe) {
         if (pcfe.getReason() == MQRCCF_CHL_STATUS_NOT_FOUND) {
@@ -205,6 +208,8 @@ public final class ChannelMetricsCollector implements Runnable {
           logger.error(
               "Invalid metrics passed while collecting channel metrics, check config.yaml: Reason '2067'",
               pcfe);
+        } else {
+          logger.error(pcfe.getMessage(), pcfe);
         }
       } catch (Exception e) {
         logger.error(
@@ -224,16 +229,19 @@ public final class ChannelMetricsCollector implements Runnable {
   }
 
   private void updateMetrics(
-      PCFMessage message, String channelName, String channelType, List<String> activeChannels)
+      PCFMessage message,
+      String channelName,
+      String channelType,
+      long channelStartTime,
+      List<String> activeChannels)
       throws PCFException {
     Attributes attributes =
-        Attributes.of(
-            AttributeKey.stringKey("channel.name"),
-            channelName,
-            AttributeKey.stringKey("channel.type"),
-            channelType,
-            AttributeKey.stringKey("queue.manager"),
-            context.getQueueManagerName());
+        Attributes.builder()
+            .put("channel.name", channelName)
+            .put("channel.type", channelType)
+            .put("queue.manager", context.getQueueManagerName())
+            .put("channel.start.time", channelStartTime)
+            .build();
     int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
     messageCountGauge.set(received, attributes);
     int status = message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_STATUS);
