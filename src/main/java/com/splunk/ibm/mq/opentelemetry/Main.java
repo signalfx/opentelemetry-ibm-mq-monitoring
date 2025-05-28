@@ -91,10 +91,7 @@ public class Main {
         () -> {
           WMQMonitor monitor =
               new WMQMonitor(
-                  config,
-                  service,
-                  new OpenTelemetryMetricWriteHelper(
-                      reader, exporter, meterProvider.get("websphere/mq")));
+                  config, service, new Writer(reader, exporter, meterProvider.get("websphere/mq")));
           monitor.run();
         },
         config.getTaskInitialDelaySeconds(),

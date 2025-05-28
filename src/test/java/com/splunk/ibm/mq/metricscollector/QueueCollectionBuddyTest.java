@@ -26,7 +26,7 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.LongPointData;
@@ -50,7 +50,7 @@ public class QueueCollectionBuddyTest {
 
   @Mock private PCFMessageAgent pcfMessageAgent;
 
-  private OpenTelemetryMetricWriteHelper metricWriteHelper;
+  private Writer metricWriteHelper;
 
   private QueueManager queueManager;
   MetricsCollectorContext collectorContext;
@@ -71,9 +71,7 @@ public class QueueCollectionBuddyTest {
             .build();
     SdkMeterProvider meterProvider =
         SdkMeterProvider.builder().registerMetricReader(reader).build();
-    metricWriteHelper =
-        new OpenTelemetryMetricWriteHelper(
-            reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
+    metricWriteHelper = new Writer(reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     collectorContext =
         new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
   }

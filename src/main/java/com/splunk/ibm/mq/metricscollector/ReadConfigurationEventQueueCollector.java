@@ -26,7 +26,7 @@ import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
@@ -48,7 +48,7 @@ public final class ReadConfigurationEventQueueCollector implements Runnable {
       PCFMessageAgent agent,
       MQQueueManager mqQueueManager,
       QueueManager queueManager,
-      OpenTelemetryMetricWriteHelper metricWriteHelper) {
+      Writer metricWriteHelper) {
     this.agent = agent;
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;

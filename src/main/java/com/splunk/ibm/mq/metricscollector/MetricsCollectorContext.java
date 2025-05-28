@@ -22,7 +22,7 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.ExcludeFilters;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import com.splunk.ibm.mq.opentelemetry.Writer;
 import java.io.IOException;
 import java.util.*;
 import javax.annotation.concurrent.Immutable;
@@ -42,12 +42,10 @@ public final class MetricsCollectorContext {
 
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
-  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
+  private final Writer metricWriteHelper;
 
   public MetricsCollectorContext(
-      QueueManager queueManager,
-      PCFMessageAgent agent,
-      OpenTelemetryMetricWriteHelper metricWriteHelper) {
+      QueueManager queueManager, PCFMessageAgent agent, Writer metricWriteHelper) {
     this.queueManager = queueManager;
     this.agent = agent;
     this.metricWriteHelper = metricWriteHelper;
@@ -103,7 +101,7 @@ public final class MetricsCollectorContext {
     return agent;
   }
 
-  OpenTelemetryMetricWriteHelper getMetricWriteHelper() {
+  Writer getMetricWriteHelper() {
     return metricWriteHelper;
   }
 }

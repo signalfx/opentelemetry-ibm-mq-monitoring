@@ -19,7 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Strings;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.metrics.LongGauge;
 import java.util.List;
 import java.util.Map;
@@ -32,15 +32,12 @@ public class WMQMonitor implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitor.class);
 
-  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
+  private final Writer metricWriteHelper;
   private final ExecutorService threadPool;
   private final ConfigWrapper config;
   private final LongGauge heartbeatGauge;
 
-  public WMQMonitor(
-      ConfigWrapper config,
-      ExecutorService threadPool,
-      OpenTelemetryMetricWriteHelper metricWriteHelper) {
+  public WMQMonitor(ConfigWrapper config, ExecutorService threadPool, Writer metricWriteHelper) {
     assert (metricWriteHelper != null);
     this.config = config;
     this.threadPool = threadPool;

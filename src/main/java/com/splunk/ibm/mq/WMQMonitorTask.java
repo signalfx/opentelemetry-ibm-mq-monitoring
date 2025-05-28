@@ -36,7 +36,7 @@ import com.splunk.ibm.mq.metricscollector.QueueMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.ReadConfigurationEventQueueCollector;
 import com.splunk.ibm.mq.metricscollector.TopicMetricsCollector;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
@@ -55,14 +55,14 @@ public class WMQMonitorTask implements Runnable {
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitorTask.class);
   private final QueueManager queueManager;
   private final ConfigWrapper config;
-  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
+  private final Writer metricWriteHelper;
   private final List<Runnable> pendingJobs = new ArrayList<>();
   private final ExecutorService threadPool;
   private final LongGauge heartbeatGauge;
 
   public WMQMonitorTask(
       ConfigWrapper config,
-      OpenTelemetryMetricWriteHelper metricWriteHelper,
+      Writer metricWriteHelper,
       QueueManager queueManager,
       ExecutorService threadPool,
       LongGauge heartbeatGauge) {

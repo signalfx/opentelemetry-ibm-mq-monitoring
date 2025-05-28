@@ -33,7 +33,6 @@ final class InquireTStatusCmdCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(InquireTStatusCmdCollector.class);
 
-  static final String COMMAND = "MQCMD_INQUIRE_TOPIC_STATUS";
   private final MetricsCollectorContext context;
   private final LongGauge publishCountGauge;
   private final LongGauge subscriptionCountGauge;
@@ -58,7 +57,7 @@ final class InquireTStatusCmdCollector implements Runnable {
 
   @Override
   public void run() {
-    logger.info("Collecting metrics for command {}", COMMAND);
+    logger.info("Collecting metrics for command MQCMD_INQUIRE_TOPIC_STATUS");
     long entryTime = System.currentTimeMillis();
 
     Set<String> topicGenericNames = context.getTopicIncludeFilterNames();
@@ -73,12 +72,11 @@ final class InquireTStatusCmdCollector implements Runnable {
       request.addParameter(CMQC.MQCA_TOPIC_STRING, topicGenericName);
 
       try {
-        processPCFRequestAndPublishQMetrics(topicGenericName, request, COMMAND);
+        processPCFRequestAndPublishQMetrics(topicGenericName, request);
       } catch (PCFException pcfe) {
         logger.error(
-            "PCFException caught while collecting metric for Queue: {} for command {}",
+            "PCFException caught while collecting metric for Queue: {} for command MQCMD_INQUIRE_TOPIC_STATUS",
             topicGenericName,
-            COMMAND,
             pcfe);
         PCFMessage[] msgs = (PCFMessage[]) pcfe.exceptionSource;
         for (PCFMessage msg : msgs) {
@@ -92,30 +90,25 @@ final class InquireTStatusCmdCollector implements Runnable {
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(
-        "Time taken to publish metrics for all queues is {} milliseconds for command {}",
-        exitTime,
-        COMMAND);
+        "Time taken to publish metrics for all queues is {} milliseconds for command MQCMD_INQUIRE_TOPIC_STATUS",
+        exitTime);
   }
 
-  private void processPCFRequestAndPublishQMetrics(
-      String topicGenericName, PCFMessage request, String command)
+  private void processPCFRequestAndPublishQMetrics(String topicGenericName, PCFMessage request)
       throws IOException, MQDataException {
     logger.debug(
-        "sending PCF agent request to topic metrics for generic topic {} for command {}",
-        topicGenericName,
-        command);
+        "sending PCF agent request to topic metrics for generic topic {} for command MQCMD_INQUIRE_TOPIC_STATUS",
+        topicGenericName);
     long startTime = System.currentTimeMillis();
     List<PCFMessage> response = context.send(request);
     long endTime = System.currentTimeMillis() - startTime;
     logger.debug(
-        "PCF agent topic metrics query response for generic topic {} for command {} received in {} milliseconds",
+        "PCF agent topic metrics query response for generic topic {} for command MQCMD_INQUIRE_TOPIC_STATUS received in {} milliseconds",
         topicGenericName,
-        command,
         endTime);
     if (response.isEmpty()) {
       logger.debug(
-          "Unexpected error while PCFMessage.send() for command {}, response is either null or empty",
-          command);
+          "Unexpected error while PCFMessage.send() for command MQCMD_INQUIRE_TOPIC_STATUS, response is either null or empty");
       return;
     }
 
@@ -127,7 +120,9 @@ final class InquireTStatusCmdCollector implements Runnable {
 
     for (PCFMessage message : messages) {
       String topicName = MessageBuddy.topicName(message);
-      logger.debug("Pulling out metrics for topic name {} for command {}", topicName, command);
+      logger.debug(
+          "Pulling out metrics for topic name {} for command MQCMD_INQUIRE_TOPIC_STATUS",
+          topicName);
       extractMetrics(message, topicName);
     }
   }
