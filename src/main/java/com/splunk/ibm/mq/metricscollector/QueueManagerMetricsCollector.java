@@ -20,15 +20,17 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.List;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** This class is responsible for queue manager metric collection. */
-public final class QueueManagerMetricsCollector implements Runnable {
+public final class QueueManagerMetricsCollector implements Consumer<MetricsCollectorContext> {
 
   private static final Logger logger = LoggerFactory.getLogger(QueueManagerMetricsCollector.class);
-  private final MetricsCollectorContext context;
+
   private final LongGauge statusGauge;
   private final LongGauge connectionCountGauge;
   private final LongGauge restartLogSizeGauge;
@@ -36,54 +38,18 @@ public final class QueueManagerMetricsCollector implements Runnable {
   private final LongGauge archiveLogSizeGauge;
   private final LongGauge maxActiveChannelsGauge;
 
-  public QueueManagerMetricsCollector(MetricsCollectorContext context) {
-    this.context = context;
-    this.statusGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.manager.status")
-            .ofLongs()
-            .build();
-    this.connectionCountGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.connection.count")
-            .ofLongs()
-            .build();
-    this.restartLogSizeGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.restart.log.size")
-            .ofLongs()
-            .build();
-    this.reuseLogSizeGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.reusable.log.size")
-            .ofLongs()
-            .build();
-    this.archiveLogSizeGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.archive.log.size")
-            .ofLongs()
-            .build();
+  public QueueManagerMetricsCollector(Meter meter) {
+    this.statusGauge = meter.gaugeBuilder("mq.manager.status").ofLongs().build();
+    this.connectionCountGauge = meter.gaugeBuilder("mq.connection.count").ofLongs().build();
+    this.restartLogSizeGauge = meter.gaugeBuilder("mq.restart.log.size").ofLongs().build();
+    this.reuseLogSizeGauge = meter.gaugeBuilder("mq.reusable.log.size").ofLongs().build();
+    this.archiveLogSizeGauge = meter.gaugeBuilder("mq.archive.log.size").ofLongs().build();
     this.maxActiveChannelsGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.manager.max.active.channels")
-            .ofLongs()
-            .build();
+        meter.gaugeBuilder("mq.manager.max.active.channels").ofLongs().build();
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     long entryTime = System.currentTimeMillis();
     logger.debug(
         "publishMetrics entry time for queuemanager {} is {} milliseconds",
@@ -139,7 +105,7 @@ public final class QueueManagerMetricsCollector implements Runnable {
             Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
       {
-        int maxActiveChannels = this.context.getQueueManager().getMaxActiveChannels();
+        int maxActiveChannels = context.getQueueManager().getMaxActiveChannels();
         maxActiveChannelsGauge.set(
             maxActiveChannels,
             Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));

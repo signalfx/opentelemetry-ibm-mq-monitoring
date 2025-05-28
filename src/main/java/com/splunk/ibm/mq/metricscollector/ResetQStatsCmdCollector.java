@@ -20,10 +20,11 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class ResetQStatsCmdCollector implements Runnable {
+final class ResetQStatsCmdCollector implements Consumer<MetricsCollectorContext> {
 
   static final int[] ATTRIBUTES =
       new int[] {CMQC.MQIA_HIGH_Q_DEPTH, CMQC.MQIA_MSG_DEQ_COUNT, CMQC.MQIA_MSG_ENQ_COUNT};
@@ -31,16 +32,14 @@ final class ResetQStatsCmdCollector implements Runnable {
   private static final Logger logger = LoggerFactory.getLogger(ResetQStatsCmdCollector.class);
 
   static final String COMMAND = "MQCMD_RESET_Q_STATS";
-  private final MetricsCollectorContext context;
   private final QueueCollectionBuddy queueBuddy;
 
-  ResetQStatsCmdCollector(MetricsCollectorContext context, QueueCollectionBuddy queueBuddy) {
-    this.context = context;
+  ResetQStatsCmdCollector(QueueCollectionBuddy queueBuddy) {
     this.queueBuddy = queueBuddy;
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     logger.info("Collecting metrics for command {}", COMMAND);
     long entryTime = System.currentTimeMillis();
 
@@ -55,7 +54,8 @@ final class ResetQStatsCmdCollector implements Runnable {
       // https://www.ibm.com/support/knowledgecenter/SSFKSJ_8.0.0/com.ibm.mq.ref.adm.doc/q088310_.htm
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_RESET_Q_STATS);
       request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
-      queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName, ATTRIBUTES);
+      queueBuddy.processPCFRequestAndPublishQMetrics(
+          context, request, queueGenericName, ATTRIBUTES);
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(

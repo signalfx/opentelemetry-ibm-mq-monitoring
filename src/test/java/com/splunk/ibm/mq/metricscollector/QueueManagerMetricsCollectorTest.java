@@ -28,7 +28,6 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
@@ -48,8 +47,6 @@ class QueueManagerMetricsCollectorTest {
 
   @Mock PCFMessageAgent pcfMessageAgent;
 
-  Writer metricWriteHelper;
-
   QueueManager queueManager;
   MetricsCollectorContext context;
   private TestResultMetricExporter testExporter;
@@ -66,18 +63,17 @@ class QueueManagerMetricsCollectorTest {
         PeriodicMetricReader.builder(testExporter)
             .setExecutor(Executors.newScheduledThreadPool(1))
             .build();
-    SdkMeterProvider meterProvider =
-        SdkMeterProvider.builder().registerMetricReader(reader).build();
-    metricWriteHelper = new Writer(reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
-    context = new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
+    context = new MetricsCollectorContext(queueManager, pcfMessageAgent, null);
   }
 
   @Test
   public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireQMgrStatusCmd());
-    classUnderTest = new QueueManagerMetricsCollector(context);
-    classUnderTest.run();
+    SdkMeterProvider meterProvider =
+        SdkMeterProvider.builder().registerMetricReader(reader).build();
+    classUnderTest = new QueueManagerMetricsCollector(meterProvider.get("opentelemetry.io/mq"));
+    classUnderTest.accept(context);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
     List<String> metricsList = Lists.newArrayList("mq.manager.status");
 

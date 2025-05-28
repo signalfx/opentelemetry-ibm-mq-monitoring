@@ -21,9 +21,11 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,25 +44,17 @@ import org.slf4j.LoggerFactory;
  *
  * <p>It utilizes WMQMetricOverride to map metrics from the configuration to their IBM MQ constants.
  */
-public final class ListenerMetricsCollector implements Runnable {
+public final class ListenerMetricsCollector implements Consumer<MetricsCollectorContext> {
 
   private static final Logger logger = LoggerFactory.getLogger(ListenerMetricsCollector.class);
-  private final MetricsCollectorContext context;
   private final LongGauge listenerStatusGauge;
 
-  public ListenerMetricsCollector(MetricsCollectorContext context) {
-    this.context = context;
-    this.listenerStatusGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.listener.status")
-            .ofLongs()
-            .build();
+  public ListenerMetricsCollector(Meter meter) {
+    this.listenerStatusGauge = meter.gaugeBuilder("mq.listener.status").ofLongs().build();
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     long entryTime = System.currentTimeMillis();
 
     int[] attrs = new int[] {CMQCFC.MQCACH_LISTENER_NAME, CMQCFC.MQIACH_LISTENER_STATUS};
@@ -98,7 +92,7 @@ public final class ListenerMetricsCollector implements Runnable {
         for (PCFMessage message : messages) {
           String listenerName = MessageBuddy.listenerName(message);
           logger.debug("Pulling out metrics for listener name {}", listenerName);
-          updateMetrics(message, listenerName);
+          updateMetrics(message, listenerName, context);
         }
       } catch (Exception e) {
         logger.error(
@@ -109,7 +103,9 @@ public final class ListenerMetricsCollector implements Runnable {
     logger.debug("Time taken to publish metrics for all listener is {} milliseconds", exitTime);
   }
 
-  private void updateMetrics(PCFMessage message, String listenerName) throws PCFException {
+  private void updateMetrics(
+      PCFMessage message, String listenerName, MetricsCollectorContext context)
+      throws PCFException {
     {
       int status = message.getIntParameterValue(CMQCFC.MQIACH_LISTENER_STATUS);
       listenerStatusGauge.set(

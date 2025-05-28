@@ -60,6 +60,7 @@ public class Main {
               return thread;
             });
 
+    Config.configureSecurity(config);
     Config.setUpSSLConnection(config._exposed());
     MetricExporter exporter = Config.createOtlpHttpMetricsExporter(config._exposed());
 
@@ -89,10 +90,9 @@ public class Main {
 
     service.scheduleAtFixedRate(
         () -> {
-          WMQMonitor monitor =
-              new WMQMonitor(
-                  config, service, new Writer(reader, exporter, meterProvider.get("websphere/mq")));
+          WMQMonitor monitor = new WMQMonitor(config, service, meterProvider.get("websphere/mq"));
           monitor.run();
+          reader.forceFlush().whenComplete(exporter::flush);
         },
         config.getTaskInitialDelaySeconds(),
         config.getTaskDelaySeconds(),

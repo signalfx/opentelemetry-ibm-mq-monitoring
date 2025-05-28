@@ -16,48 +16,58 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import com.google.common.collect.Lists;
+import com.splunk.ibm.mq.TaskJob;
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class QueueMetricsCollector implements Runnable {
+public final class QueueMetricsCollector implements Consumer<MetricsCollectorContext> {
 
   private static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
 
-  // hack to share state of queue type between collectors.
-  // The queue information is only available as response of some commands.
-  private final QueueCollectorSharedState sharedState;
-  private final JobSubmitterContext context;
+  private final List<Consumer<MetricsCollectorContext>> publishers = Lists.newArrayList();
+  private final InquireQCmdCollector inquireQueueCmd;
+  private final ExecutorService threadPool;
+  private final ConfigWrapper config;
 
-  public QueueMetricsCollector(QueueCollectorSharedState sharedState, JobSubmitterContext context) {
-    this.sharedState = sharedState;
-    this.context = context;
+  public QueueMetricsCollector(Meter meter, ExecutorService threadPool, ConfigWrapper config) {
+    this.threadPool = threadPool;
+    this.config = config;
+    QueueCollectionBuddy queueBuddy =
+        new QueueCollectionBuddy(meter, new QueueCollectorSharedState());
+    this.inquireQueueCmd = new InquireQCmdCollector(queueBuddy);
+    publishers.add(new InquireQStatusCmdCollector(queueBuddy));
+    publishers.add(new ResetQStatsCmdCollector(queueBuddy));
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     logger.info("Collecting queue metrics...");
 
-    List<Runnable> publishers = Lists.newArrayList();
     // first collect all queue types.
-    MetricsCollectorContext collectorContext = context.newCollectorContext();
-    QueueCollectionBuddy queueBuddy = new QueueCollectionBuddy(collectorContext, sharedState);
-    Runnable publisher = new InquireQCmdCollector(collectorContext, queueBuddy);
-    publisher.run();
+    inquireQueueCmd.accept(context);
 
     // schedule all other jobs in parallel.
-    publishers.add(new InquireQStatusCmdCollector(collectorContext, queueBuddy));
-    publishers.add(new ResetQStatsCmdCollector(collectorContext, queueBuddy));
-
     CountDownLatch latch = new CountDownLatch(publishers.size());
-    for (Runnable p : publishers) {
-      context.submitPublishJob(p, latch);
+    for (Consumer<MetricsCollectorContext> p : publishers) {
+      MetricsPublisherJob job =
+          new MetricsPublisherJob(
+              () -> {
+                p.accept(context);
+              },
+              latch);
+      Runnable wrappedJob = new TaskJob(p.getClass().getSimpleName(), job);
+      threadPool.submit(wrappedJob);
     }
 
     try {
-      int timeout = context.getConfigInt("queueMetricsCollectionTimeoutInSeconds", 20);
+      int timeout = this.config.getInt("queueMetricsCollectionTimeoutInSeconds", 20);
       latch.await(timeout, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       logger.error("The thread was interrupted ", e);

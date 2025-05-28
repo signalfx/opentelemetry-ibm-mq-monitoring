@@ -26,18 +26,19 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** This class is responsible for channel metric collection. */
-public final class ChannelMetricsCollector implements Runnable {
+public final class ChannelMetricsCollector implements Consumer<MetricsCollectorContext> {
 
   private static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 
-  private final MetricsCollectorContext context;
   private final LongGauge activeChannelsGauge;
   private final LongGauge channelStatusGauge;
   private final LongGauge messageCountGauge;
@@ -51,84 +52,24 @@ public final class ChannelMetricsCollector implements Runnable {
   /*
    * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
    */
-  public ChannelMetricsCollector(MetricsCollectorContext context) {
-    this.context = context;
+  public ChannelMetricsCollector(Meter meter) {
     this.activeChannelsGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.manager.active.channels")
-            .ofLongs()
-            .setUnit("1")
-            .build();
-    this.channelStatusGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.status")
-            .ofLongs()
-            .setUnit("1")
-            .build();
-    this.messageCountGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.message.count")
-            .ofLongs()
-            .setUnit("1")
-            .build();
-    this.byteSentGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.byte.sent")
-            .ofLongs()
-            .setUnit("1")
-            .build();
-    this.byteReceivedGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.byte.received")
-            .ofLongs()
-            .setUnit("1")
-            .build();
-    this.buffersSentGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.buffers.sent")
-            .ofLongs()
-            .setUnit("1")
-            .build();
+        meter.gaugeBuilder("mq.manager.active.channels").ofLongs().setUnit("1").build();
+    this.channelStatusGauge = meter.gaugeBuilder("mq.status").ofLongs().setUnit("1").build();
+    this.messageCountGauge = meter.gaugeBuilder("mq.message.count").ofLongs().setUnit("1").build();
+    this.byteSentGauge = meter.gaugeBuilder("mq.byte.sent").ofLongs().setUnit("1").build();
+    this.byteReceivedGauge = meter.gaugeBuilder("mq.byte.received").ofLongs().setUnit("1").build();
+    this.buffersSentGauge = meter.gaugeBuilder("mq.buffers.sent").ofLongs().setUnit("1").build();
     this.buffersReceivedGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.buffers.received")
-            .ofLongs()
-            .setUnit("1")
-            .build();
+        meter.gaugeBuilder("mq.buffers.received").ofLongs().setUnit("1").build();
     this.currentSharingConvsGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.current.sharing.conversations")
-            .ofLongs()
-            .setUnit("1")
-            .build();
+        meter.gaugeBuilder("mq.current.sharing.conversations").ofLongs().setUnit("1").build();
     this.maxSharingConvsGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.max.sharing.conversations")
-            .ofLongs()
-            .setUnit("1")
-            .build();
+        meter.gaugeBuilder("mq.max.sharing.conversations").ofLongs().setUnit("1").build();
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     logger.info("Collecting metrics for command MQCMD_INQUIRE_CHANNEL_STATUS");
     long entryTime = System.currentTimeMillis();
 
@@ -197,7 +138,13 @@ public final class ChannelMetricsCollector implements Runnable {
 
           logger.debug("Pulling out metrics for channel name {}", channelName);
           updateMetrics(
-              message, channelName, channelType, channelStartTime, jobName, activeChannels);
+              context,
+              message,
+              channelName,
+              channelType,
+              channelStartTime,
+              jobName,
+              activeChannels);
         }
       } catch (PCFException pcfe) {
         if (pcfe.getReason() == MQRCCF_CHL_STATUS_NOT_FOUND) {
@@ -232,6 +179,7 @@ public final class ChannelMetricsCollector implements Runnable {
   }
 
   private void updateMetrics(
+      MetricsCollectorContext context,
       PCFMessage message,
       String channelName,
       String channelType,

@@ -19,6 +19,7 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * of metrics to report, and shared state. - Invoke the run method to execute the queue metrics
  * collection process.
  */
-final class InquireQStatusCmdCollector implements Runnable {
+final class InquireQStatusCmdCollector implements Consumer<MetricsCollectorContext> {
 
   static final int[] ATTRIBUTES =
       new int[] {
@@ -54,16 +55,14 @@ final class InquireQStatusCmdCollector implements Runnable {
 
   private static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);
 
-  private final MetricsCollectorContext context;
   private final QueueCollectionBuddy queueBuddy;
 
-  InquireQStatusCmdCollector(MetricsCollectorContext context, QueueCollectionBuddy queueBuddy) {
-    this.context = context;
+  InquireQStatusCmdCollector(QueueCollectionBuddy queueBuddy) {
     this.queueBuddy = queueBuddy;
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     logger.info("Collecting metrics for command MQCMD_INQUIRE_Q_STATUS");
     long entryTime = System.currentTimeMillis();
 
@@ -74,7 +73,8 @@ final class InquireQStatusCmdCollector implements Runnable {
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_Q_STATUS);
       request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
       request.addParameter(CMQCFC.MQIACF_Q_STATUS_ATTRS, ATTRIBUTES);
-      queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName, ATTRIBUTES);
+      queueBuddy.processPCFRequestAndPublishQMetrics(
+          context, request, queueGenericName, ATTRIBUTES);
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(

@@ -19,42 +19,37 @@ import com.ibm.mq.MQException;
 import com.ibm.mq.MQGetMessageOptions;
 import com.ibm.mq.MQMessage;
 import com.ibm.mq.MQQueue;
-import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.Meter;
 import java.io.IOException;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // Reads queue manager events and counts them as metrics
-public final class QueueManagerEventCollector implements Runnable {
+public final class QueueManagerEventCollector implements Consumer<MetricsCollectorContext> {
 
   private static final Logger logger = LoggerFactory.getLogger(QueueManagerEventCollector.class);
-  private final QueueManager queueManager;
-  private final MQQueueManager mqQueueManager;
   private final LongCounter authorityEventCounter;
 
-  public QueueManagerEventCollector(
-      MQQueueManager mqQueueManager, QueueManager queueManager, Writer metricWriteHelper) {
-    this.mqQueueManager = mqQueueManager;
-    this.queueManager = queueManager;
-    this.authorityEventCounter =
-        metricWriteHelper.getMeter().counterBuilder("mq.unauthorized.event").setUnit("1").build();
+  public QueueManagerEventCollector(Meter meter) {
+    this.authorityEventCounter = meter.counterBuilder("mq.unauthorized.event").setUnit("1").build();
   }
 
-  private void readEvents(String queueManagerEventsQueueName) throws Exception {
+  private void readEvents(MetricsCollectorContext context, String queueManagerEventsQueueName)
+      throws Exception {
 
     MQQueue queue = null;
     try {
       int queueAccessOptions = MQConstants.MQOO_FAIL_IF_QUIESCING | MQConstants.MQOO_INPUT_SHARED;
-      queue = mqQueueManager.accessQueue(queueManagerEventsQueueName, queueAccessOptions);
+      queue =
+          context.getMqQueueManager().accessQueue(queueManagerEventsQueueName, queueAccessOptions);
       // keep going until receiving the exception MQConstants.MQRC_NO_MSG_AVAILABLE
       while (true) {
         try {
@@ -72,7 +67,7 @@ public final class QueueManagerEventCollector implements Runnable {
                 1,
                 Attributes.of(
                     AttributeKey.stringKey("queue.manager"),
-                    queueManager.getName(),
+                    context.getQueueManagerName(),
                     AttributeKey.stringKey("user.name"),
                     username,
                     AttributeKey.stringKey("application.name"),
@@ -99,14 +94,14 @@ public final class QueueManagerEventCollector implements Runnable {
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     long entryTime = System.currentTimeMillis();
-    String queueManagerEventsQueueName = this.queueManager.getQueueManagerEventsQueueName();
+    String queueManagerEventsQueueName = context.getQueueManager().getQueueManagerEventsQueueName();
     logger.info(
         "sending PCF agent request to read queue manager events from queue {}",
         queueManagerEventsQueueName);
     try {
-      readEvents(queueManagerEventsQueueName);
+      readEvents(context, queueManagerEventsQueueName);
     } catch (Exception e) {
       logger.error(
           "Unexpected error occurred while collecting queue manager events for queue "

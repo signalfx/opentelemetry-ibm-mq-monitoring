@@ -20,10 +20,11 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import java.util.Arrays;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class InquireQCmdCollector implements Runnable {
+final class InquireQCmdCollector implements Consumer<MetricsCollectorContext> {
 
   private static final Logger logger = LoggerFactory.getLogger(InquireQCmdCollector.class);
 
@@ -41,16 +42,14 @@ final class InquireQCmdCollector implements Runnable {
       };
 
   static final String COMMAND = "MQCMD_INQUIRE_Q";
-  private final MetricsCollectorContext context;
   private final QueueCollectionBuddy queueBuddy;
 
-  public InquireQCmdCollector(MetricsCollectorContext context, QueueCollectionBuddy queueBuddy) {
-    this.context = context;
+  public InquireQCmdCollector(QueueCollectionBuddy queueBuddy) {
     this.queueBuddy = queueBuddy;
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     logger.info("Collecting metrics for command {}", COMMAND);
     long entryTime = System.currentTimeMillis();
 
@@ -68,7 +67,8 @@ final class InquireQCmdCollector implements Runnable {
       request.addParameter(CMQC.MQIA_Q_TYPE, CMQC.MQQT_ALL);
       request.addParameter(CMQCFC.MQIACF_Q_ATTRS, ATTRIBUTES);
 
-      queueBuddy.processPCFRequestAndPublishQMetrics(request, queueGenericName, ATTRIBUTES);
+      queueBuddy.processPCFRequestAndPublishQMetrics(
+          context, request, queueGenericName, ATTRIBUTES);
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(
