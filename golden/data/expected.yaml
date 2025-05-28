@@ -38,6 +38,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1748458488"
                     - key: channel.type
                       value:
                         stringValue: server-connection
@@ -626,6 +629,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1748458488"
                     - key: channel.type
                       value:
                         stringValue: server-connection
@@ -648,11 +654,14 @@ resourceMetrics:
             name: mq.connection.count
           - gauge:
               dataPoints:
-                - asInt: "17160"
+                - asInt: "17168"
                   attributes:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1748458488"
                     - key: channel.type
                       value:
                         stringValue: server-connection
@@ -680,6 +689,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1748458488"
                     - key: channel.type
                       value:
                         stringValue: server-connection
@@ -997,6 +1009,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1748458488"
                     - key: channel.type
                       value:
                         stringValue: server-connection
@@ -1014,6 +1029,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1748458488"
                     - key: channel.type
                       value:
                         stringValue: server-connection
@@ -1193,6 +1211,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1748458488"
                     - key: channel.type
                       value:
                         stringValue: server-connection
@@ -1275,6 +1296,9 @@ resourceMetrics:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1748458488"
                     - key: channel.type
                       value:
                         stringValue: server-connection

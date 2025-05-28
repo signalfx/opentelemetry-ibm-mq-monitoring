@@ -41,6 +41,7 @@ services:
       --ignore-timestamp
       --ignore-start-timestamp
       --timeout 2m
+      --ignore-metric-attribute-value channel.start.time
       --ignore-resource-metrics-order
       --ignore-scope-metrics-order
       --ignore-metrics-order

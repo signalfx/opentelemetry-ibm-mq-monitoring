@@ -20,6 +20,7 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.CMQXC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import java.time.Instant;
 
 public class MessageBuddy {
 
@@ -47,6 +48,10 @@ public class MessageBuddy {
         return "cluster-receiver";
       case CMQXC.MQCHT_CLUSSDR:
         return "cluster-sender";
+      case CMQXC.MQCHT_MQTT:
+        return "mqtt";
+      case CMQXC.MQCHT_AMQP:
+        return "amqp";
       default:
         throw new IllegalArgumentException(
             "Unsupported channel type: "
@@ -64,5 +69,13 @@ public class MessageBuddy {
 
   public static String queueName(PCFMessage message) throws PCFException {
     return message.getStringParameterValue(CMQC.MQCA_Q_NAME).trim();
+  }
+
+  public static long channelStartTime(PCFMessage message) throws PCFException {
+    String date = message.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_START_DATE).trim();
+    String time = message.getStringParameterValue(CMQCFC.MQCACH_CHANNEL_START_TIME).trim();
+
+    Instant parsed = Instant.parse(date + "T" + time.replaceAll("\\.", ":") + "Z");
+    return parsed.getEpochSecond();
   }
 }

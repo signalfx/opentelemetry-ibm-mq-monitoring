@@ -166,6 +166,8 @@ class ChannelMetricsCollectorTest {
     response1.addParameter(CMQCFC.MQIACH_MSGS, 17);
     response1.addParameter(CMQCFC.MQIACH_CHANNEL_STATUS, 3);
     response1.addParameter(CMQCFC.MQIACH_CHANNEL_SUBSTATE, 300);
+    response1.addParameter(CMQCFC.MQCACH_CHANNEL_START_DATE, "2012-01-03");
+    response1.addParameter(CMQCFC.MQCACH_CHANNEL_START_TIME, "22.33.44");
 
     PCFMessage response2 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, 2, true);
     response2.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, "DEV.APP.SVRCONN");
@@ -179,6 +181,8 @@ class ChannelMetricsCollectorTest {
     response2.addParameter(CMQCFC.MQIACH_MSGS, 17);
     response2.addParameter(CMQCFC.MQIACH_CHANNEL_STATUS, 3);
     response2.addParameter(CMQCFC.MQIACH_CHANNEL_SUBSTATE, 300);
+    response2.addParameter(CMQCFC.MQCACH_CHANNEL_START_DATE, "2012-01-04");
+    response2.addParameter(CMQCFC.MQCACH_CHANNEL_START_TIME, "22.33.45");
 
     PCFMessage response3 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, 2, true);
     response3.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, "TEST.APP.SVRCONN");
@@ -192,6 +196,8 @@ class ChannelMetricsCollectorTest {
     response3.addParameter(CMQCFC.MQIACH_MSGS, 17);
     response3.addParameter(CMQCFC.MQIACH_CHANNEL_STATUS, 3);
     response3.addParameter(CMQCFC.MQIACH_CHANNEL_SUBSTATE, 300);
+    response3.addParameter(CMQCFC.MQCACH_CHANNEL_START_DATE, "2012-01-05");
+    response3.addParameter(CMQCFC.MQCACH_CHANNEL_START_TIME, "22.33.46");
 
     return new PCFMessage[] {response1, response2, response3};
   }
