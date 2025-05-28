@@ -19,26 +19,26 @@ import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import org.assertj.core.api.Assertions;
 
-public class OtelMetricAssert {
+public class MetricAssert {
 
   private final MetricData metric;
   private final int pointOffset;
 
-  public OtelMetricAssert(MetricData metric, int pointOffset) {
+  public MetricAssert(MetricData metric, int pointOffset) {
     this.metric = metric;
     this.pointOffset = pointOffset;
   }
 
-  static OtelMetricAssert assertThatMetric(MetricData metric, int pointOffset) {
-    return new OtelMetricAssert(metric, pointOffset);
+  static MetricAssert assertThatMetric(MetricData metric, int pointOffset) {
+    return new MetricAssert(metric, pointOffset);
   }
 
-  OtelMetricAssert hasName(String name) {
+  MetricAssert hasName(String name) {
     Assertions.assertThat(metric.getName()).isEqualTo(name);
     return this;
   }
 
-  OtelMetricAssert hasValue(long value) {
+  MetricAssert hasValue(long value) {
     Assertions.assertThat(
             ((LongPointData) metric.getLongGaugeData().getPoints().toArray()[this.pointOffset])
                 .getValue())
