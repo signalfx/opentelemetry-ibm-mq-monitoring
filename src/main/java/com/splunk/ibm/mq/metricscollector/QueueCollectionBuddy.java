@@ -16,10 +16,7 @@
 package com.splunk.ibm.mq.metricscollector;
 
 import static com.ibm.mq.constants.CMQC.*;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
 
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
@@ -30,8 +27,9 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFParameter;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongGauge;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,15 +43,118 @@ final class QueueCollectionBuddy {
 
   private final MetricsCollectorContext context;
   private final QueueCollectorSharedState sharedState;
-  private final MetricCreator metricCreator;
+  private final HashMap<Integer, LongGauge> gauges;
+  private final LongGauge onqtimeShort;
+  private final LongGauge onqtimeLong;
 
-  QueueCollectionBuddy(
-      MetricsCollectorContext context,
-      QueueCollectorSharedState sharedState,
-      MetricCreator metricCreator) {
+  QueueCollectionBuddy(MetricsCollectorContext context, QueueCollectorSharedState sharedState) {
     this.context = context;
     this.sharedState = sharedState;
-    this.metricCreator = metricCreator;
+    this.gauges = new HashMap<>();
+    gauges.put(
+        CMQC.MQIA_CURRENT_Q_DEPTH,
+        context.getMetricWriteHelper().getMeter().gaugeBuilder("mq.queue.depth").ofLongs().build());
+    gauges.put(
+        CMQC.MQIA_MAX_Q_DEPTH,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.max.queue.depth")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQC.MQIA_OPEN_INPUT_COUNT,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.open.input.count")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQC.MQIA_OPEN_OUTPUT_COUNT,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.open.output.count")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQC.MQIA_Q_SERVICE_INTERVAL,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.service.interval")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.service.interval.event")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQCFC.MQIACF_OLDEST_MSG_AGE,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.oldest.msg.age")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQCFC.MQIACF_UNCOMMITTED_MSGS,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.uncommitted.messages")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQC.MQIA_MSG_DEQ_COUNT,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.message.deq.count")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQC.MQIA_MSG_ENQ_COUNT,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.message.enq.count")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQC.MQIA_HIGH_Q_DEPTH,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.high.queue.depth")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQCFC.MQIACF_CUR_Q_FILE_SIZE,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.current.queue.filesize")
+            .ofLongs()
+            .build());
+    gauges.put(
+        CMQCFC.MQIACF_CUR_MAX_FILE_SIZE,
+        context
+            .getMetricWriteHelper()
+            .getMeter()
+            .gaugeBuilder("mq.current.max.queue.filesize")
+            .ofLongs()
+            .build());
+
+    this.onqtimeShort =
+        context.getMetricWriteHelper().getMeter().gaugeBuilder("mq.onqtime.1").ofLongs().build();
+    this.onqtimeLong =
+        context.getMetricWriteHelper().getMeter().gaugeBuilder("mq.onqtime.2").ofLongs().build();
   }
 
   /**
@@ -121,8 +222,7 @@ final class QueueCollectionBuddy {
     }
 
     logger.debug("Pulling out metrics for queue name {}", queueName);
-    List<Metric> responseMetrics = getMetrics(message, queueName, queueType, fields);
-    context.transformAndPrintMetrics(responseMetrics);
+    getMetrics(message, queueName, queueType, fields);
   }
 
   private String getQueueTypeFromName(PCFMessage message, String queueName) throws PCFException {
@@ -171,96 +271,42 @@ final class QueueCollectionBuddy {
     return "unknown";
   }
 
-  private List<Metric> getMetrics(
-      PCFMessage pcfMessage, String queueName, String queueType, int[] fields) throws PCFException {
-    List<Metric> responseMetrics = Lists.newArrayList();
+  private void getMetrics(PCFMessage pcfMessage, String queueName, String queueType, int[] fields)
+      throws PCFException {
 
     for (int field : fields) {
       if (field == CMQC.MQCA_Q_NAME || field == CMQC.MQIA_USAGE || field == CMQC.MQIA_Q_TYPE) {
         continue;
       }
-      List<Metric> tempMetrics = buildMetrics(pcfMessage, queueName, queueType, field);
-      responseMetrics.addAll(tempMetrics);
-    }
-    return responseMetrics;
-  }
-
-  private static String getMetricName(int constantValue) {
-    switch (constantValue) {
-      case CMQC.MQIA_CURRENT_Q_DEPTH:
-        return "mq.queue.depth";
-      case CMQC.MQIA_MAX_Q_DEPTH:
-        return "mq.max.queue.depth";
-      case CMQC.MQIA_OPEN_INPUT_COUNT:
-        return "mq.open.input.count";
-      case CMQC.MQIA_OPEN_OUTPUT_COUNT:
-        return "mq.open.output.count";
-      case CMQC.MQIA_Q_SERVICE_INTERVAL:
-        return "mq.service.interval";
-      case CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT:
-        return "mq.service.interval.event";
-      case CMQCFC.MQIACF_Q_TIME_INDICATOR:
-        return "mq.onqtime";
-      case CMQCFC.MQIACF_OLDEST_MSG_AGE:
-        return "mq.oldest.msg.age";
-      case CMQCFC.MQIACF_UNCOMMITTED_MSGS:
-        return "mq.uncommitted.messages";
-      case CMQC.MQIA_MSG_DEQ_COUNT:
-        return "mq.message.deq.count";
-      case CMQC.MQIA_MSG_ENQ_COUNT:
-        return "mq.message.enq.count";
-      case CMQC.MQIA_HIGH_Q_DEPTH:
-        return "mq.high.queue.depth";
-      case CMQCFC.MQIACF_CUR_Q_FILE_SIZE:
-        return "mq.current.queue.filesize";
-      case CMQCFC.MQIACF_CUR_MAX_FILE_SIZE:
-        return "mq.current.max.queue.filesize";
-      default:
-        throw new IllegalArgumentException("Unknown constantValue " + constantValue);
+      updateMetrics(pcfMessage, queueName, queueType, field);
     }
   }
 
-  private List<Metric> buildMetrics(
+  private void updateMetrics(
       PCFMessage pcfMessage, String queueName, String queueType, int constantValue)
       throws PCFException {
     PCFParameter pcfParam = pcfMessage.getParameter(constantValue);
-    String metricKey = getMetricName(constantValue);
+    Attributes attributes =
+        Attributes.of(
+            AttributeKey.stringKey("queue.name"),
+            queueName,
+            AttributeKey.stringKey("queue.type"),
+            queueType,
+            AttributeKey.stringKey("queue.manager"),
+            context.getQueueManagerName());
+
     if (pcfParam instanceof MQCFIN) {
+      LongGauge g = this.gauges.get(constantValue);
+      if (g == null) {
+        throw new IllegalArgumentException("Unknown constantValue " + constantValue);
+      }
       int metricVal = pcfMessage.getIntParameterValue(constantValue);
-      Metric metric =
-          metricCreator.createMetric(
-              metricKey,
-              metricVal,
-              Attributes.of(
-                  AttributeKey.stringKey("queue.name"),
-                  queueName,
-                  AttributeKey.stringKey("queue.type"),
-                  queueType));
-      return singletonList(metric);
+      g.set(metricVal, attributes);
     }
-    List<Metric> tempMetrics = new ArrayList<>();
     if (pcfParam instanceof MQCFIL) {
       int[] metricVals = pcfMessage.getIntListParameterValue(constantValue);
-      if (metricVals == null) {
-        return emptyList();
-      }
-
-      int count = 0;
-      for (int val : metricVals) {
-        count++;
-        String metricName = metricKey + "." + count;
-        Metric metric =
-            metricCreator.createMetric(
-                metricName,
-                val,
-                Attributes.of(
-                    AttributeKey.stringKey("queue.name"),
-                    queueName,
-                    AttributeKey.stringKey("queue.type"),
-                    queueType));
-        tempMetrics.add(metric);
-      }
+      onqtimeShort.set(metricVals[0], attributes);
+      onqtimeLong.set(metricVals[1], attributes);
     }
-    return tempMetrics;
   }
 }

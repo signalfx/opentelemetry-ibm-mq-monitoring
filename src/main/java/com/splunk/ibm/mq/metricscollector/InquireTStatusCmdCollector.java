@@ -133,31 +133,25 @@ final class InquireTStatusCmdCollector implements Runnable {
   }
 
   private void extractMetrics(PCFMessage pcfMessage, String topicString) throws PCFException {
+    Attributes attributes =
+        Attributes.of(
+            AttributeKey.stringKey("topic.name"),
+            topicString,
+            AttributeKey.stringKey("queue.manager"),
+            context.getQueueManagerName());
     {
       int count = 0;
       if (pcfMessage.getParameter(CMQC.MQIA_PUB_COUNT) != null) {
         count = pcfMessage.getIntParameterValue(CMQC.MQIA_PUB_COUNT);
       }
-      publishCountGauge.set(
-          count,
-          Attributes.of(
-              AttributeKey.stringKey("topic.name"),
-              topicString,
-              AttributeKey.stringKey("queue.manager"),
-              context.getQueueManagerName()));
+      publishCountGauge.set(count, attributes);
     }
     {
       int count = 0;
       if (pcfMessage.getParameter(CMQC.MQIA_SUB_COUNT) != null) {
         count = pcfMessage.getIntParameterValue(CMQC.MQIA_SUB_COUNT);
       }
-      subscriptionCountGauge.set(
-          count,
-          Attributes.of(
-              AttributeKey.stringKey("topic.name"),
-              topicString,
-              AttributeKey.stringKey("queue.manager"),
-              context.getQueueManagerName()));
+      subscriptionCountGauge.set(count, attributes);
     }
   }
 }

@@ -29,13 +29,11 @@ public final class QueueMetricsCollector implements Runnable {
   // hack to share state of queue type between collectors.
   // The queue information is only available as response of some commands.
   private final QueueCollectorSharedState sharedState;
-  private final MetricCreator metricCreator;
   private final JobSubmitterContext context;
 
   public QueueMetricsCollector(QueueCollectorSharedState sharedState, JobSubmitterContext context) {
     this.sharedState = sharedState;
     this.context = context;
-    this.metricCreator = context.newMetricCreator();
   }
 
   @Override
@@ -46,16 +44,14 @@ public final class QueueMetricsCollector implements Runnable {
     // first collect all queue types.
     {
       MetricsCollectorContext collectorContext = context.newCollectorContext();
-      QueueCollectionBuddy queueBuddy =
-          new QueueCollectionBuddy(collectorContext, sharedState, metricCreator);
+      QueueCollectionBuddy queueBuddy = new QueueCollectionBuddy(collectorContext, sharedState);
       Runnable publisher = new InquireQCmdCollector(collectorContext, queueBuddy);
       publisher.run();
     }
 
     // schedule all other jobs in parallel.
     MetricsCollectorContext collectorContext = context.newCollectorContext();
-    QueueCollectionBuddy queueBuddy =
-        new QueueCollectionBuddy(collectorContext, sharedState, metricCreator);
+    QueueCollectionBuddy queueBuddy = new QueueCollectionBuddy(collectorContext, sharedState);
     Runnable publisher = new InquireQStatusCmdCollector(collectorContext, queueBuddy);
     publishers.add(publisher);
     Runnable collector = new ResetQStatsCmdCollector(collectorContext, queueBuddy);

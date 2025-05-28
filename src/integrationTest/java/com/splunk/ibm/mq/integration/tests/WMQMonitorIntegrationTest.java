@@ -33,7 +33,6 @@ import com.splunk.ibm.mq.opentelemetry.Main;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
-import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
@@ -46,6 +45,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -216,28 +216,34 @@ class WMQMonitorIntegrationTest {
     assertThat(metricNames).contains("mq.heartbeat");
     assertThat(metricNames).contains("mq.oldest.msg.age");
     if (metrics.get("mq.oldest.msg.age") != null) {
-      LongPointData pt =
-          metrics.get("mq.oldest.msg.age").getLongGaugeData().getPoints().iterator().next();
-      String queueManager = pt.getAttributes().get(AttributeKey.stringKey("queue.name"));
-      assertThat(queueManager).isEqualTo("smallqueue");
+      Set<String> queueNames =
+          metrics.get("mq.oldest.msg.age").getLongGaugeData().getPoints().stream()
+              .map(pt -> pt.getAttributes().get(AttributeKey.stringKey("queue.name")))
+              .collect(Collectors.toSet());
+      assertThat(queueNames).contains("smallqueue");
     }
     // make sure we get MQ manager status
     assertThat(metricNames).contains("mq.manager.status");
     if (metrics.get("mq.manager.status") != null) {
-      LongPointData pt =
-          metrics.get("mq.manager.status").getLongGaugeData().getPoints().iterator().next();
-      String queueManager = pt.getAttributes().get(AttributeKey.stringKey("queue.manager"));
-      assertThat(queueManager).isEqualTo("QM1");
+      Set<String> queueManagers =
+          metrics.get("mq.manager.status").getLongGaugeData().getPoints().stream()
+              .map(pt -> pt.getAttributes().get(AttributeKey.stringKey("queue.manager")))
+              .collect(Collectors.toSet());
+      assertThat(queueManagers).contains("QM1");
     }
 
     assertThat(metricNames).contains("mq.onqtime.2");
     if (metrics.get("mq.onqtime.2") != null) {
-      LongPointData pt =
-          metrics.get("mq.onqtime.2").getLongGaugeData().getPoints().iterator().next();
-      String queueManager = pt.getAttributes().get(AttributeKey.stringKey("queue.manager"));
-      assertThat(queueManager).isEqualTo("QM1");
-      String queueName = pt.getAttributes().get(AttributeKey.stringKey("queue.name"));
-      assertThat(queueName).isEqualTo("smallqueue");
+      Set<String> queueNames =
+          metrics.get("mq.onqtime.2").getLongGaugeData().getPoints().stream()
+              .map(pt -> pt.getAttributes().get(AttributeKey.stringKey("queue.name")))
+              .collect(Collectors.toSet());
+      assertThat(queueNames).contains("smallqueue");
+      Set<String> queueManagers =
+          metrics.get("mq.manager.status").getLongGaugeData().getPoints().stream()
+              .map(pt -> pt.getAttributes().get(AttributeKey.stringKey("queue.manager")))
+              .collect(Collectors.toSet());
+      assertThat(queueManagers).contains("QM1");
     }
   }
 
