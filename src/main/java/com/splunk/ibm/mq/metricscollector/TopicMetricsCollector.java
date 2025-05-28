@@ -38,8 +38,7 @@ public final class TopicMetricsCollector implements Runnable {
     //  to query the current status of topics, which is essential for monitoring and managing the
     // publish/subscribe environment in IBM MQ.
     MetricsCollectorContext collectorContext = context.newCollectorContext();
-    InquireTStatusCmdCollector metricsPublisher = new InquireTStatusCmdCollector(collectorContext);
-    publishers.add(metricsPublisher);
+    publishers.add(new InquireTStatusCmdCollector(collectorContext));
     CountDownLatch latch = new CountDownLatch(publishers.size());
     for (Runnable publisher : publishers) {
       context.submitPublishJob(publisher, latch);

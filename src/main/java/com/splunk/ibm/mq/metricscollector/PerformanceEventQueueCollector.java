@@ -25,7 +25,7 @@ import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -45,29 +45,15 @@ public final class PerformanceEventQueueCollector implements Runnable {
   private final LongCounter lowQueueDepthCounter;
 
   public PerformanceEventQueueCollector(
-      MQQueueManager mqQueueManager,
-      QueueManager queueManager,
-      OpenTelemetryMetricWriteHelper openTelemetryMetricWriteHelper) {
+      MQQueueManager mqQueueManager, QueueManager queueManager, Writer writer) {
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;
     this.fullQueueDepthCounter =
-        openTelemetryMetricWriteHelper
-            .getMeter()
-            .counterBuilder("mq.queue.depth.full.event")
-            .setUnit("1")
-            .build();
+        writer.getMeter().counterBuilder("mq.queue.depth.full.event").setUnit("1").build();
     this.highQueueDepthCounter =
-        openTelemetryMetricWriteHelper
-            .getMeter()
-            .counterBuilder("mq.queue.depth.high.event")
-            .setUnit("1")
-            .build();
+        writer.getMeter().counterBuilder("mq.queue.depth.high.event").setUnit("1").build();
     this.lowQueueDepthCounter =
-        openTelemetryMetricWriteHelper
-            .getMeter()
-            .counterBuilder("mq.queue.depth.low.event")
-            .setUnit("1")
-            .build();
+        writer.getMeter().counterBuilder("mq.queue.depth.low.event").setUnit("1").build();
   }
 
   private void readEvents(String performanceEventsQueueName) throws Exception {

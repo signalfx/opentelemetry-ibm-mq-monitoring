@@ -25,7 +25,7 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -42,9 +42,7 @@ public final class QueueManagerEventCollector implements Runnable {
   private final LongCounter authorityEventCounter;
 
   public QueueManagerEventCollector(
-      MQQueueManager mqQueueManager,
-      QueueManager queueManager,
-      OpenTelemetryMetricWriteHelper metricWriteHelper) {
+      MQQueueManager mqQueueManager, QueueManager queueManager, Writer metricWriteHelper) {
     this.mqQueueManager = mqQueueManager;
     this.queueManager = queueManager;
     this.authorityEventCounter =

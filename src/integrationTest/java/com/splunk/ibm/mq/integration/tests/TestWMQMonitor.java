@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.splunk.ibm.mq.WMQMonitorTask;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
+import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.metrics.LongGauge;
 import java.util.List;
 import java.util.Map;
@@ -35,14 +35,11 @@ import java.util.concurrent.ExecutorService;
  */
 class TestWMQMonitor {
 
-  private final OpenTelemetryMetricWriteHelper metricWriteHelper;
+  private final Writer metricWriteHelper;
   private final ConfigWrapper config;
   private final ExecutorService threadPool;
 
-  TestWMQMonitor(
-      ConfigWrapper config,
-      OpenTelemetryMetricWriteHelper metricWriteHelper,
-      ExecutorService service) {
+  TestWMQMonitor(ConfigWrapper config, Writer metricWriteHelper, ExecutorService service) {
     this.config = config;
     this.metricWriteHelper = metricWriteHelper;
     this.threadPool = service;

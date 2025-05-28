@@ -21,17 +21,15 @@ import io.opentelemetry.sdk.metrics.export.MetricReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OpenTelemetryMetricWriteHelper {
+public class Writer {
 
-  private static final Logger logger =
-      LoggerFactory.getLogger(OpenTelemetryMetricWriteHelper.class);
+  private static final Logger logger = LoggerFactory.getLogger(Writer.class);
 
   private final MetricExporter exporter;
   private final MetricReader reader;
   private final Meter meter;
 
-  public OpenTelemetryMetricWriteHelper(
-      MetricReader reader, MetricExporter otlpGrpcMetricExporter, Meter meter) {
+  public Writer(MetricReader reader, MetricExporter otlpGrpcMetricExporter, Meter meter) {
     this.exporter = otlpGrpcMetricExporter;
     this.meter = meter;
     this.reader = reader;
