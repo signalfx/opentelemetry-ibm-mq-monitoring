@@ -40,10 +40,13 @@ resourceMetrics:
                         stringValue: DEV.ADMIN.SVRCONN
                     - key: channel.start.time
                       value:
-                        intValue: "1748458488"
+                        intValue: "1748462702"
                     - key: channel.type
                       value:
                         stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000074900000003"
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -631,10 +634,13 @@ resourceMetrics:
                         stringValue: DEV.ADMIN.SVRCONN
                     - key: channel.start.time
                       value:
-                        intValue: "1748458488"
+                        intValue: "1748462702"
                     - key: channel.type
                       value:
                         stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000074900000003"
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -654,17 +660,20 @@ resourceMetrics:
             name: mq.connection.count
           - gauge:
               dataPoints:
-                - asInt: "17168"
+                - asInt: "11612"
                   attributes:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
                     - key: channel.start.time
                       value:
-                        intValue: "1748458488"
+                        intValue: "1748462702"
                     - key: channel.type
                       value:
                         stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000074900000003"
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -684,17 +693,20 @@ resourceMetrics:
             name: mq.manager.status
           - gauge:
               dataPoints:
-                - asInt: "73080"
+                - asInt: "30284"
                   attributes:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
                     - key: channel.start.time
                       value:
-                        intValue: "1748458488"
+                        intValue: "1748462702"
                     - key: channel.type
                       value:
                         stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000074900000003"
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -1004,17 +1016,20 @@ resourceMetrics:
             name: mq.service.interval
           - gauge:
               dataPoints:
-                - asInt: "114"
+                - asInt: "50"
                   attributes:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
                     - key: channel.start.time
                       value:
-                        intValue: "1748458488"
+                        intValue: "1748462702"
                     - key: channel.type
                       value:
                         stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000074900000003"
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -1031,10 +1046,13 @@ resourceMetrics:
                         stringValue: DEV.ADMIN.SVRCONN
                     - key: channel.start.time
                       value:
-                        intValue: "1748458488"
+                        intValue: "1748462702"
                     - key: channel.type
                       value:
                         stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000074900000003"
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -1206,17 +1224,20 @@ resourceMetrics:
             name: mq.max.instances
           - gauge:
               dataPoints:
-                - asInt: "109"
+                - asInt: "45"
                   attributes:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
                     - key: channel.start.time
                       value:
-                        intValue: "1748458488"
+                        intValue: "1748462702"
                     - key: channel.type
                       value:
                         stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000074900000003"
                     - key: queue.manager
                       value:
                         stringValue: QM1
@@ -1291,17 +1312,20 @@ resourceMetrics:
             name: mq.manager.max.active.channels
           - gauge:
               dataPoints:
-                - asInt: "113"
+                - asInt: "49"
                   attributes:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
                     - key: channel.start.time
                       value:
-                        intValue: "1748458488"
+                        intValue: "1748462702"
                     - key: channel.type
                       value:
                         stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000074900000003"
                     - key: queue.manager
                       value:
                         stringValue: QM1
