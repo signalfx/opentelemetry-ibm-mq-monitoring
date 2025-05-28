@@ -17,7 +17,7 @@ package com.splunk.ibm.mq.metricscollector;
 
 import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
 import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
-import static com.splunk.ibm.mq.metricscollector.OtelMetricAssert.assertThatMetric;
+import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.any;

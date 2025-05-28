@@ -226,29 +226,21 @@ public final class ChannelMetricsCollector implements Runnable {
   private void updateMetrics(
       PCFMessage message, String channelName, String channelType, List<String> activeChannels)
       throws PCFException {
+    Attributes attributes =
+        Attributes.of(
+            AttributeKey.stringKey("channel.name"),
+            channelName,
+            AttributeKey.stringKey("channel.type"),
+            channelType,
+            AttributeKey.stringKey("queue.manager"),
+            context.getQueueManagerName());
     {
       int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
-      messageCountGauge.set(
-          received,
-          Attributes.of(
-              AttributeKey.stringKey("channel.name"),
-              channelName,
-              AttributeKey.stringKey("channel.type"),
-              channelType,
-              AttributeKey.stringKey("queue.manager"),
-              context.getQueueManagerName()));
+      messageCountGauge.set(received, attributes);
     }
     {
       int status = message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_STATUS);
-      channelStatusGauge.set(
-          status,
-          Attributes.of(
-              AttributeKey.stringKey("channel.name"),
-              channelName,
-              AttributeKey.stringKey("channel.type"),
-              channelType,
-              AttributeKey.stringKey("queue.manager"),
-              context.getQueueManagerName()));
+      channelStatusGauge.set(status, attributes);
       // We follow the definition of active channel as documented in
       // https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
       if (status != CMQCFC.MQCHS_RETRYING
@@ -259,81 +251,33 @@ public final class ChannelMetricsCollector implements Runnable {
     }
     {
       int bytesSent = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT);
-      byteSentGauge.set(
-          bytesSent,
-          Attributes.of(
-              AttributeKey.stringKey("channel.name"),
-              channelName,
-              AttributeKey.stringKey("channel.type"),
-              channelType,
-              AttributeKey.stringKey("queue.manager"),
-              context.getQueueManagerName()));
+      byteSentGauge.set(bytesSent, attributes);
     }
     {
       int bytesReceived = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED);
-      byteReceivedGauge.set(
-          bytesReceived,
-          Attributes.of(
-              AttributeKey.stringKey("channel.name"),
-              channelName,
-              AttributeKey.stringKey("channel.type"),
-              channelType,
-              AttributeKey.stringKey("queue.manager"),
-              context.getQueueManagerName()));
+      byteReceivedGauge.set(bytesReceived, attributes);
     }
     {
       int buffersSent = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT);
-      buffersSentGauge.set(
-          buffersSent,
-          Attributes.of(
-              AttributeKey.stringKey("channel.name"),
-              channelName,
-              AttributeKey.stringKey("channel.type"),
-              channelType,
-              AttributeKey.stringKey("queue.manager"),
-              context.getQueueManagerName()));
+      buffersSentGauge.set(buffersSent, attributes);
     }
     {
       int buffersReceived = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED);
-      buffersReceivedGauge.set(
-          buffersReceived,
-          Attributes.of(
-              AttributeKey.stringKey("channel.name"),
-              channelName,
-              AttributeKey.stringKey("channel.type"),
-              channelType,
-              AttributeKey.stringKey("queue.manager"),
-              context.getQueueManagerName()));
+      buffersReceivedGauge.set(buffersReceived, attributes);
     }
     {
       int currentSharingConvs = 0;
       if (message.getParameter(CMQCFC.MQIACH_CURRENT_SHARING_CONVS) != null) {
         currentSharingConvs = message.getIntParameterValue(CMQCFC.MQIACH_CURRENT_SHARING_CONVS);
       }
-      currentSharingConvsGauge.set(
-          currentSharingConvs,
-          Attributes.of(
-              AttributeKey.stringKey("channel.name"),
-              channelName,
-              AttributeKey.stringKey("channel.type"),
-              channelType,
-              AttributeKey.stringKey("queue.manager"),
-              context.getQueueManagerName()));
+      currentSharingConvsGauge.set(currentSharingConvs, attributes);
     }
     {
       int maxSharingConvs = 0;
       if (message.getParameter(CMQCFC.MQIACH_MAX_SHARING_CONVS) != null) {
         maxSharingConvs = message.getIntParameterValue(CMQCFC.MQIACH_MAX_SHARING_CONVS);
       }
-      maxSharingConvsGauge.set(
-          maxSharingConvs,
-          Attributes.of(
-              AttributeKey.stringKey("channel.name"),
-              channelName,
-              AttributeKey.stringKey("channel.type"),
-              channelType,
-              AttributeKey.stringKey("queue.manager"),
-              context.getQueueManagerName()));
+      maxSharingConvsGauge.set(maxSharingConvs, attributes);
     }
   }
 }

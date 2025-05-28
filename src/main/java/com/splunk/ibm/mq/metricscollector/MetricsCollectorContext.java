@@ -91,14 +91,6 @@ public final class MetricsCollectorContext {
     return result == null ? emptyList() : Arrays.asList(result);
   }
 
-  void transformAndPrintMetric(Metric responseMetrics) {
-    transformAndPrintMetrics(Collections.singletonList(responseMetrics));
-  }
-
-  void transformAndPrintMetrics(List<Metric> responseMetrics) {
-    metricWriteHelper.transformAndPrintMetrics(responseMetrics);
-  }
-
   String getQueueManagerName() {
     return queueManager.getName();
   }

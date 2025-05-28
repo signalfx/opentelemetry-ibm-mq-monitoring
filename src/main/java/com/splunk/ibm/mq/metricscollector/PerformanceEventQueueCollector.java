@@ -108,41 +108,27 @@ public final class PerformanceEventQueueCollector implements Runnable {
   }
 
   private void incrementCounterByEventType(PCFMessage receivedMsg) throws PCFException {
+    String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME).trim();
+    Attributes attributes =
+        Attributes.of(
+            AttributeKey.stringKey("queue.manager"),
+            queueManager.getName(),
+            AttributeKey.stringKey("queue.name"),
+            queueName);
     switch (receivedMsg.getReason()) {
       case CMQC.MQRC_Q_FULL:
         {
-          String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
-          fullQueueDepthCounter.add(
-              1,
-              Attributes.of(
-                  AttributeKey.stringKey("queue.manager"),
-                  queueManager.getName(),
-                  AttributeKey.stringKey("queue.name"),
-                  queueName));
+          fullQueueDepthCounter.add(1, attributes);
         }
         break;
       case CMQC.MQRC_Q_DEPTH_HIGH:
         {
-          String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
-          highQueueDepthCounter.add(
-              1,
-              Attributes.of(
-                  AttributeKey.stringKey("queue.manager"),
-                  queueManager.getName(),
-                  AttributeKey.stringKey("queue.name"),
-                  queueName));
+          highQueueDepthCounter.add(1, attributes);
         }
         break;
       case CMQC.MQRC_Q_DEPTH_LOW:
         {
-          String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME);
-          lowQueueDepthCounter.add(
-              1,
-              Attributes.of(
-                  AttributeKey.stringKey("queue.manager"),
-                  queueManager.getName(),
-                  AttributeKey.stringKey("queue.name"),
-                  queueName));
+          lowQueueDepthCounter.add(1, attributes);
         }
         break;
       default:

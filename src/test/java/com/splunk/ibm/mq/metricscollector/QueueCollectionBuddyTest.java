@@ -15,10 +15,7 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import static com.splunk.ibm.mq.metricscollector.MetricAssert.assertThatMetric;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,14 +24,22 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
+import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.OpenTelemetryMetricWriteHelper;
-import java.util.Arrays;
-import java.util.List;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.sdk.metrics.data.LongPointData;
+import io.opentelemetry.sdk.metrics.data.MetricData;
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -45,12 +50,12 @@ public class QueueCollectionBuddyTest {
 
   @Mock private PCFMessageAgent pcfMessageAgent;
 
-  @Mock private OpenTelemetryMetricWriteHelper metricWriteHelper;
+  private OpenTelemetryMetricWriteHelper metricWriteHelper;
 
   private QueueManager queueManager;
-  ArgumentCaptor<List<Metric>> pathCaptor;
-  MetricCreator metricCreator;
   MetricsCollectorContext collectorContext;
+  private TestResultMetricExporter testExporter;
+  private PeriodicMetricReader reader;
 
   @BeforeEach
   void setup() throws Exception {
@@ -58,8 +63,17 @@ public class QueueCollectionBuddyTest {
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
     QueueCollectorSharedState.getInstance().resetForTest();
-    pathCaptor = ArgumentCaptor.forClass(List.class);
-    metricCreator = new MetricCreator(queueManager.getName());
+    testExporter = new TestResultMetricExporter();
+
+    reader =
+        PeriodicMetricReader.builder(testExporter)
+            .setExecutor(Executors.newScheduledThreadPool(1))
+            .build();
+    SdkMeterProvider meterProvider =
+        SdkMeterProvider.builder().registerMetricReader(reader).build();
+    metricWriteHelper =
+        new OpenTelemetryMetricWriteHelper(
+            reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     collectorContext =
         new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
   }
@@ -73,42 +87,51 @@ public class QueueCollectionBuddyTest {
     PCFMessage request = createPCFRequestForInquireQStatusCmd();
     when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQStatusCmd());
 
-    classUnderTest = new QueueCollectionBuddy(collectorContext, sharedState, metricCreator);
+    classUnderTest = new QueueCollectionBuddy(collectorContext, sharedState);
     classUnderTest.processPCFRequestAndPublishQMetrics(
         request, "*", InquireQStatusCmdCollector.ATTRIBUTES);
 
-    verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
 
-    List<List<Metric>> allValues = pathCaptor.getAllValues();
-    assertThat(allValues).hasSize(2);
-    assertThat(allValues.get(0)).hasSize(5);
-    assertThat(allValues.get(1)).hasSize(5);
+    Map<String, Map<String, Long>> expectedValues =
+        new HashMap<String, Map<String, Long>>() {
+          {
+            put(
+                "DEV.DEAD.LETTER.QUEUE",
+                new HashMap<String, Long>() {
+                  {
+                    put("mq.oldest.msg.age", -1L);
+                    put("mq.uncommitted.messages", 0L);
+                    put("mq.onqtime.1", -1L);
+                    put("mq.onqtime.2", -1L);
+                    put("mq.queue.depth", 0L);
+                  }
+                });
+            put(
+                "DEV.QUEUE.1",
+                new HashMap<String, Long>() {
+                  {
+                    put("mq.oldest.msg.age", -1L);
+                    put("mq.uncommitted.messages", 10L);
+                    put("mq.onqtime.1", -1L);
+                    put("mq.onqtime.2", -1L);
+                    put("mq.queue.depth", 1L);
+                  }
+                });
+          }
+        };
 
-    verifyStatusRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", Arrays.asList(-1, 0, -1, -1, 0));
-    verifyStatusRow(allValues.get(1), "DEV.QUEUE.1", Arrays.asList(-1, 10, -1, -1, 1));
-  }
+    for (MetricData metric : testExporter.getExportedMetrics()) {
+      for (LongPointData d : metric.getLongGaugeData().getPoints()) {
+        String queueName = d.getAttributes().get(AttributeKey.stringKey("queue.name"));
+        Long expectedValue = expectedValues.get(queueName).remove(metric.getName());
+        assertThat(d.getValue()).isEqualTo(expectedValue);
+      }
+    }
 
-  private static void verifyStatusRow(
-      List<Metric> metrics, String component, List<Integer> values) {
-    assertThatMetric(metrics.get(0))
-        .hasName("mq.oldest.msg.age")
-        .hasValue(String.valueOf(values.get(0)));
-
-    assertThatMetric(metrics.get(1))
-        .hasName("mq.uncommitted.messages")
-        .hasValue(String.valueOf(values.get(1)));
-
-    assertThatMetric(metrics.get(2))
-        .hasName("mq.onqtime.1")
-        .hasValue(String.valueOf(values.get(2)));
-
-    assertThatMetric(metrics.get(3))
-        .hasName("mq.onqtime.2")
-        .hasValue(String.valueOf(values.get(3)));
-
-    assertThatMetric(metrics.get(4))
-        .hasName("mq.queue.depth")
-        .hasValue(String.valueOf(values.get(4)));
+    for (Map<String, Long> metrics : expectedValues.values()) {
+      assertThat(metrics).isEmpty();
+    }
   }
 
   @Test
@@ -116,38 +139,48 @@ public class QueueCollectionBuddyTest {
     PCFMessage request = createPCFRequestForInquireQCmd();
     when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQCmd());
     classUnderTest =
-        new QueueCollectionBuddy(
-            collectorContext, QueueCollectorSharedState.getInstance(), metricCreator);
+        new QueueCollectionBuddy(collectorContext, QueueCollectorSharedState.getInstance());
     classUnderTest.processPCFRequestAndPublishQMetrics(
         request, "*", InquireQCmdCollector.ATTRIBUTES);
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
 
-    verify(metricWriteHelper, times(2)).transformAndPrintMetrics(pathCaptor.capture());
+    Map<String, Map<String, Long>> expectedValues =
+        new HashMap<String, Map<String, Long>>() {
+          {
+            put(
+                "DEV.DEAD.LETTER.QUEUE",
+                new HashMap<String, Long>() {
+                  {
+                    put("mq.queue.depth", 2L);
+                    put("mq.max.queue.depth", 5000L);
+                    put("mq.open.input.count", 2L);
+                    put("mq.open.output.count", 2L);
+                  }
+                });
+            put(
+                "DEV.QUEUE.1",
+                new HashMap<String, Long>() {
+                  {
+                    put("mq.queue.depth", 3L);
+                    put("mq.max.queue.depth", 5000L);
+                    put("mq.open.input.count", 3L);
+                    put("mq.open.output.count", 3L);
+                  }
+                });
+          }
+        };
 
-    List<List<Metric>> allValues = pathCaptor.getAllValues();
-    assertThat(allValues).hasSize(2);
-    assertThat(allValues.get(0)).hasSize(4);
-    assertThat(allValues.get(1)).hasSize(4);
+    for (MetricData metric : testExporter.getExportedMetrics()) {
+      for (LongPointData d : metric.getLongGaugeData().getPoints()) {
+        String queueName = d.getAttributes().get(AttributeKey.stringKey("queue.name"));
+        Long expectedValue = expectedValues.get(queueName).remove(metric.getName());
+        assertThat(d.getValue()).isEqualTo(expectedValue);
+      }
+    }
 
-    verifyQRow(allValues.get(0), "DEV.DEAD.LETTER.QUEUE", Arrays.asList(2, 5000, 2, 2));
-    verifyQRow(allValues.get(1), "DEV.QUEUE.1", Arrays.asList(3, 5000, 3, 3));
-  }
-
-  private static void verifyQRow(List<Metric> metrics, String component, List<Integer> values) {
-    assertThatMetric(metrics.get(0))
-        .hasName("mq.queue.depth")
-        .hasValue(String.valueOf(values.get(0)));
-
-    assertThatMetric(metrics.get(1))
-        .hasName("mq.max.queue.depth")
-        .hasValue(String.valueOf(values.get(1)));
-
-    assertThatMetric(metrics.get(2))
-        .hasName("mq.open.input.count")
-        .hasValue(String.valueOf(values.get(2)));
-
-    assertThatMetric(metrics.get(3))
-        .hasName("mq.open.output.count")
-        .hasValue(String.valueOf(values.get(3)));
+    for (Map<String, Long> metrics : expectedValues.values()) {
+      assertThat(metrics).isEmpty();
+    }
   }
 
   @Test
@@ -158,21 +191,21 @@ public class QueueCollectionBuddyTest {
     sharedState.putQueueType("DEV.QUEUE.1", "local-transmission");
     PCFMessage request = createPCFRequestForResetQStatsCmd();
     when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForResetQStatsCmd());
-    classUnderTest = new QueueCollectionBuddy(collectorContext, sharedState, metricCreator);
+    classUnderTest = new QueueCollectionBuddy(collectorContext, sharedState);
     classUnderTest.processPCFRequestAndPublishQMetrics(
         request, "*", ResetQStatsCmdCollector.ATTRIBUTES);
+    reader.forceFlush().join(1, TimeUnit.SECONDS);
 
-    verify(metricWriteHelper, times(1)).transformAndPrintMetrics(pathCaptor.capture());
-
-    List<List<Metric>> allValues = pathCaptor.getAllValues();
-    assertThat(allValues).hasSize(1);
-    assertThat(allValues.get(0)).hasSize(3);
-
-    assertThatMetric(allValues.get(0).get(0)).hasName("mq.high.queue.depth").hasValue("10");
-
-    assertThatMetric(allValues.get(0).get(1)).hasName("mq.message.deq.count").hasValue("0");
-
-    assertThatMetric(allValues.get(0).get(2)).hasName("mq.message.enq.count").hasValue("3");
+    for (MetricData metric : testExporter.getExportedMetrics()) {
+      Iterator<LongPointData> iterator = metric.getLongGaugeData().getPoints().iterator();
+      if (metric.getName().equals("mq.high.queue.depth")) {
+        assertThat(iterator.next().getValue()).isEqualTo(10);
+      } else if (metric.getName().equals("mq.message.deq.count")) {
+        assertThat(iterator.next().getValue()).isEqualTo(0);
+      } else if (metric.getName().equals("mq.message.enq.count")) {
+        assertThat(iterator.next().getValue()).isEqualTo(3);
+      }
+    }
   }
 
   /*
