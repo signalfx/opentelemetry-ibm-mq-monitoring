@@ -42,20 +42,14 @@ public final class QueueMetricsCollector implements Runnable {
 
     List<Runnable> publishers = Lists.newArrayList();
     // first collect all queue types.
-    {
-      MetricsCollectorContext collectorContext = context.newCollectorContext();
-      QueueCollectionBuddy queueBuddy = new QueueCollectionBuddy(collectorContext, sharedState);
-      Runnable publisher = new InquireQCmdCollector(collectorContext, queueBuddy);
-      publisher.run();
-    }
-
-    // schedule all other jobs in parallel.
     MetricsCollectorContext collectorContext = context.newCollectorContext();
     QueueCollectionBuddy queueBuddy = new QueueCollectionBuddy(collectorContext, sharedState);
-    Runnable publisher = new InquireQStatusCmdCollector(collectorContext, queueBuddy);
-    publishers.add(publisher);
-    Runnable collector = new ResetQStatsCmdCollector(collectorContext, queueBuddy);
-    publishers.add(collector);
+    Runnable publisher = new InquireQCmdCollector(collectorContext, queueBuddy);
+    publisher.run();
+
+    // schedule all other jobs in parallel.
+    publishers.add(new InquireQStatusCmdCollector(collectorContext, queueBuddy));
+    publishers.add(new ResetQStatsCmdCollector(collectorContext, queueBuddy));
 
     CountDownLatch latch = new CountDownLatch(publishers.size());
     for (Runnable p : publishers) {

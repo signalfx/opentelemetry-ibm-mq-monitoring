@@ -106,8 +106,4 @@ public final class MetricsCollectorContext {
   OpenTelemetryMetricWriteHelper getMetricWriteHelper() {
     return metricWriteHelper;
   }
-
-  String getAgentQueueManagerName() {
-    return agent.getQManagerName();
-  }
 }
