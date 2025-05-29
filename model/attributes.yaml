@@ -36,7 +36,7 @@ groups:
       - id: channel.start.time
         type: int
         brief: >
-          The job name
+          The start time of the channel as seconds since Epoch.
         stability: development
         examples: [ 1748462702 ]
       - id: queue.name
