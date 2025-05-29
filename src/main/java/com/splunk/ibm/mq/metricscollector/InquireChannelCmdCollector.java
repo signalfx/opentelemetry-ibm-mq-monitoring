@@ -22,63 +22,34 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** This class is responsible for channel inquiry metric collection. */
-public final class InquireChannelCmdCollector implements Runnable {
+public final class InquireChannelCmdCollector implements Consumer<MetricsCollectorContext> {
 
   public static final Logger logger = LoggerFactory.getLogger(InquireChannelCmdCollector.class);
-  private final MetricsCollectorContext context;
   private final LongGauge maxClientsGauge;
   private final LongGauge instancesPerClientGauge;
   private final LongGauge messageRetryCountGauge;
   private final LongGauge messageReceivedCountGauge;
   private final LongGauge messageSentCountGauge;
 
-  public InquireChannelCmdCollector(MetricsCollectorContext context) {
-    this.context = context;
-    this.maxClientsGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.max.instances")
-            .ofLongs()
-            .build();
-    this.instancesPerClientGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.instances.per.client")
-            .ofLongs()
-            .build();
-    this.messageRetryCountGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.message.retry.count")
-            .ofLongs()
-            .build();
+  public InquireChannelCmdCollector(Meter meter) {
+    this.maxClientsGauge = meter.gaugeBuilder("mq.max.instances").ofLongs().build();
+    this.instancesPerClientGauge = meter.gaugeBuilder("mq.instances.per.client").ofLongs().build();
+    this.messageRetryCountGauge = meter.gaugeBuilder("mq.message.retry.count").ofLongs().build();
     this.messageReceivedCountGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.message.received.count")
-            .ofLongs()
-            .build();
-    this.messageSentCountGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.message.sent.count")
-            .ofLongs()
-            .build();
+        meter.gaugeBuilder("mq.message.received.count").ofLongs().build();
+    this.messageSentCountGauge = meter.gaugeBuilder("mq.message.sent.count").ofLongs().build();
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     long entryTime = System.currentTimeMillis();
 
     Set<String> channelGenericNames = context.getChannelIncludeFilterNames();
@@ -114,7 +85,7 @@ public final class InquireChannelCmdCollector implements Runnable {
           String channelName = MessageBuddy.channelName(message);
           String channelType = MessageBuddy.channelType(message);
           logger.debug("Pulling out metrics for channel name {}", channelName);
-          updateMetrics(message, channelName, channelType);
+          updateMetrics(message, channelName, channelType, context);
         }
       } catch (PCFException pcfe) {
         if (pcfe.getReason() == MQConstants.MQRCCF_CHL_STATUS_NOT_FOUND) {
@@ -140,7 +111,8 @@ public final class InquireChannelCmdCollector implements Runnable {
     logger.debug("Time taken to publish metrics for all channels is {} milliseconds", exitTime);
   }
 
-  private void updateMetrics(PCFMessage message, String channelName, String channelType)
+  private void updateMetrics(
+      PCFMessage message, String channelName, String channelType, MetricsCollectorContext context)
       throws PCFException {
     Attributes attributes =
         Attributes.builder()

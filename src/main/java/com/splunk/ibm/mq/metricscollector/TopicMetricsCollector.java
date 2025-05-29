@@ -15,39 +15,22 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.google.common.collect.Lists;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import io.opentelemetry.api.metrics.Meter;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class TopicMetricsCollector implements Runnable {
+public final class TopicMetricsCollector implements Consumer<MetricsCollectorContext> {
   private static final Logger logger = LoggerFactory.getLogger(TopicMetricsCollector.class);
-  private final JobSubmitterContext context;
+  private final InquireTStatusCmdCollector inquireTStatusCmdCollector;
 
-  public TopicMetricsCollector(JobSubmitterContext context) {
-    this.context = context;
+  public TopicMetricsCollector(Meter meter) {
+    this.inquireTStatusCmdCollector = new InquireTStatusCmdCollector(meter);
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     logger.info("Collecting Topic metrics...");
-    List<Runnable> publishers = Lists.newArrayList();
-
-    //  to query the current status of topics, which is essential for monitoring and managing the
-    // publish/subscribe environment in IBM MQ.
-    MetricsCollectorContext collectorContext = context.newCollectorContext();
-    publishers.add(new InquireTStatusCmdCollector(collectorContext));
-    CountDownLatch latch = new CountDownLatch(publishers.size());
-    for (Runnable publisher : publishers) {
-      context.submitPublishJob(publisher, latch);
-    }
-    try {
-      int timeout = context.getConfigInt("topicMetricsCollectionTimeoutInSeconds", 20);
-      latch.await(timeout, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      logger.error("The thread was interrupted ", e);
-    }
+    inquireTStatusCmdCollector.accept(context);
   }
 }

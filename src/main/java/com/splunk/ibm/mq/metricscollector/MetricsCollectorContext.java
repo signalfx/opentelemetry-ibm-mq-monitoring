@@ -17,12 +17,12 @@ package com.splunk.ibm.mq.metricscollector;
 
 import static java.util.Collections.emptyList;
 
+import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.ExcludeFilters;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.opentelemetry.Writer;
 import java.io.IOException;
 import java.util.*;
 import javax.annotation.concurrent.Immutable;
@@ -42,13 +42,13 @@ public final class MetricsCollectorContext {
 
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
-  private final Writer metricWriteHelper;
+  private final MQQueueManager mqQueueManager;
 
   public MetricsCollectorContext(
-      QueueManager queueManager, PCFMessageAgent agent, Writer metricWriteHelper) {
+      QueueManager queueManager, PCFMessageAgent agent, MQQueueManager mqQueueManager) {
     this.queueManager = queueManager;
     this.agent = agent;
-    this.metricWriteHelper = metricWriteHelper;
+    this.mqQueueManager = mqQueueManager;
   }
 
   Set<String> getChannelIncludeFilterNames() {
@@ -97,11 +97,7 @@ public final class MetricsCollectorContext {
     return queueManager;
   }
 
-  PCFMessageAgent getAgent() {
-    return agent;
-  }
-
-  Writer getMetricWriteHelper() {
-    return metricWriteHelper;
+  public MQQueueManager getMqQueueManager() {
+    return mqQueueManager;
   }
 }

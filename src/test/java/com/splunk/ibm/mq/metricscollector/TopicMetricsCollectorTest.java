@@ -27,7 +27,6 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
@@ -72,17 +71,14 @@ public class TopicMetricsCollectorTest {
             .build();
     SdkMeterProvider meterProvider =
         SdkMeterProvider.builder().registerMetricReader(reader).build();
-    Writer metricWriteHelper =
-        new Writer(reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     MetricsCollectorContext context =
-        new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
-    JobSubmitterContext jobContext = new JobSubmitterContext(context, threadPool, config);
-    classUnderTest = new TopicMetricsCollector(jobContext);
+        new MetricsCollectorContext(queueManager, pcfMessageAgent, null);
+    classUnderTest = new TopicMetricsCollector(meterProvider.get("opentelemetry.io/mq"));
 
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireTopicStatusCmd());
 
-    classUnderTest.run();
+    classUnderTest.accept(context);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
 
     List<String> metricsList = Lists.newArrayList("mq.publish.count", "mq.subscription.count");

@@ -26,8 +26,8 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
@@ -50,19 +50,17 @@ public class QueueCollectionBuddyTest {
 
   @Mock private PCFMessageAgent pcfMessageAgent;
 
-  private Writer metricWriteHelper;
-
   private QueueManager queueManager;
   MetricsCollectorContext collectorContext;
   private TestResultMetricExporter testExporter;
   private PeriodicMetricReader reader;
+  private Meter meter;
 
   @BeforeEach
   void setup() throws Exception {
     ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    QueueCollectorSharedState.getInstance().resetForTest();
     testExporter = new TestResultMetricExporter();
 
     reader =
@@ -71,23 +69,22 @@ public class QueueCollectionBuddyTest {
             .build();
     SdkMeterProvider meterProvider =
         SdkMeterProvider.builder().registerMetricReader(reader).build();
-    metricWriteHelper = new Writer(reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
-    collectorContext =
-        new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
+    meter = meterProvider.get("opentelemetry.io/mq");
+    collectorContext = new MetricsCollectorContext(queueManager, pcfMessageAgent, null);
   }
 
   @Test
   void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
-    QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
+    QueueCollectorSharedState sharedState = new QueueCollectorSharedState();
     sharedState.putQueueType("AMQ.5AF1608820C7D76E", "local-transmission");
     sharedState.putQueueType("DEV.DEAD.LETTER.QUEUE", "local-transmission");
     sharedState.putQueueType("DEV.QUEUE.1", "local-transmission");
     PCFMessage request = createPCFRequestForInquireQStatusCmd();
     when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQStatusCmd());
 
-    classUnderTest = new QueueCollectionBuddy(collectorContext, sharedState);
+    classUnderTest = new QueueCollectionBuddy(meter, sharedState);
     classUnderTest.processPCFRequestAndPublishQMetrics(
-        request, "*", InquireQStatusCmdCollector.ATTRIBUTES);
+        collectorContext, request, "*", InquireQStatusCmdCollector.ATTRIBUTES);
 
     reader.forceFlush().join(1, TimeUnit.SECONDS);
 
@@ -136,10 +133,9 @@ public class QueueCollectionBuddyTest {
   void testProcessPCFRequestAndPublishQMetricsForInquireQCmd() throws Exception {
     PCFMessage request = createPCFRequestForInquireQCmd();
     when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForInquireQCmd());
-    classUnderTest =
-        new QueueCollectionBuddy(collectorContext, QueueCollectorSharedState.getInstance());
+    classUnderTest = new QueueCollectionBuddy(meter, new QueueCollectorSharedState());
     classUnderTest.processPCFRequestAndPublishQMetrics(
-        request, "*", InquireQCmdCollector.ATTRIBUTES);
+        collectorContext, request, "*", InquireQCmdCollector.ATTRIBUTES);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
 
     Map<String, Map<String, Long>> expectedValues =
@@ -183,15 +179,15 @@ public class QueueCollectionBuddyTest {
 
   @Test
   void testProcessPCFRequestAndPublishQMetricsForResetQStatsCmd() throws Exception {
-    QueueCollectorSharedState sharedState = QueueCollectorSharedState.getInstance();
+    QueueCollectorSharedState sharedState = new QueueCollectorSharedState();
     sharedState.putQueueType("AMQ.5AF1608820C7D76E", "local-transmission");
     sharedState.putQueueType("DEV.DEAD.LETTER.QUEUE", "local-transmission");
     sharedState.putQueueType("DEV.QUEUE.1", "local-transmission");
     PCFMessage request = createPCFRequestForResetQStatsCmd();
     when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForResetQStatsCmd());
-    classUnderTest = new QueueCollectionBuddy(collectorContext, sharedState);
+    classUnderTest = new QueueCollectionBuddy(meter, sharedState);
     classUnderTest.processPCFRequestAndPublishQMetrics(
-        request, "*", ResetQStatsCmdCollector.ATTRIBUTES);
+        collectorContext, request, "*", ResetQStatsCmdCollector.ATTRIBUTES);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
 
     for (MetricData metric : testExporter.getExportedMetrics()) {

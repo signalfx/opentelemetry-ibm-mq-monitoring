@@ -32,7 +32,7 @@ import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.Writer;
+import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
@@ -56,12 +56,11 @@ class ChannelMetricsCollectorTest {
 
   @Mock PCFMessageAgent pcfMessageAgent;
 
-  Writer metricWriteHelper;
-
   QueueManager queueManager;
   MetricsCollectorContext context;
   private TestResultMetricExporter testExporter;
   private PeriodicMetricReader reader;
+  private Meter meter;
 
   @BeforeEach
   void setup() throws Exception {
@@ -75,17 +74,17 @@ class ChannelMetricsCollectorTest {
             .build();
     SdkMeterProvider meterProvider =
         SdkMeterProvider.builder().registerMetricReader(reader).build();
-    metricWriteHelper = new Writer(reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
-    context = new MetricsCollectorContext(queueManager, pcfMessageAgent, metricWriteHelper);
+    meter = meterProvider.get("opentelemetry.io/mq");
+    context = new MetricsCollectorContext(queueManager, pcfMessageAgent, null);
   }
 
   @Test
   void testPublishMetrics() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireChannelStatusCmd());
-    classUnderTest = new ChannelMetricsCollector(context);
+    classUnderTest = new ChannelMetricsCollector(meter);
 
-    classUnderTest.run();
+    classUnderTest.accept(context);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
 
     List<String> metricsList =
@@ -208,9 +207,9 @@ class ChannelMetricsCollectorTest {
   @Test
   void testPublishMetrics_nullResponse() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(null);
-    classUnderTest = new ChannelMetricsCollector(context);
+    classUnderTest = new ChannelMetricsCollector(meter);
 
-    classUnderTest.run();
+    classUnderTest.accept(context);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
     assertThat(testExporter.getExportedMetrics()).isEmpty();
   }
@@ -218,9 +217,9 @@ class ChannelMetricsCollectorTest {
   @Test
   void testPublishMetrics_emptyResponse() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenReturn(new PCFMessage[] {});
-    classUnderTest = new ChannelMetricsCollector(context);
+    classUnderTest = new ChannelMetricsCollector(meter);
 
-    classUnderTest.run();
+    classUnderTest.accept(context);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
     assertThat(testExporter.getExportedMetrics()).isEmpty();
   }
@@ -229,9 +228,9 @@ class ChannelMetricsCollectorTest {
   @MethodSource("exceptionsToThrow")
   void testPublishMetrics_pfException(Exception exceptionToThrow) throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class))).thenThrow(exceptionToThrow);
-    classUnderTest = new ChannelMetricsCollector(context);
+    classUnderTest = new ChannelMetricsCollector(meter);
 
-    classUnderTest.run();
+    classUnderTest.accept(context);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
 
     List<MetricData> exported = testExporter.getExportedMetrics();

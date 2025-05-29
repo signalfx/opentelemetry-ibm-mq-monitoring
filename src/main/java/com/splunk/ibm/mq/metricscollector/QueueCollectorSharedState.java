@@ -18,18 +18,11 @@ package com.splunk.ibm.mq.metricscollector;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nullable;
 
-/** A miserable hack to encapsulate the state that is shared between queue collectors */
-public final class QueueCollectorSharedState {
+final class QueueCollectorSharedState {
 
   private final ConcurrentHashMap<String, String> queueNameToType = new ConcurrentHashMap<>();
 
-  private static final QueueCollectorSharedState INSTANCE = new QueueCollectorSharedState();
-
-  public static QueueCollectorSharedState getInstance() {
-    return INSTANCE;
-  }
-
-  private QueueCollectorSharedState() {}
+  QueueCollectorSharedState() {}
 
   public void putQueueType(String name, String value) {
     queueNameToType.put(name, value);
@@ -38,10 +31,5 @@ public final class QueueCollectorSharedState {
   @Nullable
   public String getType(String name) {
     return queueNameToType.get(name);
-  }
-
-  // Only exists for testing and should not normally ever be called.
-  void resetForTest() {
-    queueNameToType.clear();
   }
 }

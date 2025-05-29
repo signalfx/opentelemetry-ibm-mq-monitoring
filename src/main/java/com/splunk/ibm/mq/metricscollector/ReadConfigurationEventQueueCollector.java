@@ -19,53 +19,42 @@ import com.ibm.mq.MQException;
 import com.ibm.mq.MQGetMessageOptions;
 import com.ibm.mq.MQMessage;
 import com.ibm.mq.MQQueue;
-import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
 import java.io.IOException;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class ReadConfigurationEventQueueCollector implements Runnable {
+public final class ReadConfigurationEventQueueCollector
+    implements Consumer<MetricsCollectorContext> {
 
   private static final Logger logger =
       LoggerFactory.getLogger(ReadConfigurationEventQueueCollector.class);
-  private final QueueManager queueManager;
-  private final PCFMessageAgent agent;
-  private final MQQueueManager mqQueueManager;
   private final long bootTime;
   private final LongGauge maxHandlesGauge;
 
-  public ReadConfigurationEventQueueCollector(
-      PCFMessageAgent agent,
-      MQQueueManager mqQueueManager,
-      QueueManager queueManager,
-      Writer metricWriteHelper) {
-    this.agent = agent;
-    this.mqQueueManager = mqQueueManager;
-    this.queueManager = queueManager;
+  public ReadConfigurationEventQueueCollector(Meter meter) {
     this.bootTime = System.currentTimeMillis();
-    this.maxHandlesGauge =
-        metricWriteHelper.getMeter().gaugeBuilder("mq.manager.max.handles").ofLongs().build();
+    this.maxHandlesGauge = meter.gaugeBuilder("mq.manager.max.handles").ofLongs().build();
   }
 
-  private PCFMessage findLastUpdate(long entryTime, String configurationQueueName)
+  private PCFMessage findLastUpdate(
+      MetricsCollectorContext context, long entryTime, String configurationQueueName)
       throws Exception {
     // find the last update:
     PCFMessage candidate = null;
 
     boolean consumeEvents =
-        this.queueManager.getConsumeConfigurationEventInterval() > 0
+        context.getQueueManager().getConsumeConfigurationEventInterval() > 0
             && (entryTime - this.bootTime)
-                    % this.queueManager.getConsumeConfigurationEventInterval()
+                    % context.getQueueManager().getConsumeConfigurationEventInterval()
                 == 0;
 
     MQQueue queue = null;
@@ -75,7 +64,7 @@ public final class ReadConfigurationEventQueueCollector implements Runnable {
         // we are not consuming the events.
         queueAccessOptions |= MQConstants.MQOO_BROWSE;
       }
-      queue = mqQueueManager.accessQueue(configurationQueueName, queueAccessOptions);
+      queue = context.getMqQueueManager().accessQueue(configurationQueueName, queueAccessOptions);
       int maxSequenceNumber = 0;
       // keep going until receiving the exception MQConstants.MQRC_NO_MSG_AVAILABLE
       while (true) {
@@ -113,18 +102,18 @@ public final class ReadConfigurationEventQueueCollector implements Runnable {
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     long entryTime = System.currentTimeMillis();
-    String configurationQueueName = this.queueManager.getConfigurationQueueName();
+    String configurationQueueName = context.getQueueManager().getConfigurationQueueName();
     logger.info(
         "sending PCF agent request to read configuration events from queue {}",
         configurationQueueName);
     try {
 
-      PCFMessage candidate = findLastUpdate(entryTime, configurationQueueName);
+      PCFMessage candidate = findLastUpdate(context, entryTime, configurationQueueName);
 
       if (candidate == null) {
-        if (queueManager.isRefreshQueueManagerConfigurationEnabled()) {
+        if (context.getQueueManager().isRefreshQueueManagerConfigurationEnabled()) {
           // no event found.
           // we issue a refresh request, which will generate a configuration event on the
           // configuration event queue.
@@ -132,9 +121,9 @@ public final class ReadConfigurationEventQueueCollector implements Runnable {
           PCFMessage request = new PCFMessage(CMQCFC.MQCMD_REFRESH_Q_MGR);
           request.addParameter(CMQCFC.MQIACF_REFRESH_TYPE, CMQCFC.MQRT_CONFIGURATION);
           request.addParameter(CMQCFC.MQIACF_OBJECT_TYPE, CMQC.MQOT_Q_MGR);
-          agent.send(request);
+          context.send(request);
           // try again:
-          candidate = findLastUpdate(entryTime, configurationQueueName);
+          candidate = findLastUpdate(context, entryTime, configurationQueueName);
         }
       }
 
@@ -142,7 +131,8 @@ public final class ReadConfigurationEventQueueCollector implements Runnable {
         int maxHandles = candidate.getIntParameterValue(CMQC.MQIA_MAX_HANDLES);
         maxHandlesGauge.set(
             maxHandles,
-            Attributes.of(AttributeKey.stringKey("queue.manager"), this.queueManager.getName()));
+            Attributes.of(
+                AttributeKey.stringKey("queue.manager"), context.getQueueManager().getName()));
       }
 
     } catch (Exception e) {

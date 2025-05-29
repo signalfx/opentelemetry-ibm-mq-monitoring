@@ -23,40 +23,28 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class InquireTStatusCmdCollector implements Runnable {
+final class InquireTStatusCmdCollector implements Consumer<MetricsCollectorContext> {
 
   private static final Logger logger = LoggerFactory.getLogger(InquireTStatusCmdCollector.class);
 
-  private final MetricsCollectorContext context;
   private final LongGauge publishCountGauge;
   private final LongGauge subscriptionCountGauge;
 
-  public InquireTStatusCmdCollector(MetricsCollectorContext context) {
-    this.context = context;
-    this.publishCountGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.publish.count")
-            .ofLongs()
-            .build();
-    this.subscriptionCountGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.subscription.count")
-            .ofLongs()
-            .build();
+  public InquireTStatusCmdCollector(Meter meter) {
+    this.publishCountGauge = meter.gaugeBuilder("mq.publish.count").ofLongs().build();
+    this.subscriptionCountGauge = meter.gaugeBuilder("mq.subscription.count").ofLongs().build();
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     logger.info("Collecting metrics for command MQCMD_INQUIRE_TOPIC_STATUS");
     long entryTime = System.currentTimeMillis();
 
@@ -72,7 +60,7 @@ final class InquireTStatusCmdCollector implements Runnable {
       request.addParameter(CMQC.MQCA_TOPIC_STRING, topicGenericName);
 
       try {
-        processPCFRequestAndPublishQMetrics(topicGenericName, request);
+        processPCFRequestAndPublishQMetrics(context, topicGenericName, request);
       } catch (PCFException pcfe) {
         logger.error(
             "PCFException caught while collecting metric for Queue: {} for command MQCMD_INQUIRE_TOPIC_STATUS",
@@ -94,7 +82,8 @@ final class InquireTStatusCmdCollector implements Runnable {
         exitTime);
   }
 
-  private void processPCFRequestAndPublishQMetrics(String topicGenericName, PCFMessage request)
+  private void processPCFRequestAndPublishQMetrics(
+      MetricsCollectorContext context, String topicGenericName, PCFMessage request)
       throws IOException, MQDataException {
     logger.debug(
         "sending PCF agent request to topic metrics for generic topic {} for command MQCMD_INQUIRE_TOPIC_STATUS",
@@ -123,11 +112,13 @@ final class InquireTStatusCmdCollector implements Runnable {
       logger.debug(
           "Pulling out metrics for topic name {} for command MQCMD_INQUIRE_TOPIC_STATUS",
           topicName);
-      extractMetrics(message, topicName);
+      extractMetrics(context, message, topicName);
     }
   }
 
-  private void extractMetrics(PCFMessage pcfMessage, String topicString) throws PCFException {
+  private void extractMetrics(
+      MetricsCollectorContext context, PCFMessage pcfMessage, String topicString)
+      throws PCFException {
     Attributes attributes =
         Attributes.of(
             AttributeKey.stringKey("topic.name"),

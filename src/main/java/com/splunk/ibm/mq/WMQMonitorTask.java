@@ -16,6 +16,7 @@
 package com.splunk.ibm.mq;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.MQDataException;
@@ -24,28 +25,24 @@ import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.metricscollector.ChannelMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.InquireChannelCmdCollector;
 import com.splunk.ibm.mq.metricscollector.InquireQueueManagerCmdCollector;
-import com.splunk.ibm.mq.metricscollector.JobSubmitterContext;
 import com.splunk.ibm.mq.metricscollector.ListenerMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.MetricsCollectorContext;
-import com.splunk.ibm.mq.metricscollector.MetricsPublisherJob;
 import com.splunk.ibm.mq.metricscollector.PerformanceEventQueueCollector;
-import com.splunk.ibm.mq.metricscollector.QueueCollectorSharedState;
 import com.splunk.ibm.mq.metricscollector.QueueManagerEventCollector;
 import com.splunk.ibm.mq.metricscollector.QueueManagerMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.QueueMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.ReadConfigurationEventQueueCollector;
 import com.splunk.ibm.mq.metricscollector.TopicMetricsCollector;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
-import java.util.function.Function;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,23 +51,30 @@ public class WMQMonitorTask implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitorTask.class);
   private final QueueManager queueManager;
-  private final ConfigWrapper config;
-  private final Writer metricWriteHelper;
-  private final List<Runnable> pendingJobs = new ArrayList<>();
+  private final List<Consumer<MetricsCollectorContext>> jobs = new ArrayList<>();
   private final ExecutorService threadPool;
   private final LongGauge heartbeatGauge;
 
   public WMQMonitorTask(
       ConfigWrapper config,
-      Writer metricWriteHelper,
+      Meter meter,
       QueueManager queueManager,
       ExecutorService threadPool,
       LongGauge heartbeatGauge) {
-    this.config = config;
     this.queueManager = queueManager;
-    this.metricWriteHelper = metricWriteHelper;
     this.threadPool = threadPool;
     this.heartbeatGauge = heartbeatGauge;
+
+    jobs.add(new QueueManagerMetricsCollector(meter));
+    jobs.add(new InquireQueueManagerCmdCollector(meter));
+    jobs.add(new ChannelMetricsCollector(meter));
+    jobs.add(new InquireChannelCmdCollector(meter));
+    jobs.add(new QueueMetricsCollector(meter, threadPool, config));
+    jobs.add(new ListenerMetricsCollector(meter));
+    jobs.add(new TopicMetricsCollector(meter));
+    jobs.add(new ReadConfigurationEventQueueCollector(meter));
+    jobs.add(new PerformanceEventQueueCollector(meter));
+    jobs.add(new QueueManagerEventCollector(meter));
   }
 
   @Override
@@ -97,7 +101,6 @@ public class WMQMonitorTask implements Runnable {
       heartbeatGauge.set(
           heartBeatMetricValue,
           Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName));
-      metricWriteHelper.flush();
       cleanUp(ibmQueueManager, agent);
       long endTime = System.currentTimeMillis() - startTime;
       logger.debug(
@@ -159,118 +162,19 @@ public class WMQMonitorTask implements Runnable {
   }
 
   private void extractAndReportMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
-    pendingJobs.clear();
-
-    // Step 2: Inquire each metric type
-    inquireQueueManagerMetrics(agent);
-
-    inquireChannelMetrics(agent);
-
-    inquireQueueMetrics(QueueCollectorSharedState.getInstance(), agent);
-
-    inquireListenerMetrics(ListenerMetricsCollector::new, agent);
-
-    inquireTopicMetrics(TopicMetricsCollector::new, agent);
-
-    inquireConfigurationMetrics(mqQueueManager, agent);
-
-    inquirePerformanceMetrics(mqQueueManager);
-
-    inquireQueueManagerEventsMetrics(mqQueueManager);
-
-    // Step 3: enqueue all jobs
-    CountDownLatch countDownLatch = new CountDownLatch(pendingJobs.size());
-    logger.debug("Queueing {} jobs", pendingJobs.size());
-    for (Runnable collector : pendingJobs) {
-      Runnable job = new MetricsPublisherJob(collector, countDownLatch);
-      threadPool.submit(new TaskJob(collector.getClass().getSimpleName(), job));
+    logger.debug("Queueing {} jobs", jobs.size());
+    MetricsCollectorContext context =
+        new MetricsCollectorContext(queueManager, agent, mqQueueManager);
+    List<TaskJob> tasks = Lists.newArrayList();
+    for (Consumer<MetricsCollectorContext> collector : jobs) {
+      tasks.add(new TaskJob(collector.getClass().getSimpleName(), () -> collector.accept(context)));
     }
-    pendingJobs.clear();
 
-    // Step 4: Await all jobs to complete
     try {
-      countDownLatch.await();
+      threadPool.invokeAll(tasks);
     } catch (InterruptedException e) {
       logger.error("Error while the thread {} is waiting ", Thread.currentThread().getName(), e);
     }
-  }
-
-  private void inquireQueueManagerMetrics(PCFMessageAgent agent) {
-
-    processMetricType(QueueManagerMetricsCollector::new, agent);
-    processMetricType(InquireQueueManagerCmdCollector::new, agent);
-  }
-
-  private void inquireChannelMetrics(PCFMessageAgent agent) {
-    processMetricType(ChannelMetricsCollector::new, agent);
-    processMetricType(InquireChannelCmdCollector::new, agent);
-  }
-
-  // Helper to process general metric types
-  private void processMetricType(
-      Function<MetricsCollectorContext, Runnable> collectorConstructor, PCFMessageAgent agent) {
-
-    MetricsCollectorContext context =
-        new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
-    Runnable collector = collectorConstructor.apply(context);
-    pendingJobs.add(collector);
-  }
-
-  // Inquire for queue metrics
-  private void inquireQueueMetrics(QueueCollectorSharedState sharedState, PCFMessageAgent agent) {
-
-    MetricsCollectorContext collectorContext =
-        new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
-    JobSubmitterContext jobSubmitterContext =
-        new JobSubmitterContext(collectorContext, threadPool, config);
-    Runnable queueMetricsCollector = new QueueMetricsCollector(sharedState, jobSubmitterContext);
-    pendingJobs.add(queueMetricsCollector);
-  }
-
-  // Inquire for listener metrics
-  private void inquireListenerMetrics(
-      Function<MetricsCollectorContext, Runnable> collectorConstructor, PCFMessageAgent agent) {
-
-    MetricsCollectorContext context =
-        new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
-    Runnable metricsCollector = collectorConstructor.apply(context);
-    pendingJobs.add(metricsCollector);
-  }
-
-  // Inquire for topic metrics
-  private void inquireTopicMetrics(
-      Function<JobSubmitterContext, Runnable> collectorConstructor, PCFMessageAgent agent) {
-
-    MetricsCollectorContext context =
-        new MetricsCollectorContext(queueManager, agent, metricWriteHelper);
-    JobSubmitterContext jobSubmitterContext = new JobSubmitterContext(context, threadPool, config);
-    Runnable metricsCollector = collectorConstructor.apply(jobSubmitterContext);
-    pendingJobs.add(metricsCollector);
-  }
-
-  // Inquire configuration-specific metrics
-  private void inquireConfigurationMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
-
-    ReadConfigurationEventQueueCollector collector =
-        new ReadConfigurationEventQueueCollector(
-            agent, mqQueueManager, queueManager, metricWriteHelper);
-    pendingJobs.add(collector);
-  }
-
-  // Inquire performance-specific metrics
-  private void inquirePerformanceMetrics(MQQueueManager mqQueueManager) {
-
-    PerformanceEventQueueCollector collector =
-        new PerformanceEventQueueCollector(mqQueueManager, queueManager, metricWriteHelper);
-    pendingJobs.add(collector);
-  }
-
-  // Inquire queue manager event specific metrics
-  private void inquireQueueManagerEventsMetrics(MQQueueManager mqQueueManager) {
-
-    QueueManagerEventCollector collector =
-        new QueueManagerEventCollector(mqQueueManager, queueManager, metricWriteHelper);
-    pendingJobs.add(collector);
   }
 
   /** Destroy the agent and disconnect from queue manager */

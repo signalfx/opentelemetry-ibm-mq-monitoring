@@ -23,31 +23,26 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.List;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** This class is responsible for queue metric collection. */
-public final class InquireQueueManagerCmdCollector implements Runnable {
+public final class InquireQueueManagerCmdCollector implements Consumer<MetricsCollectorContext> {
 
   private static final Logger logger =
       LoggerFactory.getLogger(InquireQueueManagerCmdCollector.class);
-  private final MetricsCollectorContext context;
   private final LongGauge statisticsIntervalGauge;
 
-  public InquireQueueManagerCmdCollector(MetricsCollectorContext context) {
-    this.context = context;
+  public InquireQueueManagerCmdCollector(Meter meter) {
     this.statisticsIntervalGauge =
-        context
-            .getMetricWriteHelper()
-            .getMeter()
-            .gaugeBuilder("mq.manager.statistics.interval")
-            .ofLongs()
-            .build();
+        meter.gaugeBuilder("mq.manager.statistics.interval").ofLongs().build();
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     long entryTime = System.currentTimeMillis();
     logger.debug(
         "publishMetrics entry time for queuemanager {} is {} milliseconds",

@@ -19,50 +19,46 @@ import com.ibm.mq.MQException;
 import com.ibm.mq.MQGetMessageOptions;
 import com.ibm.mq.MQMessage;
 import com.ibm.mq.MQQueue;
-import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.Meter;
 import java.io.IOException;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 // Captures metrics from events logged to the queue manager performance event queue.
-public final class PerformanceEventQueueCollector implements Runnable {
+public final class PerformanceEventQueueCollector implements Consumer<MetricsCollectorContext> {
 
   private static final Logger logger =
       LoggerFactory.getLogger(PerformanceEventQueueCollector.class);
-  private final QueueManager queueManager;
-  private final MQQueueManager mqQueueManager;
   private final LongCounter fullQueueDepthCounter;
   private final LongCounter highQueueDepthCounter;
   private final LongCounter lowQueueDepthCounter;
 
-  public PerformanceEventQueueCollector(
-      MQQueueManager mqQueueManager, QueueManager queueManager, Writer writer) {
-    this.mqQueueManager = mqQueueManager;
-    this.queueManager = queueManager;
+  public PerformanceEventQueueCollector(Meter meter) {
     this.fullQueueDepthCounter =
-        writer.getMeter().counterBuilder("mq.queue.depth.full.event").setUnit("1").build();
+        meter.counterBuilder("mq.queue.depth.full.event").setUnit("1").build();
     this.highQueueDepthCounter =
-        writer.getMeter().counterBuilder("mq.queue.depth.high.event").setUnit("1").build();
+        meter.counterBuilder("mq.queue.depth.high.event").setUnit("1").build();
     this.lowQueueDepthCounter =
-        writer.getMeter().counterBuilder("mq.queue.depth.low.event").setUnit("1").build();
+        meter.counterBuilder("mq.queue.depth.low.event").setUnit("1").build();
   }
 
-  private void readEvents(String performanceEventsQueueName) throws Exception {
+  private void readEvents(MetricsCollectorContext context, String performanceEventsQueueName)
+      throws Exception {
 
     MQQueue queue = null;
     int counter = 0;
     try {
       int queueAccessOptions = MQConstants.MQOO_FAIL_IF_QUIESCING | MQConstants.MQOO_INPUT_SHARED;
-      queue = mqQueueManager.accessQueue(performanceEventsQueueName, queueAccessOptions);
+      queue =
+          context.getMqQueueManager().accessQueue(performanceEventsQueueName, queueAccessOptions);
       // keep going until receiving the exception MQConstants.MQRC_NO_MSG_AVAILABLE
       logger.debug("Start reading events from performance queue {}", performanceEventsQueueName);
       while (true) {
@@ -73,7 +69,7 @@ public final class PerformanceEventQueueCollector implements Runnable {
 
           queue.get(message, getOptions);
           PCFMessage receivedMsg = new PCFMessage(message);
-          incrementCounterByEventType(receivedMsg);
+          incrementCounterByEventType(context, receivedMsg);
           counter++;
         } catch (MQException e) {
           if (e.reasonCode != MQConstants.MQRC_NO_MSG_AVAILABLE) {
@@ -93,12 +89,13 @@ public final class PerformanceEventQueueCollector implements Runnable {
     logger.debug("Read {} events from performance queue {}", counter, performanceEventsQueueName);
   }
 
-  private void incrementCounterByEventType(PCFMessage receivedMsg) throws PCFException {
+  private void incrementCounterByEventType(MetricsCollectorContext context, PCFMessage receivedMsg)
+      throws PCFException {
     String queueName = receivedMsg.getStringParameterValue(CMQC.MQCA_BASE_OBJECT_NAME).trim();
     Attributes attributes =
         Attributes.of(
             AttributeKey.stringKey("queue.manager"),
-            queueManager.getName(),
+            context.getQueueManagerName(),
             AttributeKey.stringKey("queue.name"),
             queueName);
     switch (receivedMsg.getReason()) {
@@ -117,14 +114,14 @@ public final class PerformanceEventQueueCollector implements Runnable {
   }
 
   @Override
-  public void run() {
+  public void accept(MetricsCollectorContext context) {
     long entryTime = System.currentTimeMillis();
-    String performanceEventsQueueName = this.queueManager.getPerformanceEventsQueueName();
+    String performanceEventsQueueName = context.getQueueManager().getPerformanceEventsQueueName();
     logger.info(
         "sending PCF agent request to read performance events from queue {}",
         performanceEventsQueueName);
     try {
-      readEvents(performanceEventsQueueName);
+      readEvents(context, performanceEventsQueueName);
     } catch (Exception e) {
       logger.error(
           "Unexpected error occurred while collecting performance events for queue "

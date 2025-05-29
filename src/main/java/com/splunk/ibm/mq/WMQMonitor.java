@@ -16,11 +16,11 @@
 package com.splunk.ibm.mq;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -32,37 +32,37 @@ public class WMQMonitor implements Runnable {
 
   public static final Logger logger = LoggerFactory.getLogger(WMQMonitor.class);
 
-  private final Writer metricWriteHelper;
   private final ExecutorService threadPool;
   private final ConfigWrapper config;
-  private final LongGauge heartbeatGauge;
+  private final List<TaskJob> jobs;
 
-  public WMQMonitor(ConfigWrapper config, ExecutorService threadPool, Writer metricWriteHelper) {
-    assert (metricWriteHelper != null);
+  public WMQMonitor(ConfigWrapper config, ExecutorService threadPool, Meter meter) {
     this.config = config;
     this.threadPool = threadPool;
-    this.metricWriteHelper = metricWriteHelper;
-    this.heartbeatGauge =
-        metricWriteHelper.getMeter().gaugeBuilder("mq.heartbeat").setUnit("1").ofLongs().build();
+    LongGauge heartbeatGauge = meter.gaugeBuilder("mq.heartbeat").setUnit("1").ofLongs().build();
+    List<Map<String, ?>> queueManagers = getQueueManagers();
+    ObjectMapper mapper = new ObjectMapper();
+
+    this.jobs = new ArrayList<>();
+
+    for (Map<String, ?> queueManager : queueManagers) {
+      try {
+        QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
+        WMQMonitorTask task =
+            new WMQMonitorTask(config, meter, qManager, threadPool, heartbeatGauge);
+        jobs.add(new TaskJob((String) queueManager.get("name"), task));
+      } catch (Throwable t) {
+        logger.error("Error preparing queue manager {}", queueManager, t);
+      }
+    }
   }
 
   @Override
   public void run() {
-    configureSecurity();
-
-    List<Map<String, ?>> queueManagers = getQueueManagers();
-    ObjectMapper mapper = new ObjectMapper();
-
-    for (Map<String, ?> queueManager : queueManagers) {
-      try {
-
-        QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
-        WMQMonitorTask task =
-            new WMQMonitorTask(config, metricWriteHelper, qManager, threadPool, heartbeatGauge);
-        threadPool.submit(new TaskJob((String) queueManager.get("name"), task));
-      } catch (Throwable t) {
-        logger.error("Error preparing queue manager {}", queueManager, t);
-      }
+    try {
+      threadPool.invokeAll(jobs);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -74,53 +74,5 @@ public class WMQMonitor implements Runnable {
           "The 'queueManagers' section in config.yml is empty or otherwise incorrect.");
     }
     return queueManagers;
-  }
-
-  private void configureSecurity() {
-    Map<String, String> sslConnection = config.getSslConnection();
-    if (sslConnection.isEmpty()) {
-      logger.debug(
-          "ssl truststore and keystore are not configured in config.yml, if SSL is enabled, pass them as jvm args");
-      return;
-    }
-
-    configureTrustStore(sslConnection);
-    configureKeyStore(sslConnection);
-  }
-
-  private void configureTrustStore(Map<String, String> sslConnection) {
-    String trustStorePath = sslConnection.get("trustStorePath");
-    if (Strings.isNullOrEmpty(trustStorePath)) {
-      logger.debug(
-          "trustStorePath is not set in config.yml, ignoring setting trustStorePath as system property");
-      return;
-    }
-
-    System.setProperty("javax.net.ssl.trustStore", trustStorePath);
-    logger.debug("System property set for javax.net.ssl.trustStore is {}", trustStorePath);
-
-    String trustStorePassword = sslConnection.get("trustStorePassword");
-
-    if (!Strings.isNullOrEmpty(trustStorePassword)) {
-      System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword);
-      logger.debug("System property set for javax.net.ssl.trustStorePassword is xxxxx");
-    }
-  }
-
-  private void configureKeyStore(Map<String, String> sslConnection) {
-    String keyStorePath = sslConnection.get("keyStorePath");
-    if (Strings.isNullOrEmpty(keyStorePath)) {
-      logger.debug(
-          "keyStorePath is not set in config.yml, ignoring setting keyStorePath as system property");
-      return;
-    }
-
-    System.setProperty("javax.net.ssl.keyStore", keyStorePath);
-    logger.debug("System property set for javax.net.ssl.keyStore is {}", keyStorePath);
-    String keyStorePassword = sslConnection.get("keyStorePassword");
-    if (!Strings.isNullOrEmpty(keyStorePassword)) {
-      System.setProperty("javax.net.ssl.keyStorePassword", keyStorePassword);
-      logger.debug("System property set for javax.net.ssl.keyStorePassword is xxxxx");
-    }
   }
 }

@@ -30,7 +30,6 @@ import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.Main;
-import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
@@ -184,12 +183,11 @@ class WMQMonitorIntegrationTest {
             .build();
     SdkMeterProvider meterProvider =
         SdkMeterProvider.builder().registerMetricReader(reader).build();
-    Writer metricWriteHelper =
-        new Writer(reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     String configFile = getConfigFile("conf/test-config.yml");
 
     ConfigWrapper config = ConfigWrapper.parse(configFile);
-    TestWMQMonitor monitor = new TestWMQMonitor(config, metricWriteHelper, service);
+    TestWMQMonitor monitor =
+        new TestWMQMonitor(config, meterProvider.get("opentelemetry.io/mq"), service);
     monitor.runTest();
 
     reader.forceFlush().join(5, TimeUnit.SECONDS);
@@ -256,12 +254,11 @@ class WMQMonitorIntegrationTest {
             .build();
     SdkMeterProvider meterProvider =
         SdkMeterProvider.builder().registerMetricReader(reader).build();
-    Writer metricWriteHelper =
-        new Writer(reader, testExporter, meterProvider.get("opentelemetry.io/mq"));
     String configFile = getConfigFile("conf/test-queuemgr-config.yml");
     ConfigWrapper config = ConfigWrapper.parse(configFile);
 
-    TestWMQMonitor monitor = new TestWMQMonitor(config, metricWriteHelper, service);
+    TestWMQMonitor monitor =
+        new TestWMQMonitor(config, meterProvider.get("opentelemetry.io/mq"), service);
     monitor.runTest();
   }
 
@@ -274,9 +271,9 @@ class WMQMonitorIntegrationTest {
         Executors.newScheduledThreadPool(config.getNumberOfThreads());
     TestResultMetricExporter exporter = new TestResultMetricExporter();
     Main.run(config, service, exporter);
-
     Thread.sleep(5000);
     service.shutdown();
+    service.awaitTermination(10, TimeUnit.SECONDS);
 
     List<MetricData> data = exporter.getExportedMetrics();
     Set<String> metricNames = new HashSet<>();

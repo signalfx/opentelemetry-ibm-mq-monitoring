@@ -15,8 +15,10 @@
  */
 package com.splunk.ibm.mq;
 
+import java.util.concurrent.Callable;
+
 /** This class just runs a delegate and times it and logs any exceptions that might be thrown. */
-public final class TaskJob implements Runnable {
+public final class TaskJob implements Callable<Void> {
 
   private final String name;
   private final Runnable task;
@@ -27,7 +29,7 @@ public final class TaskJob implements Runnable {
   }
 
   @Override
-  public void run() {
+  public Void call() {
     try {
       long startTime = System.currentTimeMillis();
       task.run();
@@ -40,5 +42,6 @@ public final class TaskJob implements Runnable {
     } catch (Exception e) {
       WMQMonitor.logger.error("Error while running task name = " + name, e);
     }
+    return null;
   }
 }
