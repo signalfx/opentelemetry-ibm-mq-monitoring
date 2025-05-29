@@ -32,6 +32,7 @@ import io.opentelemetry.api.metrics.Meter;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +42,7 @@ import org.slf4j.LoggerFactory;
  */
 final class QueueCollectionBuddy {
   private static final Logger logger = LoggerFactory.getLogger(QueueCollectionBuddy.class);
-  private static HashMap<Integer, LongGauge> gauges;
+  private Map<Integer, LongGauge> gauges;
 
   private final QueueCollectorSharedState sharedState;
   private final LongGauge onqtimeShort;
