@@ -2,7 +2,7 @@ groups:
   - id: mq.message.retry.count
     type: metric
     metric_name: mq.message.retry.count
-    stability: alpha
+    stability: development
     brief: "Number of message retries"
     instrument: gauge
     unit: "{messages}"
@@ -16,7 +16,7 @@ groups:
   - id: mq.status
     type: metric
     metric_name: mq.status
-    stability: alpha
+    stability: development
     brief: "Channel status"
     instrument: gauge
     unit: "1"
@@ -34,7 +34,7 @@ groups:
   - id: mq.max.sharing.conversations
     type: metric
     metric_name: mq.max.sharing.conversations
-    stability: alpha
+    stability: development
     brief: "Maximum number of conversations permitted on this channel instance."
     instrument: gauge
     unit: "{conversations}"
@@ -52,7 +52,7 @@ groups:
   - id: mq.current.sharing.conversations
     type: metric
     metric_name: mq.current.sharing.conversations
-    stability: alpha
+    stability: development
     unit: "{conversations}"
     brief: "Current number of conversations permitted on this channel instance."
     instrument: gauge
@@ -70,7 +70,7 @@ groups:
   - id: mq.byte.received
     type: metric
     metric_name: mq.byte.received
-    stability: alpha
+    stability: development
     brief: "Number of bytes received"
     instrument: gauge
     unit: "{bytes}"
@@ -88,7 +88,7 @@ groups:
   - id: mq.byte.sent
     type: metric
     metric_name: mq.byte.sent
-    stability: alpha
+    stability: development
     brief: "Number of bytes sent"
     instrument: gauge
     unit: "{bytes}"
@@ -106,7 +106,7 @@ groups:
   - id: mq.buffers.received
     type: metric
     metric_name: mq.buffers.received
-    stability: alpha
+    stability: development
     brief: "Buffers received"
     instrument: gauge
     unit: "{buffers}"
@@ -124,7 +124,7 @@ groups:
   - id: mq.buffers.sent
     type: metric
     metric_name: mq.buffers.sent
-    stability: alpha
+    stability: development
     brief: "Buffers sent"
     unit: "{buffers}"
     instrument: gauge
@@ -142,7 +142,7 @@ groups:
   - id: mq.message.count
     type: metric
     metric_name: mq.message.count
-    stability: alpha
+    stability: development
     brief: "Message count"
     unit: "{messages}"
     instrument: gauge
@@ -160,7 +160,7 @@ groups:
   - id: mq.open.input.count
     type: metric
     metric_name: mq.open.input.count
-    stability: alpha
+    stability: development
     brief: "Count of applications sending messages to the queue"
     instrument: gauge
     unit: "{applications}"
@@ -174,7 +174,7 @@ groups:
   - id: mq.open.output.count
     type: metric
     metric_name: mq.open.output.count
-    stability: alpha
+    stability: development
     brief: "Count of applications consuming messages from the queue"
     instrument: gauge
     unit: "{applications}"
@@ -188,7 +188,7 @@ groups:
   - id: mq.high.queue.depth
     type: metric
     metric_name: mq.high.queue.depth
-    stability: alpha
+    stability: development
     brief: "The current high queue depth"
     instrument: gauge
     unit: "{percent}"
@@ -202,7 +202,7 @@ groups:
   - id: mq.service.interval
     type: metric
     metric_name: mq.service.interval
-    stability: alpha
+    stability: development
     brief: "The queue service interval"
     instrument: gauge
     unit: "{percent}"
@@ -217,7 +217,7 @@ groups:
   - id: mq.uncommitted.messages
     type: metric
     metric_name: mq.uncommitted.messages
-    stability: alpha
+    stability: development
     brief: "Number of uncommitted messages"
     instrument: gauge
     unit: "{messages}"
@@ -231,7 +231,7 @@ groups:
   - id: mq.oldest.msg.age
     type: metric
     metric_name: mq.oldest.msg.age
-    stability: alpha
+    stability: development
     brief: "Queue message oldest age"
     instrument: gauge
     unit: "microseconds"
@@ -245,7 +245,7 @@ groups:
   - id: mq.current.max.queue.filesize
     type: metric
     metric_name: mq.current.max.queue.filesize
-    stability: alpha
+    stability: development
     brief: "Current maximum queue file size"
     instrument: gauge
     unit: "mib"
@@ -259,7 +259,7 @@ groups:
   - id: mq.current.queue.filesize
     type: metric
     metric_name: mq.current.queue.filesize
-    stability: alpha
+    stability: development
     brief: "Current queue file size"
     instrument: gauge
     unit: "mib"
@@ -273,7 +273,7 @@ groups:
   - id: mq.instances.per.client
     type: metric
     metric_name: mq.instances.per.client
-    stability: alpha
+    stability: development
     brief: "Instances per client"
     instrument: gauge
     unit: "{instances}"
@@ -287,7 +287,7 @@ groups:
   - id: mq.message.deq.count
     type: metric
     metric_name: mq.message.deq.count
-    stability: alpha
+    stability: development
     brief: "Message dequeue count"
     instrument: gauge
     unit: "{messages}"
@@ -301,7 +301,7 @@ groups:
   - id: mq.message.enq.count
     type: metric
     metric_name: mq.message.enq.count
-    stability: alpha
+    stability: development
     brief: "Message enqueue count"
     instrument: gauge
     unit: "{messages}"
@@ -315,7 +315,7 @@ groups:
   - id: mq.queue.depth
     type: metric
     metric_name: mq.queue.depth
-    stability: alpha
+    stability: development
     brief: "Current queue depth"
     instrument: gauge
     unit: "{messages}"
@@ -329,7 +329,7 @@ groups:
   - id: mq.service.interval.event
     type: metric
     metric_name: mq.service.interval.event
-    stability: alpha
+    stability: development
     brief: "Queue service interval event"
     instrument: gauge
     unit: "1"
@@ -343,7 +343,7 @@ groups:
   - id: mq.reusable.log.size
     type: metric
     metric_name: mq.reusable.log.size
-    stability: alpha
+    stability: development
     brief: "The amount of space occupied, in megabytes, by log extents available to be reused."
     instrument: gauge
     unit: "mib"
@@ -353,7 +353,7 @@ groups:
   - id: mq.manager.active.channels
     type: metric
     metric_name: mq.manager.active.channels
-    stability: alpha
+    stability: development
     brief: "The queue manager active maximum channels limit"
     instrument: gauge
     unit: "{channels}"
@@ -363,7 +363,7 @@ groups:
   - id: mq.restart.log.size
     type: metric
     metric_name: mq.restart.log.size
-    stability: alpha
+    stability: development
     brief: "Size of the log data required for restart recovery in megabytes."
     instrument: gauge
     unit: "mib"
@@ -373,7 +373,7 @@ groups:
   - id: mq.max.queue.depth
     type: metric
     metric_name: mq.max.queue.depth
-    stability: alpha
+    stability: development
     brief: "Maximum queue depth"
     instrument: gauge
     unit: "{messages}"
@@ -387,7 +387,7 @@ groups:
   - id: mq.onqtime.1
     type: metric
     metric_name: mq.onqtime.1
-    stability: alpha
+    stability: development
     brief: "Amount of time, in microseconds, that a message spent on the queue, over a short period"
     instrument: gauge
     unit: "microseconds"
@@ -401,7 +401,7 @@ groups:
   - id: mq.onqtime.2
     type: metric
     metric_name: mq.onqtime.2
-    stability: alpha
+    stability: development
     brief: "Amount of time, in microseconds, that a message spent on the queue, over a longer period"
     instrument: gauge
     unit: "microseconds"
@@ -415,7 +415,7 @@ groups:
   - id: mq.message.received.count
     type: metric
     metric_name: mq.message.received.count
-    stability: alpha
+    stability: development
     brief: "Number of messages received"
     instrument: gauge
     unit: "{messages}"
@@ -429,7 +429,7 @@ groups:
   - id: mq.message.sent.count
     type: metric
     metric_name: mq.message.sent.count
-    stability: alpha
+    stability: development
     brief: "Number of messages sent"
     instrument: gauge
     unit: "{messages}"
@@ -443,7 +443,7 @@ groups:
   - id: mq.max.instances
     type: metric
     metric_name: mq.max.instances
-    stability: alpha
+    stability: development
     brief: "Max channel instances"
     instrument: gauge
     unit: "{instances}"
@@ -457,7 +457,7 @@ groups:
   - id: mq.connection.count
     type: metric
     metric_name: mq.connection.count
-    stability: alpha
+    stability: development
     brief: "Active connections count"
     instrument: gauge
     unit: "{connections}"
@@ -467,7 +467,7 @@ groups:
   - id: mq.manager.status
     type: metric
     metric_name: mq.manager.status
-    stability: alpha
+    stability: development
     brief: "Queue manager status"
     instrument: gauge
     unit: "1"
@@ -477,7 +477,7 @@ groups:
   - id: mq.heartbeat
     type: metric
     metric_name: mq.heartbeat
-    stability: alpha
+    stability: development
     brief: "Queue manager heartbeat"
     instrument: gauge
     unit: "1"
@@ -487,7 +487,7 @@ groups:
   - id: mq.archive.log.size
     type: metric
     metric_name: mq.archive.log.size
-    stability: alpha
+    stability: development
     brief: "Queue manager archive log size"
     instrument: gauge
     unit: "mib"
@@ -497,7 +497,7 @@ groups:
   - id: mq.manager.max.active.channels
     type: metric
     metric_name: mq.manager.max.active.channels
-    stability: alpha
+    stability: development
     brief: "Queue manager max active channels"
     instrument: gauge
     unit: "{channels}"
@@ -507,7 +507,7 @@ groups:
   - id: mq.manager.statistics.interval
     type: metric
     metric_name: mq.manager.statistics.interval
-    stability: alpha
+    stability: development
     brief: "Queue manager statistics interval"
     instrument: gauge
     unit: "1"
@@ -517,7 +517,7 @@ groups:
   - id: mq.publish.count
     type: metric
     metric_name: mq.publish.count
-    stability: alpha
+    stability: development
     brief: "Topic publication count"
     instrument: gauge
     unit: "{publications}"
@@ -529,7 +529,7 @@ groups:
   - id: mq.subscription.count
     type: metric
     metric_name: mq.subscription.count
-    stability: alpha
+    stability: development
     brief: "Topic subscription count"
     instrument: gauge
     unit: "{subscriptions}"
