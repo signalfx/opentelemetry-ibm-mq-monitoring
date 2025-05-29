@@ -25,11 +25,11 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.splunk.ibm.mq.WMQMonitor;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.Main;
+import com.splunk.ibm.mq.util.WMQUtil;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
@@ -95,8 +95,8 @@ class WMQMonitorIntegrationTest {
   }
 
   private static void configureQueueManager(QueueManager manager) {
-    MQQueueManager ibmQueueManager = WMQMonitor.connectToQueueManager(manager);
-    PCFMessageAgent agent = WMQMonitor.initPCFMessageAgent(manager, ibmQueueManager);
+    MQQueueManager ibmQueueManager = WMQUtil.connectToQueueManager(manager);
+    PCFMessageAgent agent = WMQUtil.initPCFMessageAgent(manager, ibmQueueManager);
     PCFMessage request = new PCFMessage(CMQCFC.MQCMD_CHANGE_Q_MGR);
     // turn on emitting authority events
     request.addParameter(CMQC.MQIA_AUTHORITY_EVENT, CMQCFC.MQEVR_ENABLED);
