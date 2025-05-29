@@ -30,7 +30,7 @@
 | Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
 |---|---|---|---|---|---|
 | `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
-| `channel.start.time` | int | The job name | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `channel.start.time` | int | The start time of the channel as seconds since Epoch. | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `channel.type` | string | The type of the channel | `server-connection`; `cluster-receiver`; `amqp` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `job.name` | string | The job name | `0000074900000003` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
@@ -49,7 +49,7 @@
 | Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
 |---|---|---|---|---|---|
 | `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
-| `channel.start.time` | int | The job name | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `channel.start.time` | int | The start time of the channel as seconds since Epoch. | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `channel.type` | string | The type of the channel | `server-connection`; `cluster-receiver`; `amqp` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `job.name` | string | The job name | `0000074900000003` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
@@ -68,7 +68,7 @@
 | Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
 |---|---|---|---|---|---|
 | `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
-| `channel.start.time` | int | The job name | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `channel.start.time` | int | The start time of the channel as seconds since Epoch. | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `channel.type` | string | The type of the channel | `server-connection`; `cluster-receiver`; `amqp` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `job.name` | string | The job name | `0000074900000003` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
@@ -87,7 +87,7 @@
 | Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
 |---|---|---|---|---|---|
 | `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
-| `channel.start.time` | int | The job name | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `channel.start.time` | int | The start time of the channel as seconds since Epoch. | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `channel.type` | string | The type of the channel | `server-connection`; `cluster-receiver`; `amqp` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `job.name` | string | The job name | `0000074900000003` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
@@ -106,7 +106,7 @@
 | Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
 |---|---|---|---|---|---|
 | `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
-| `channel.start.time` | int | The job name | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `channel.start.time` | int | The start time of the channel as seconds since Epoch. | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `channel.type` | string | The type of the channel | `server-connection`; `cluster-receiver`; `amqp` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `job.name` | string | The job name | `0000074900000003` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
@@ -125,7 +125,7 @@
 | Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
 |---|---|---|---|---|---|
 | `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
-| `channel.start.time` | int | The job name | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `channel.start.time` | int | The start time of the channel as seconds since Epoch. | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `channel.type` | string | The type of the channel | `server-connection`; `cluster-receiver`; `amqp` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `job.name` | string | The job name | `0000074900000003` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
@@ -144,7 +144,7 @@
 | Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
 |---|---|---|---|---|---|
 | `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
-| `channel.start.time` | int | The job name | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `channel.start.time` | int | The start time of the channel as seconds since Epoch. | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `channel.type` | string | The type of the channel | `server-connection`; `cluster-receiver`; `amqp` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `job.name` | string | The job name | `0000074900000003` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
@@ -163,7 +163,7 @@
 | Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
 |---|---|---|---|---|---|
 | `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
-| `channel.start.time` | int | The job name | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `channel.start.time` | int | The start time of the channel as seconds since Epoch. | `1748462702` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `channel.type` | string | The type of the channel | `server-connection`; `cluster-receiver`; `amqp` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `job.name` | string | The job name | `0000074900000003` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
