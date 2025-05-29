@@ -30,6 +30,7 @@ import io.opentelemetry.api.metrics.Meter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.jetbrains.annotations.NotNull;
@@ -38,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 public class WMQMonitor {
 
-  public static final Logger logger = LoggerFactory.getLogger(WMQMonitor.class);
+  private static final Logger logger = LoggerFactory.getLogger(WMQMonitor.class);
 
   private final List<QueueManager> queueManagers;
   private final List<Consumer<MetricsCollectorContext>> jobs = new ArrayList<>();
@@ -128,9 +129,31 @@ public class WMQMonitor {
     logger.debug("Queueing {} jobs", jobs.size());
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, agent, mqQueueManager);
-    List<TaskJob> tasks = Lists.newArrayList();
+    List<Callable<Void>> tasks = Lists.newArrayList();
     for (Consumer<MetricsCollectorContext> collector : jobs) {
-      tasks.add(new TaskJob(collector.getClass().getSimpleName(), () -> collector.accept(context)));
+      tasks.add(
+          () -> {
+            try {
+              long startTime = System.currentTimeMillis();
+              collector.accept(context);
+              long diffTime = System.currentTimeMillis() - startTime;
+              if (diffTime > 60000L) {
+                logger.warn(
+                    "{} Task took {} ms to complete",
+                    collector.getClass().getSimpleName(),
+                    diffTime);
+              } else {
+                logger.debug(
+                    "{} Task took {} ms to complete",
+                    collector.getClass().getSimpleName(),
+                    diffTime);
+              }
+            } catch (Exception e) {
+              logger.error(
+                  "Error while running task name = " + collector.getClass().getSimpleName(), e);
+            }
+            return null;
+          });
     }
 
     try {
