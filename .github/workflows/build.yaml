@@ -29,3 +29,5 @@ jobs:
           java-version: '11'
       - name: Maven build and test
         run: ./mvnw test package
+      - name: Check Weaver model
+        run:  docker run -v `pwd`:/tmp --rm otel/weaver:latest registry check -r /tmp/model

@@ -1,0 +1,53 @@
+groups:
+  - id: shared.attributes
+    type: attribute_group
+    brief: Attributes of metrics.
+    attributes:
+      - id: queue.manager
+        type: string
+        brief: >
+          The name of the queue manager
+        stability: alpha
+        examples: ["MQ1"]
+      - id: topic.name
+        type: string
+        brief: >
+          The name of the topic
+        stability: alpha
+        examples: [ "dev/" ]
+      - id: channel.name
+        type: string
+        brief: >
+          The name of the channel
+        stability: alpha
+        examples: [ "DEV.ADMIN.SVRCONN" ]
+      - id: channel.type
+        type: string
+        brief: >
+          The type of the channel
+        stability: alpha
+        examples: [ "server-connection", "cluster-receiver", "amqp" ]
+      - id: job.name
+        type: string
+        brief: >
+          The job name
+        stability: alpha
+        examples: [ "0000074900000003" ]
+      - id: channel.start.time
+        type: int
+        brief: >
+          The job name
+        stability: alpha
+        examples: [ 1748462702 ]
+      - id: queue.name
+        type: string
+        brief: >
+          The queue name
+        stability: alpha
+        examples: [ "DEV.DEAD.LETTER.QUEUE" ]
+      - id: queue.type
+        type: string
+        brief: >
+          The queue type
+        stability: alpha
+        examples: [ "local-normal" ]
