@@ -18,10 +18,9 @@ package com.splunk.ibm.mq.integration.tests;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.splunk.ibm.mq.WMQMonitorTask;
+import com.splunk.ibm.mq.WMQMonitor;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 import java.util.List;
 import java.util.Map;
@@ -58,13 +57,12 @@ class TestWMQMonitor {
     assertThat(queueManagers).isNotNull();
     ObjectMapper mapper = new ObjectMapper();
 
-    LongGauge gauge = meter.gaugeBuilder("mq.heartbeat").setUnit("1").ofLongs().build();
+    WMQMonitor wmqTask = new WMQMonitor(config, threadPool, meter);
 
     // we override this helper to pass in our opentelemetry helper instead.
     for (Map<String, ?> queueManager : queueManagers) {
       QueueManager qManager = mapper.convertValue(queueManager, QueueManager.class);
-      WMQMonitorTask wmqTask = new WMQMonitorTask(config, meter, qManager, threadPool, gauge);
-      wmqTask.run();
+      wmqTask.run(qManager);
     }
   }
 }
