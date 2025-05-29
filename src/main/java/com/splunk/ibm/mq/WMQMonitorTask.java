@@ -16,6 +16,7 @@
 package com.splunk.ibm.mq;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.MQDataException;
@@ -26,7 +27,6 @@ import com.splunk.ibm.mq.metricscollector.InquireChannelCmdCollector;
 import com.splunk.ibm.mq.metricscollector.InquireQueueManagerCmdCollector;
 import com.splunk.ibm.mq.metricscollector.ListenerMetricsCollector;
 import com.splunk.ibm.mq.metricscollector.MetricsCollectorContext;
-import com.splunk.ibm.mq.metricscollector.MetricsPublisherJob;
 import com.splunk.ibm.mq.metricscollector.PerformanceEventQueueCollector;
 import com.splunk.ibm.mq.metricscollector.QueueManagerEventCollector;
 import com.splunk.ibm.mq.metricscollector.QueueManagerMetricsCollector;
@@ -41,7 +41,6 @@ import io.opentelemetry.api.metrics.Meter;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -163,18 +162,16 @@ public class WMQMonitorTask implements Runnable {
   }
 
   private void extractAndReportMetrics(MQQueueManager mqQueueManager, PCFMessageAgent agent) {
-
-    CountDownLatch countDownLatch = new CountDownLatch(jobs.size());
     logger.debug("Queueing {} jobs", jobs.size());
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, agent, mqQueueManager);
+    List<TaskJob> tasks = Lists.newArrayList();
     for (Consumer<MetricsCollectorContext> collector : jobs) {
-      Runnable job = new MetricsPublisherJob(() -> collector.accept(context), countDownLatch);
-      threadPool.submit(new TaskJob(collector.getClass().getSimpleName(), job));
+      tasks.add(new TaskJob(collector.getClass().getSimpleName(), () -> collector.accept(context)));
     }
 
     try {
-      countDownLatch.await();
+      threadPool.invokeAll(tasks);
     } catch (InterruptedException e) {
       logger.error("Error while the thread {} is waiting ", Thread.currentThread().getName(), e);
     }

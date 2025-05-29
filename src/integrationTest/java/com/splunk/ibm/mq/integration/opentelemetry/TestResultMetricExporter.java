@@ -48,7 +48,6 @@ public class TestResultMetricExporter implements MetricExporter {
     metrics.forEach(metricData -> logger.info("Exported metric: {}", metricData));
 
     exportedMetrics.addAll(metrics);
-
     return CompletableResultCode.ofSuccess();
   }
 

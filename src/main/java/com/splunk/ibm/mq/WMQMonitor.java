@@ -59,12 +59,10 @@ public class WMQMonitor implements Runnable {
 
   @Override
   public void run() {
-    for (TaskJob job : jobs) {
-      try {
-        threadPool.submit(job);
-      } catch (Throwable t) {
-        logger.error("Error preparing queue manager {}", job, t);
-      }
+    try {
+      threadPool.invokeAll(jobs);
+    } catch (InterruptedException e) {
+      throw new RuntimeException(e);
     }
   }
 

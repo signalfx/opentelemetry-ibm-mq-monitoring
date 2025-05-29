@@ -20,7 +20,6 @@ import com.splunk.ibm.mq.TaskJob;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import io.opentelemetry.api.metrics.Meter;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -54,21 +53,20 @@ public final class QueueMetricsCollector implements Consumer<MetricsCollectorCon
     inquireQueueCmd.accept(context);
 
     // schedule all other jobs in parallel.
-    CountDownLatch latch = new CountDownLatch(publishers.size());
+    List<TaskJob> taskJobs = Lists.newArrayList();
     for (Consumer<MetricsCollectorContext> p : publishers) {
-      MetricsPublisherJob job =
-          new MetricsPublisherJob(
+      TaskJob wrappedJob =
+          new TaskJob(
+              p.getClass().getSimpleName(),
               () -> {
                 p.accept(context);
-              },
-              latch);
-      Runnable wrappedJob = new TaskJob(p.getClass().getSimpleName(), job);
-      threadPool.submit(wrappedJob);
+              });
+      taskJobs.add(wrappedJob);
     }
 
     try {
       int timeout = this.config.getInt("queueMetricsCollectionTimeoutInSeconds", 20);
-      latch.await(timeout, TimeUnit.SECONDS);
+      threadPool.invokeAll(taskJobs, timeout, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       logger.error("The thread was interrupted ", e);
     }

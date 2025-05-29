@@ -272,8 +272,7 @@ class WMQMonitorIntegrationTest {
     TestResultMetricExporter exporter = new TestResultMetricExporter();
     Main.run(config, service, exporter);
 
-    Thread.sleep(5000);
-    service.shutdown();
+    service.awaitTermination(10, TimeUnit.SECONDS);
 
     List<MetricData> data = exporter.getExportedMetrics();
     Set<String> metricNames = new HashSet<>();
