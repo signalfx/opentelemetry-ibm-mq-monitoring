@@ -29,3 +29,9 @@ jobs:
           java-version: '11'
       - name: Maven build and test
         run: ./mvnw test package
+      - name: Check Weaver model
+        run: make check
+      - name: Check docs generation
+        run: |
+          make generate-docs
+          git diff --exit-code || (echo 'Docs out of date')
