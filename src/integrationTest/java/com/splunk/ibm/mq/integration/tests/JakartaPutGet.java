@@ -17,15 +17,15 @@ package com.splunk.ibm.mq.integration.tests;
 
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
+import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.ibm.mq.pcf.CMQC;
 import com.ibm.msg.client.jakarta.jms.JmsConnectionFactory;
 import com.ibm.msg.client.jakarta.jms.JmsFactoryFactory;
 import com.ibm.msg.client.jakarta.wmq.WMQConstants;
-import com.splunk.ibm.mq.WMQMonitorTask;
+import com.splunk.ibm.mq.WMQMonitor;
 import com.splunk.ibm.mq.config.QueueManager;
 import jakarta.jms.Destination;
 import jakarta.jms.JMSConsumer;
@@ -62,8 +62,8 @@ public class JakartaPutGet {
   private static final Logger logger = LoggerFactory.getLogger(JakartaPutGet.class);
 
   public static void createQueue(QueueManager manager, String name, int maxDepth) {
-    MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager);
-    PCFMessageAgent agent = WMQMonitorTask.initPCFMessageAgent(manager, ibmQueueManager);
+    MQQueueManager ibmQueueManager = WMQMonitor.connectToQueueManager(manager);
+    PCFMessageAgent agent = WMQMonitor.initPCFMessageAgent(manager, ibmQueueManager);
     PCFMessage request = new PCFMessage(CMQCFC.MQCMD_CREATE_Q);
     request.addParameter(com.ibm.mq.constants.CMQC.MQCA_Q_NAME, name);
     request.addParameter(CMQC.MQIA_Q_TYPE, CMQC.MQQT_LOCAL);

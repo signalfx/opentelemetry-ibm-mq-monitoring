@@ -87,10 +87,9 @@ public class Main {
                   service.shutdown();
                   exporter.shutdown();
                 }));
-
+    WMQMonitor monitor = new WMQMonitor(config, service, meterProvider.get("websphere/mq"));
     service.scheduleAtFixedRate(
         () -> {
-          WMQMonitor monitor = new WMQMonitor(config, service, meterProvider.get("websphere/mq"));
           monitor.run();
           reader.forceFlush().whenComplete(exporter::flush);
         },
