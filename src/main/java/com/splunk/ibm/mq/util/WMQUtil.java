@@ -21,7 +21,6 @@ import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.WMQContext;
-import com.splunk.ibm.mq.WMQMonitor;
 import com.splunk.ibm.mq.config.QueueManager;
 import java.util.Hashtable;
 import org.slf4j.Logger;
@@ -39,13 +38,11 @@ public class WMQUtil {
       PCFMessageAgent agent;
       if (!Strings.isNullOrEmpty(queueManager.getModelQueueName())
           && !Strings.isNullOrEmpty(queueManager.getReplyQueuePrefix())) {
-        WMQMonitor.logger.debug(
-            "Initializing the PCF agent for model queue and reply queue prefix.");
+        logger.debug("Initializing the PCF agent for model queue and reply queue prefix.");
         agent = new PCFMessageAgent();
         agent.setModelQueueName(queueManager.getModelQueueName());
         agent.setReplyQueuePrefix(queueManager.getReplyQueuePrefix());
-        WMQMonitor.logger.debug(
-            "Connecting to queueManager to set the modelQueueName and replyQueuePrefix.");
+        logger.debug("Connecting to queueManager to set the modelQueueName and replyQueuePrefix.");
         agent.connect(ibmQueueManager);
       } else {
         agent = new PCFMessageAgent(ibmQueueManager);
@@ -57,13 +54,13 @@ public class WMQUtil {
       if (queueManager.getEncoding() != Integer.MIN_VALUE) {
         agent.setEncoding(queueManager.getEncoding());
       }
-      WMQMonitor.logger.debug(
+      logger.debug(
           "Initialized PCFMessageAgent for queueManager {} in thread {}",
           agent.getQManagerName(),
           Thread.currentThread().getName());
       return agent;
     } catch (MQDataException mqe) {
-      WMQMonitor.logger.error(mqe.getMessage(), mqe);
+      logger.error(mqe.getMessage(), mqe);
       throw new RuntimeException(mqe);
     }
   }
