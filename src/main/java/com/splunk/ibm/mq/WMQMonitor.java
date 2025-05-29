@@ -16,21 +16,18 @@
 package com.splunk.ibm.mq;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
-import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
-import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.metricscollector.*;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
+import com.splunk.ibm.mq.util.WMQUtil;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 import java.util.ArrayList;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -102,9 +99,9 @@ public class WMQMonitor {
     PCFMessageAgent agent = null;
     int heartBeatMetricValue = 0;
     try {
-      ibmQueueManager = connectToQueueManager(queueManager);
+      ibmQueueManager = WMQUtil.connectToQueueManager(queueManager);
       heartBeatMetricValue = 1;
-      agent = initPCFMessageAgent(queueManager, ibmQueueManager);
+      agent = WMQUtil.initPCFMessageAgent(queueManager, ibmQueueManager);
       extractAndReportMetrics(ibmQueueManager, queueManager, agent);
     } catch (Exception e) {
       logger.error(
@@ -123,57 +120,6 @@ public class WMQMonitor {
           "WMQMonitor thread for queueManager {} ended. Time taken = {} ms",
           queueManagerName,
           endTime);
-    }
-  }
-
-  public static MQQueueManager connectToQueueManager(QueueManager queueManager) {
-    MQQueueManager ibmQueueManager = null;
-    WMQContext auth = new WMQContext(queueManager);
-    Hashtable env = auth.getMQEnvironment();
-
-    try {
-      ibmQueueManager = new MQQueueManager(queueManager.getName(), env);
-    } catch (MQException mqe) {
-      logger.error(mqe.getMessage(), mqe);
-      throw new RuntimeException(mqe.getMessage());
-    }
-    logger.debug(
-        "MQQueueManager connection initiated for queueManager {} in thread {}",
-        queueManager.getName(),
-        Thread.currentThread().getName());
-    return ibmQueueManager;
-  }
-
-  public static PCFMessageAgent initPCFMessageAgent(
-      QueueManager queueManager, MQQueueManager ibmQueueManager) {
-    try {
-      PCFMessageAgent agent;
-      if (!Strings.isNullOrEmpty(queueManager.getModelQueueName())
-          && !Strings.isNullOrEmpty(queueManager.getReplyQueuePrefix())) {
-        logger.debug("Initializing the PCF agent for model queue and reply queue prefix.");
-        agent = new PCFMessageAgent();
-        agent.setModelQueueName(queueManager.getModelQueueName());
-        agent.setReplyQueuePrefix(queueManager.getReplyQueuePrefix());
-        logger.debug("Connecting to queueManager to set the modelQueueName and replyQueuePrefix.");
-        agent.connect(ibmQueueManager);
-      } else {
-        agent = new PCFMessageAgent(ibmQueueManager);
-      }
-      if (queueManager.getCcsid() != Integer.MIN_VALUE) {
-        agent.setCharacterSet(queueManager.getCcsid());
-      }
-
-      if (queueManager.getEncoding() != Integer.MIN_VALUE) {
-        agent.setEncoding(queueManager.getEncoding());
-      }
-      logger.debug(
-          "Initialized PCFMessageAgent for queueManager {} in thread {}",
-          agent.getQManagerName(),
-          Thread.currentThread().getName());
-      return agent;
-    } catch (MQDataException mqe) {
-      logger.error(mqe.getMessage(), mqe);
-      throw new RuntimeException(mqe);
     }
   }
 
