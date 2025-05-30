@@ -23,6 +23,7 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.ExcludeFilters;
 import com.splunk.ibm.mq.config.QueueManager;
+import com.splunk.ibm.mq.metrics.MetricsConfig;
 import java.io.IOException;
 import java.util.*;
 import javax.annotation.concurrent.Immutable;
@@ -43,12 +44,17 @@ public final class MetricsCollectorContext {
   private final QueueManager queueManager;
   private final PCFMessageAgent agent;
   private final MQQueueManager mqQueueManager;
+  private final MetricsConfig metricsConfig;
 
   public MetricsCollectorContext(
-      QueueManager queueManager, PCFMessageAgent agent, MQQueueManager mqQueueManager) {
+      QueueManager queueManager,
+      PCFMessageAgent agent,
+      MQQueueManager mqQueueManager,
+      MetricsConfig metricsConfig) {
     this.queueManager = queueManager;
     this.agent = agent;
     this.mqQueueManager = mqQueueManager;
+    this.metricsConfig = metricsConfig;
   }
 
   Set<String> getChannelIncludeFilterNames() {
@@ -99,5 +105,9 @@ public final class MetricsCollectorContext {
 
   public MQQueueManager getMqQueueManager() {
     return mqQueueManager;
+  }
+
+  public MetricsConfig getMetricsConfig() {
+    return metricsConfig;
   }
 }

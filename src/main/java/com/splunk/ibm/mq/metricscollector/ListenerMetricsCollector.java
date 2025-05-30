@@ -107,7 +107,7 @@ public final class ListenerMetricsCollector implements Consumer<MetricsCollector
   private void updateMetrics(
       PCFMessage message, String listenerName, MetricsCollectorContext context)
       throws PCFException {
-    {
+    if (context.getMetricsConfig().isMqListenerStatusEnabled()) {
       int status = message.getIntParameterValue(CMQCFC.MQIACH_LISTENER_STATUS);
       listenerStatusGauge.set(
           status,

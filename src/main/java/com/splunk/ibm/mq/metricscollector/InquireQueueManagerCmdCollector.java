@@ -69,7 +69,7 @@ public final class InquireQueueManagerCmdCollector implements Consumer<MetricsCo
         logger.debug("Unexpected error while PCFMessage.send(), response is either null or empty");
         return;
       }
-      {
+      if (context.getMetricsConfig().isMqManagerStatisticsIntervalEnabled()) {
         int interval = responses.get(0).getIntParameterValue(CMQC.MQIA_STATISTICS_INTERVAL);
         statisticsIntervalGauge.set(
             interval,

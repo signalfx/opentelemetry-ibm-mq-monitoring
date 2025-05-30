@@ -126,15 +126,19 @@ final class InquireTStatusCmdCollector implements Consumer<MetricsCollectorConte
             topicString,
             AttributeKey.stringKey("queue.manager"),
             context.getQueueManagerName());
-    int publisherCount = 0;
-    if (pcfMessage.getParameter(CMQC.MQIA_PUB_COUNT) != null) {
-      publisherCount = pcfMessage.getIntParameterValue(CMQC.MQIA_PUB_COUNT);
+    if (context.getMetricsConfig().isMqPublishCountEnabled()) {
+      int publisherCount = 0;
+      if (pcfMessage.getParameter(CMQC.MQIA_PUB_COUNT) != null) {
+        publisherCount = pcfMessage.getIntParameterValue(CMQC.MQIA_PUB_COUNT);
+      }
+      publishCountGauge.set(publisherCount, attributes);
     }
-    publishCountGauge.set(publisherCount, attributes);
-    int subscriberCount = 0;
-    if (pcfMessage.getParameter(CMQC.MQIA_SUB_COUNT) != null) {
-      subscriberCount = pcfMessage.getIntParameterValue(CMQC.MQIA_SUB_COUNT);
+    if (context.getMetricsConfig().isMqSubscriptionCountEnabled()) {
+      int subscriberCount = 0;
+      if (pcfMessage.getParameter(CMQC.MQIA_SUB_COUNT) != null) {
+        subscriberCount = pcfMessage.getIntParameterValue(CMQC.MQIA_SUB_COUNT);
+      }
+      subscriptionCountGauge.set(subscriberCount, attributes);
     }
-    subscriptionCountGauge.set(subscriberCount, attributes);
   }
 }

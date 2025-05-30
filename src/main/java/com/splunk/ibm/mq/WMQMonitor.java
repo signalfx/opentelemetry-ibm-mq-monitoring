@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
+import com.splunk.ibm.mq.metrics.MetricsConfig;
 import com.splunk.ibm.mq.metricscollector.*;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.util.WMQUtil;
@@ -45,6 +46,7 @@ public class WMQMonitor {
   private final List<Consumer<MetricsCollectorContext>> jobs = new ArrayList<>();
   private final LongGauge heartbeatGauge;
   private final ExecutorService threadPool;
+  private final MetricsConfig metricsConfig;
 
   public WMQMonitor(ConfigWrapper config, ExecutorService threadPool, Meter meter) {
     List<Map<String, ?>> queueManagers = getQueueManagers(config);
@@ -60,6 +62,8 @@ public class WMQMonitor {
         logger.error("Error preparing queue manager {}", queueManager, t);
       }
     }
+
+    this.metricsConfig = new MetricsConfig(config._exposed());
 
     this.heartbeatGauge = meter.gaugeBuilder("mq.heartbeat").setUnit("1").ofLongs().build();
     this.threadPool = threadPool;
@@ -112,9 +116,11 @@ public class WMQMonitor {
           e.getMessage(),
           e);
     } finally {
-      heartbeatGauge.set(
-          heartBeatMetricValue,
-          Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName));
+      if (this.metricsConfig.isMqHeartbeatEnabled()) {
+        heartbeatGauge.set(
+            heartBeatMetricValue,
+            Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName));
+      }
       cleanUp(ibmQueueManager, agent);
       long endTime = System.currentTimeMillis() - startTime;
       logger.debug(
@@ -128,7 +134,7 @@ public class WMQMonitor {
       MQQueueManager mqQueueManager, QueueManager queueManager, PCFMessageAgent agent) {
     logger.debug("Queueing {} jobs", jobs.size());
     MetricsCollectorContext context =
-        new MetricsCollectorContext(queueManager, agent, mqQueueManager);
+        new MetricsCollectorContext(queueManager, agent, mqQueueManager, this.metricsConfig);
     List<Callable<Void>> tasks = Lists.newArrayList();
     for (Consumer<MetricsCollectorContext> collector : jobs) {
       tasks.add(

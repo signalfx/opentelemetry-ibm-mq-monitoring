@@ -74,37 +74,37 @@ public final class QueueManagerMetricsCollector implements Consumer<MetricsColle
         logger.debug("Unexpected error while PCFMessage.send(), response is empty");
         return;
       }
-      {
+      if (context.getMetricsConfig().isMqManagerStatusEnabled()) {
         int status = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_Q_MGR_STATUS);
         statusGauge.set(
             status,
             Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
-      {
+      if (context.getMetricsConfig().isMqConnectionCountEnabled()) {
         int count = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_CONNECTION_COUNT);
         connectionCountGauge.set(
             count,
             Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
-      {
+      if (context.getMetricsConfig().isMqRestartLogSizeEnabled()) {
         int logSize = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_RESTART_LOG_SIZE);
         restartLogSizeGauge.set(
             logSize,
             Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
-      {
+      if (context.getMetricsConfig().isMqReusableLogSizeEnabled()) {
         int logSize = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_REUSABLE_LOG_SIZE);
         reuseLogSizeGauge.set(
             logSize,
             Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
-      {
+      if (context.getMetricsConfig().isMqArchiveLogSizeEnabled()) {
         int logSize = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_ARCHIVE_LOG_SIZE);
         archiveLogSizeGauge.set(
             logSize,
             Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
       }
-      {
+      if (context.getMetricsConfig().isMqManagerMaxActiveChannelsEnabled()) {
         int maxActiveChannels = context.getQueueManager().getMaxActiveChannels();
         maxActiveChannelsGauge.set(
             maxActiveChannels,
