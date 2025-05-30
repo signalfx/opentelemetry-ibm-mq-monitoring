@@ -34,6 +34,26 @@ receivers:
       - type: copy
         from: body.parsed.ibm_messageId
         to: attributes.code
+  filelog/dashes:
+    include:
+      # Change to the path to the log file used by MQ.
+      - /tmp/error_log.txt
+    # Change to end for production uses.
+    start_at: beginning
+    multiline:
+      line_start_pattern: "^-----"
+    operators:
+      - type: regex_parser
+        parse_from: body
+        regex: '(?m)Time\((?P<timestamp>.*?)\)(.|\n)*\n(?P<code>\w+):(.|\n)*EXPLANATION'
+        on_error: drop_quiet
+      - type: time_parser
+        parse_from: attributes.timestamp
+        layout_type: strptime
+        # 2025-05-30T16:52:04.227Z
+        layout: "%Y-%m-%dT%H:%M:%S.%L%z"
+        on_error: drop_quiet
+
 exporters:
   debug:
     verbosity: detailed
@@ -48,8 +68,9 @@ service:
   pipelines:
     logs:
       receivers:
-        - filelog
-        - filelog/json
+#        - filelog
+#        - filelog/json
+        - filelog/dashes
       exporters:
         - count
     metrics:

@@ -86,6 +86,34 @@ This example also shows how to read the log entries formatted as JSON.
         to: attributes.code
 ```
 
+## Long text format
+
+This legacy format has a longer, multiline error log, where each entry is delimited with a dash line.
+
+This example also shows how to read those log entries:
+
+```yaml
+  filelog/dashes:
+    include:
+      # Change to the path to the log file used by MQ.
+      - /tmp/error_log.txt
+    # Change to end for production uses.
+    start_at: beginning
+    multiline:
+      line_start_pattern: "^-----"
+    operators:
+      - type: regex_parser
+        parse_from: body
+        regex: '(?m)Time\((?P<timestamp>.*?)\)(.|\n)*\n(?P<code>\w+):(.|\n)*EXPLANATION'
+        on_error: drop_quiet
+      - type: time_parser
+        parse_from: attributes.timestamp
+        layout_type: strptime
+        # 2025-05-30T16:52:04.227Z
+        layout: "%Y-%m-%dT%H:%M:%S.%L%z"
+        on_error: drop_quiet
+```
+
 ## Transforming logs into metrics
 
 Now that the logs are parsed, we want to count occurrences of the `code` attribute values.
