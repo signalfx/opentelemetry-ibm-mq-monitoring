@@ -3,7 +3,7 @@ WEAVER_CONTAINER_REPOSITORY=docker.io
 # Versioned, non-qualified references to containers used in this Makefile.
 # These are parsed from dependencies.Dockerfile so dependabot will autoupdate
 # the versions of docker files we use.
-VERSIONED_WEAVER_CONTAINER_NO_REPO=$(shell cat dependencies.Dockerfile | awk '$$4=="weaver" {print $$2}')
+VERSIONED_WEAVER_CONTAINER_NO_REPO=$(shell cat buildscripts/dependencies.Dockerfile | awk '$$4=="weaver" {print $$2}')
 # Versioned, non-qualified references to containers used in this Makefile.
 WEAVER_CONTAINER=$(WEAVER_CONTAINER_REPOSITORY)/$(VERSIONED_WEAVER_CONTAINER_NO_REPO)
 
@@ -79,3 +79,6 @@ generate-yaml:
 		yaml \
 		--future \
 		/home/weaver/target
+
+.PHONY: generate
+generate: generate-docs generate-yaml generate-java
