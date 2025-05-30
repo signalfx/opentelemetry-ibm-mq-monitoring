@@ -25,6 +25,7 @@ import com.ibm.mq.headers.pcf.MQCFIN;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFParameter;
+import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
@@ -51,36 +52,22 @@ final class QueueCollectionBuddy {
   QueueCollectionBuddy(Meter meter, QueueCollectorSharedState sharedState) {
     this.sharedState = sharedState;
     this.gauges = new HashMap<>();
-    gauges.put(CMQC.MQIA_CURRENT_Q_DEPTH, meter.gaugeBuilder("mq.queue.depth").ofLongs().build());
-    gauges.put(CMQC.MQIA_MAX_Q_DEPTH, meter.gaugeBuilder("mq.max.queue.depth").ofLongs().build());
-    gauges.put(
-        CMQC.MQIA_OPEN_INPUT_COUNT, meter.gaugeBuilder("mq.open.input.count").ofLongs().build());
-    gauges.put(
-        CMQC.MQIA_OPEN_OUTPUT_COUNT, meter.gaugeBuilder("mq.open.output.count").ofLongs().build());
-    gauges.put(
-        CMQC.MQIA_Q_SERVICE_INTERVAL, meter.gaugeBuilder("mq.service.interval").ofLongs().build());
-    gauges.put(
-        CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT,
-        meter.gaugeBuilder("mq.service.interval.event").ofLongs().build());
-    gauges.put(
-        CMQCFC.MQIACF_OLDEST_MSG_AGE, meter.gaugeBuilder("mq.oldest.msg.age").ofLongs().build());
-    gauges.put(
-        CMQCFC.MQIACF_UNCOMMITTED_MSGS,
-        meter.gaugeBuilder("mq.uncommitted.messages").ofLongs().build());
-    gauges.put(
-        CMQC.MQIA_MSG_DEQ_COUNT, meter.gaugeBuilder("mq.message.deq.count").ofLongs().build());
-    gauges.put(
-        CMQC.MQIA_MSG_ENQ_COUNT, meter.gaugeBuilder("mq.message.enq.count").ofLongs().build());
-    gauges.put(CMQC.MQIA_HIGH_Q_DEPTH, meter.gaugeBuilder("mq.high.queue.depth").ofLongs().build());
-    gauges.put(
-        CMQCFC.MQIACF_CUR_Q_FILE_SIZE,
-        meter.gaugeBuilder("mq.current.queue.filesize").ofLongs().build());
-    gauges.put(
-        CMQCFC.MQIACF_CUR_MAX_FILE_SIZE,
-        meter.gaugeBuilder("mq.current.max.queue.filesize").ofLongs().build());
+    gauges.put(CMQC.MQIA_CURRENT_Q_DEPTH, Metrics.createMqQueueDepth(meter));
+    gauges.put(CMQC.MQIA_MAX_Q_DEPTH, Metrics.createMqMaxQueueDepth(meter));
+    gauges.put(CMQC.MQIA_OPEN_INPUT_COUNT, Metrics.createMqOpenInputCount(meter));
+    gauges.put(CMQC.MQIA_OPEN_OUTPUT_COUNT, Metrics.createMqOpenOutputCount(meter));
+    gauges.put(CMQC.MQIA_Q_SERVICE_INTERVAL, Metrics.createMqServiceInterval(meter));
+    gauges.put(CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT, Metrics.createMqServiceIntervalEvent(meter));
+    gauges.put(CMQCFC.MQIACF_OLDEST_MSG_AGE, Metrics.createMqOldestMsgAge(meter));
+    gauges.put(CMQCFC.MQIACF_UNCOMMITTED_MSGS, Metrics.createMqUncommittedMessages(meter));
+    gauges.put(CMQC.MQIA_MSG_DEQ_COUNT, Metrics.createMqMessageDeqCount(meter));
+    gauges.put(CMQC.MQIA_MSG_ENQ_COUNT, Metrics.createMqMessageEnqCount(meter));
+    gauges.put(CMQC.MQIA_HIGH_Q_DEPTH, Metrics.createMqHighQueueDepth(meter));
+    gauges.put(CMQCFC.MQIACF_CUR_Q_FILE_SIZE, Metrics.createMqCurrentQueueFilesize(meter));
+    gauges.put(CMQCFC.MQIACF_CUR_MAX_FILE_SIZE, Metrics.createMqCurrentMaxQueueFilesize(meter));
 
-    this.onqtimeShort = meter.gaugeBuilder("mq.onqtime.1").ofLongs().build();
-    this.onqtimeLong = meter.gaugeBuilder("mq.onqtime.2").ofLongs().build();
+    this.onqtimeShort = Metrics.createMqOnqtime1(meter);
+    this.onqtimeLong = Metrics.createMqOnqtime2(meter);
   }
 
   /**

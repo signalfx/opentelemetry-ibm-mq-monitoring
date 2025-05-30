@@ -18,6 +18,7 @@ package com.splunk.ibm.mq.metricscollector;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
@@ -50,7 +51,7 @@ public final class ListenerMetricsCollector implements Consumer<MetricsCollector
   private final LongGauge listenerStatusGauge;
 
   public ListenerMetricsCollector(Meter meter) {
-    this.listenerStatusGauge = meter.gaugeBuilder("mq.listener.status").ofLongs().build();
+    this.listenerStatusGauge = Metrics.createMqListenerStatus(meter);
   }
 
   @Override

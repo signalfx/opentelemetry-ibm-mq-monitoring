@@ -20,6 +20,7 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
@@ -39,8 +40,8 @@ final class InquireTStatusCmdCollector implements Consumer<MetricsCollectorConte
   private final LongGauge subscriptionCountGauge;
 
   public InquireTStatusCmdCollector(Meter meter) {
-    this.publishCountGauge = meter.gaugeBuilder("mq.publish.count").ofLongs().build();
-    this.subscriptionCountGauge = meter.gaugeBuilder("mq.subscription.count").ofLongs().build();
+    this.publishCountGauge = Metrics.createMqPublishCount(meter);
+    this.subscriptionCountGauge = Metrics.createMqSubscriptionCount(meter);
   }
 
   @Override

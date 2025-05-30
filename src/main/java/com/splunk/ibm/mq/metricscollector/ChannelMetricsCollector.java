@@ -23,6 +23,7 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
@@ -53,19 +54,15 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
    * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
    */
   public ChannelMetricsCollector(Meter meter) {
-    this.activeChannelsGauge =
-        meter.gaugeBuilder("mq.manager.active.channels").ofLongs().setUnit("1").build();
-    this.channelStatusGauge = meter.gaugeBuilder("mq.status").ofLongs().setUnit("1").build();
-    this.messageCountGauge = meter.gaugeBuilder("mq.message.count").ofLongs().setUnit("1").build();
-    this.byteSentGauge = meter.gaugeBuilder("mq.byte.sent").ofLongs().setUnit("1").build();
-    this.byteReceivedGauge = meter.gaugeBuilder("mq.byte.received").ofLongs().setUnit("1").build();
-    this.buffersSentGauge = meter.gaugeBuilder("mq.buffers.sent").ofLongs().setUnit("1").build();
-    this.buffersReceivedGauge =
-        meter.gaugeBuilder("mq.buffers.received").ofLongs().setUnit("1").build();
-    this.currentSharingConvsGauge =
-        meter.gaugeBuilder("mq.current.sharing.conversations").ofLongs().setUnit("1").build();
-    this.maxSharingConvsGauge =
-        meter.gaugeBuilder("mq.max.sharing.conversations").ofLongs().setUnit("1").build();
+    this.activeChannelsGauge = Metrics.createMqManagerActiveChannels(meter);
+    this.channelStatusGauge = Metrics.createMqStatus(meter);
+    this.messageCountGauge = Metrics.createMqMessageCount(meter);
+    this.byteSentGauge = Metrics.createMqByteSent(meter);
+    this.byteReceivedGauge = Metrics.createMqByteReceived(meter);
+    this.buffersSentGauge = Metrics.createMqBuffersSent(meter);
+    this.buffersReceivedGauge = Metrics.createMqBuffersReceived(meter);
+    this.currentSharingConvsGauge = Metrics.createMqCurrentSharingConversations(meter);
+    this.maxSharingConvsGauge = Metrics.createMqMaxSharingConversations(meter);
   }
 
   @Override

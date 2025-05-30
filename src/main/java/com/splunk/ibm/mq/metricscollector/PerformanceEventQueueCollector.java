@@ -23,6 +23,7 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -42,12 +43,9 @@ public final class PerformanceEventQueueCollector implements Consumer<MetricsCol
   private final LongCounter lowQueueDepthCounter;
 
   public PerformanceEventQueueCollector(Meter meter) {
-    this.fullQueueDepthCounter =
-        meter.counterBuilder("mq.queue.depth.full.event").setUnit("1").build();
-    this.highQueueDepthCounter =
-        meter.counterBuilder("mq.queue.depth.high.event").setUnit("1").build();
-    this.lowQueueDepthCounter =
-        meter.counterBuilder("mq.queue.depth.low.event").setUnit("1").build();
+    this.fullQueueDepthCounter = Metrics.createMqQueueDepthFullEvent(meter);
+    this.highQueueDepthCounter = Metrics.createMqQueueDepthHighEvent(meter);
+    this.lowQueueDepthCounter = Metrics.createMqQueueDepthLowEvent(meter);
   }
 
   private void readEvents(MetricsCollectorContext context, String performanceEventsQueueName)

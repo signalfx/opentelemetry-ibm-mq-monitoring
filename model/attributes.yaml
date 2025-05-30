@@ -51,3 +51,21 @@ groups:
           The queue type
         stability: development
         examples: [ "local-normal" ]
+      - id: listener.name
+        type: string
+        brief: >
+          The listener name
+        stability: development
+        examples: [ "listener" ]
+      - id: user.name
+        type: string
+        brief: >
+          The user name
+        stability: development
+        examples: [ "foo", "root" ]
+      - id: application.name
+        type: string
+        brief: >
+          The application name
+        stability: development
+        examples: [ "Wordle", "JMSService" ]

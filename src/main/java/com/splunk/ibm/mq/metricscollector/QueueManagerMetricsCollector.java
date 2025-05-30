@@ -17,6 +17,7 @@ package com.splunk.ibm.mq.metricscollector;
 
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
@@ -39,13 +40,12 @@ public final class QueueManagerMetricsCollector implements Consumer<MetricsColle
   private final LongGauge maxActiveChannelsGauge;
 
   public QueueManagerMetricsCollector(Meter meter) {
-    this.statusGauge = meter.gaugeBuilder("mq.manager.status").ofLongs().build();
-    this.connectionCountGauge = meter.gaugeBuilder("mq.connection.count").ofLongs().build();
-    this.restartLogSizeGauge = meter.gaugeBuilder("mq.restart.log.size").ofLongs().build();
-    this.reuseLogSizeGauge = meter.gaugeBuilder("mq.reusable.log.size").ofLongs().build();
-    this.archiveLogSizeGauge = meter.gaugeBuilder("mq.archive.log.size").ofLongs().build();
-    this.maxActiveChannelsGauge =
-        meter.gaugeBuilder("mq.manager.max.active.channels").ofLongs().build();
+    this.statusGauge = Metrics.createMqManagerStatus(meter);
+    this.connectionCountGauge = Metrics.createMqConnectionCount(meter);
+    this.restartLogSizeGauge = Metrics.createMqRestartLogSize(meter);
+    this.reuseLogSizeGauge = Metrics.createMqReusableLogSize(meter);
+    this.archiveLogSizeGauge = Metrics.createMqArchiveLogSize(meter);
+    this.maxActiveChannelsGauge = Metrics.createMqManagerMaxActiveChannels(meter);
   }
 
   @Override
