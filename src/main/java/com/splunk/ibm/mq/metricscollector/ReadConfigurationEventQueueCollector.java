@@ -129,11 +129,13 @@ public final class ReadConfigurationEventQueueCollector
       }
 
       if (candidate != null) {
-        int maxHandles = candidate.getIntParameterValue(CMQC.MQIA_MAX_HANDLES);
-        maxHandlesGauge.set(
-            maxHandles,
-            Attributes.of(
-                AttributeKey.stringKey("queue.manager"), context.getQueueManager().getName()));
+        if (context.getMetricsConfig().isMqManagerMaxHandlesEnabled()) {
+          int maxHandles = candidate.getIntParameterValue(CMQC.MQIA_MAX_HANDLES);
+          maxHandlesGauge.set(
+              maxHandles,
+              Attributes.of(
+                  AttributeKey.stringKey("queue.manager"), context.getQueueManager().getName()));
+        }
       }
 
     } catch (Exception e) {

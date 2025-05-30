@@ -27,6 +27,7 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
+import com.splunk.ibm.mq.metrics.MetricsConfig;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
@@ -63,7 +64,9 @@ class QueueManagerMetricsCollectorTest {
         PeriodicMetricReader.builder(testExporter)
             .setExecutor(Executors.newScheduledThreadPool(1))
             .build();
-    context = new MetricsCollectorContext(queueManager, pcfMessageAgent, null);
+    context =
+        new MetricsCollectorContext(
+            queueManager, pcfMessageAgent, null, new MetricsConfig(config._exposed()));
   }
 
   @Test

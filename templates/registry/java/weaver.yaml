@@ -2,3 +2,6 @@ templates:
   - pattern: Metrics.java.j2
     filter: '.groups | map(select(.type == "metric"))'
     application_mode: single
+  - pattern: MetricsConfig.java.j2
+    filter: '.groups | map(select(.type == "metric"))'
+    application_mode: single

@@ -19,6 +19,8 @@ import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 
+// This file is generated using weaver. Do not edit manually.
+
 /** Metric definitions generated from a Weaver model. Do not edit manually. */
 public class Metrics {
 

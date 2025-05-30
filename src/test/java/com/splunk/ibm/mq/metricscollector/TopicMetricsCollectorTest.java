@@ -26,6 +26,7 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
+import com.splunk.ibm.mq.metrics.MetricsConfig;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.LongPointData;
@@ -71,8 +72,10 @@ public class TopicMetricsCollectorTest {
             .build();
     SdkMeterProvider meterProvider =
         SdkMeterProvider.builder().registerMetricReader(reader).build();
+
     MetricsCollectorContext context =
-        new MetricsCollectorContext(queueManager, pcfMessageAgent, null);
+        new MetricsCollectorContext(
+            queueManager, pcfMessageAgent, null, new MetricsConfig(config._exposed()));
     classUnderTest = new TopicMetricsCollector(meterProvider.get("opentelemetry.io/mq"));
 
     when(pcfMessageAgent.send(any(PCFMessage.class)))

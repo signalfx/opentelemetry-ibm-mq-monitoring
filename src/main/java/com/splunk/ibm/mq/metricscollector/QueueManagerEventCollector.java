@@ -61,18 +61,20 @@ public final class QueueManagerEventCollector implements Consumer<MetricsCollect
           queue.get(message, getOptions);
           PCFMessage received = new PCFMessage(message);
           if (received.getReason() == CMQC.MQRC_NOT_AUTHORIZED) {
-            String username = received.getStringParameterValue(CMQCFC.MQCACF_USER_IDENTIFIER);
-            String applicationName = received.getStringParameterValue(CMQCFC.MQCACF_APPL_NAME);
 
-            authorityEventCounter.add(
-                1,
-                Attributes.of(
-                    AttributeKey.stringKey("queue.manager"),
-                    context.getQueueManagerName(),
-                    AttributeKey.stringKey("user.name"),
-                    username,
-                    AttributeKey.stringKey("application.name"),
-                    applicationName));
+            if (context.getMetricsConfig().isMqUnauthorizedEventEnabled()) {
+              String username = received.getStringParameterValue(CMQCFC.MQCACF_USER_IDENTIFIER);
+              String applicationName = received.getStringParameterValue(CMQCFC.MQCACF_APPL_NAME);
+              authorityEventCounter.add(
+                  1,
+                  Attributes.of(
+                      AttributeKey.stringKey("queue.manager"),
+                      context.getQueueManagerName(),
+                      AttributeKey.stringKey("user.name"),
+                      username,
+                      AttributeKey.stringKey("application.name"),
+                      applicationName));
+            }
           } else {
             logger.debug("Unknown event reason {}", received.getReason());
           }

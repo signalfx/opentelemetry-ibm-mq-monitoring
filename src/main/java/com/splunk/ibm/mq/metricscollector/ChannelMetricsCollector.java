@@ -192,10 +192,14 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
             .put("channel.start.time", channelStartTime)
             .put("job.name", jobName)
             .build();
-    int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
-    messageCountGauge.set(received, attributes);
+    if (context.getMetricsConfig().isMqMessageCountEnabled()) {
+      int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
+      messageCountGauge.set(received, attributes);
+    }
     int status = message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_STATUS);
-    channelStatusGauge.set(status, attributes);
+    if (context.getMetricsConfig().isMqStatusEnabled()) {
+      channelStatusGauge.set(status, attributes);
+    }
     // We follow the definition of active channel as documented in
     // https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
     if (status != CMQCFC.MQCHS_RETRYING
@@ -203,20 +207,32 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
         && status != CMQCFC.MQCHS_STARTING) {
       activeChannels.add(channelName);
     }
-    byteSentGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT), attributes);
-    byteReceivedGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED), attributes);
-    buffersSentGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT), attributes);
-    buffersReceivedGauge.set(
-        message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED), attributes);
-    int currentSharingConvs = 0;
-    if (message.getParameter(CMQCFC.MQIACH_CURRENT_SHARING_CONVS) != null) {
-      currentSharingConvs = message.getIntParameterValue(CMQCFC.MQIACH_CURRENT_SHARING_CONVS);
+    if (context.getMetricsConfig().isMqByteSentEnabled()) {
+      byteSentGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT), attributes);
     }
-    currentSharingConvsGauge.set(currentSharingConvs, attributes);
-    int maxSharingConvs = 0;
-    if (message.getParameter(CMQCFC.MQIACH_MAX_SHARING_CONVS) != null) {
-      maxSharingConvs = message.getIntParameterValue(CMQCFC.MQIACH_MAX_SHARING_CONVS);
+    if (context.getMetricsConfig().isMqByteReceivedEnabled()) {
+      byteReceivedGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED), attributes);
     }
-    maxSharingConvsGauge.set(maxSharingConvs, attributes);
+    if (context.getMetricsConfig().isMqBuffersSentEnabled()) {
+      buffersSentGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT), attributes);
+    }
+    if (context.getMetricsConfig().isMqBuffersReceivedEnabled()) {
+      buffersReceivedGauge.set(
+          message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED), attributes);
+    }
+    if (context.getMetricsConfig().isMqCurrentSharingConversationsEnabled()) {
+      int currentSharingConvs = 0;
+      if (message.getParameter(CMQCFC.MQIACH_CURRENT_SHARING_CONVS) != null) {
+        currentSharingConvs = message.getIntParameterValue(CMQCFC.MQIACH_CURRENT_SHARING_CONVS);
+      }
+      currentSharingConvsGauge.set(currentSharingConvs, attributes);
+    }
+    if (context.getMetricsConfig().isMqMaxSharingConversationsEnabled()) {
+      int maxSharingConvs = 0;
+      if (message.getParameter(CMQCFC.MQIACH_MAX_SHARING_CONVS) != null) {
+        maxSharingConvs = message.getIntParameterValue(CMQCFC.MQIACH_MAX_SHARING_CONVS);
+      }
+      maxSharingConvsGauge.set(maxSharingConvs, attributes);
+    }
   }
 }

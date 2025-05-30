@@ -98,13 +98,19 @@ public final class PerformanceEventQueueCollector implements Consumer<MetricsCol
             queueName);
     switch (receivedMsg.getReason()) {
       case CMQC.MQRC_Q_FULL:
-        fullQueueDepthCounter.add(1, attributes);
+        if (context.getMetricsConfig().isMqQueueDepthFullEventEnabled()) {
+          fullQueueDepthCounter.add(1, attributes);
+        }
         break;
       case CMQC.MQRC_Q_DEPTH_HIGH:
-        highQueueDepthCounter.add(1, attributes);
+        if (context.getMetricsConfig().isMqQueueDepthHighEventEnabled()) {
+          highQueueDepthCounter.add(1, attributes);
+        }
         break;
       case CMQC.MQRC_Q_DEPTH_LOW:
-        lowQueueDepthCounter.add(1, attributes);
+        if (context.getMetricsConfig().isMqQueueDepthLowEventEnabled()) {
+          lowQueueDepthCounter.add(1, attributes);
+        }
         break;
       default:
         logger.debug("Unknown event reason {}", receivedMsg.getReason());

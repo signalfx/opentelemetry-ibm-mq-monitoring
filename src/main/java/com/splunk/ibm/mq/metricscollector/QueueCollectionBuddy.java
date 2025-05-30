@@ -26,6 +26,7 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFParameter;
 import com.splunk.ibm.mq.metrics.Metrics;
+import com.splunk.ibm.mq.metrics.MetricsConfig;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
@@ -34,6 +35,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,32 +45,94 @@ import org.slf4j.LoggerFactory;
  */
 final class QueueCollectionBuddy {
   private static final Logger logger = LoggerFactory.getLogger(QueueCollectionBuddy.class);
-  private Map<Integer, LongGauge> gauges;
+  private Map<Integer, AllowedGauge> gauges;
 
   private final QueueCollectorSharedState sharedState;
   private final LongGauge onqtimeShort;
   private final LongGauge onqtimeLong;
 
+  @FunctionalInterface
+  private interface AllowedGauge {
+
+    void set(MetricsCollectorContext context, Integer value, Attributes attributes);
+  }
+
+  private AllowedGauge createAllowedGauge(
+      LongGauge gauge, Function<MetricsConfig, Boolean> allowed) {
+    return (context, val, attributes) -> {
+      if (allowed.apply(context.getMetricsConfig())) {
+        gauge.set(val, attributes);
+      }
+    };
+  }
+
   QueueCollectionBuddy(Meter meter, QueueCollectorSharedState sharedState) {
     this.sharedState = sharedState;
     this.gauges = new HashMap<>();
-    gauges.put(CMQC.MQIA_CURRENT_Q_DEPTH, Metrics.createMqQueueDepth(meter));
-    gauges.put(CMQC.MQIA_MAX_Q_DEPTH, Metrics.createMqMaxQueueDepth(meter));
-    gauges.put(CMQC.MQIA_OPEN_INPUT_COUNT, Metrics.createMqOpenInputCount(meter));
-    gauges.put(CMQC.MQIA_OPEN_OUTPUT_COUNT, Metrics.createMqOpenOutputCount(meter));
-    gauges.put(CMQC.MQIA_Q_SERVICE_INTERVAL, Metrics.createMqServiceInterval(meter));
-    gauges.put(CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT, Metrics.createMqServiceIntervalEvent(meter));
-    gauges.put(CMQCFC.MQIACF_OLDEST_MSG_AGE, Metrics.createMqOldestMsgAge(meter));
-    gauges.put(CMQCFC.MQIACF_UNCOMMITTED_MSGS, Metrics.createMqUncommittedMessages(meter));
-    gauges.put(CMQC.MQIA_MSG_DEQ_COUNT, Metrics.createMqMessageDeqCount(meter));
-    gauges.put(CMQC.MQIA_MSG_ENQ_COUNT, Metrics.createMqMessageEnqCount(meter));
-    gauges.put(CMQC.MQIA_HIGH_Q_DEPTH, Metrics.createMqHighQueueDepth(meter));
-    gauges.put(CMQCFC.MQIACF_CUR_Q_FILE_SIZE, Metrics.createMqCurrentQueueFilesize(meter));
-    gauges.put(CMQCFC.MQIACF_CUR_MAX_FILE_SIZE, Metrics.createMqCurrentMaxQueueFilesize(meter));
+    gauges.put(
+        CMQC.MQIA_CURRENT_Q_DEPTH,
+        createAllowedGauge(
+            Metrics.createMqQueueDepth(meter), MetricsConfig::isMqQueueDepthEnabled));
+    gauges.put(
+        CMQC.MQIA_MAX_Q_DEPTH,
+        createAllowedGauge(
+            Metrics.createMqMaxQueueDepth(meter), MetricsConfig::isMqMaxQueueDepthEnabled));
+    gauges.put(
+        CMQC.MQIA_OPEN_INPUT_COUNT,
+        createAllowedGauge(
+            Metrics.createMqOpenInputCount(meter), MetricsConfig::isMqOpenInputCountEnabled));
+    gauges.put(
+        CMQC.MQIA_OPEN_OUTPUT_COUNT,
+        createAllowedGauge(
+            Metrics.createMqOpenOutputCount(meter), MetricsConfig::isMqOpenOutputCountEnabled));
+    gauges.put(
+        CMQC.MQIA_Q_SERVICE_INTERVAL,
+        createAllowedGauge(
+            Metrics.createMqServiceInterval(meter), MetricsConfig::isMqServiceIntervalEnabled));
+    gauges.put(
+        CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT,
+        createAllowedGauge(
+            Metrics.createMqServiceIntervalEvent(meter),
+            MetricsConfig::isMqServiceIntervalEventEnabled));
+    gauges.put(
+        CMQCFC.MQIACF_OLDEST_MSG_AGE,
+        createAllowedGauge(
+            Metrics.createMqOldestMsgAge(meter), MetricsConfig::isMqOldestMsgAgeEnabled));
+    gauges.put(
+        CMQCFC.MQIACF_UNCOMMITTED_MSGS,
+        createAllowedGauge(
+            Metrics.createMqUncommittedMessages(meter),
+            MetricsConfig::isMqUncommittedMessagesEnabled));
+    gauges.put(
+        CMQC.MQIA_MSG_DEQ_COUNT,
+        createAllowedGauge(
+            Metrics.createMqMessageDeqCount(meter), MetricsConfig::isMqMessageDeqCountEnabled));
+    gauges.put(
+        CMQC.MQIA_MSG_ENQ_COUNT,
+        createAllowedGauge(
+            Metrics.createMqMessageEnqCount(meter), MetricsConfig::isMqMessageEnqCountEnabled));
+    gauges.put(
+        CMQC.MQIA_HIGH_Q_DEPTH,
+        createAllowedGauge(
+            Metrics.createMqHighQueueDepth(meter), MetricsConfig::isMqHighQueueDepthEnabled));
+    gauges.put(
+        CMQCFC.MQIACF_CUR_Q_FILE_SIZE,
+        createAllowedGauge(
+            Metrics.createMqCurrentQueueFilesize(meter),
+            MetricsConfig::isMqCurrentQueueFilesizeEnabled));
+    gauges.put(
+        CMQCFC.MQIACF_CUR_MAX_FILE_SIZE,
+        createAllowedGauge(
+            Metrics.createMqCurrentMaxQueueFilesize(meter),
+            MetricsConfig::isMqCurrentMaxQueueFilesizeEnabled));
 
     this.onqtimeShort = Metrics.createMqOnqtime1(meter);
     this.onqtimeLong = Metrics.createMqOnqtime2(meter);
+
+    initialize(meter);
   }
+
+  private void initialize(Meter meter) {}
 
   /**
    * Sends a PCFMessage request, reads the response, and generates metrics from the response. It
@@ -219,17 +283,21 @@ final class QueueCollectionBuddy {
             context.getQueueManagerName());
 
     if (pcfParam instanceof MQCFIN) {
-      LongGauge g = this.gauges.get(constantValue);
+      AllowedGauge g = this.gauges.get(constantValue);
       if (g == null) {
         throw new IllegalArgumentException("Unknown constantValue " + constantValue);
       }
       int metricVal = pcfMessage.getIntParameterValue(constantValue);
-      g.set(metricVal, attributes);
+      g.set(context, metricVal, attributes);
     }
     if (pcfParam instanceof MQCFIL) {
       int[] metricVals = pcfMessage.getIntListParameterValue(constantValue);
-      onqtimeShort.set(metricVals[0], attributes);
-      onqtimeLong.set(metricVals[1], attributes);
+      if (context.getMetricsConfig().isMqOnqtime1Enabled()) {
+        onqtimeShort.set(metricVals[0], attributes);
+      }
+      if (context.getMetricsConfig().isMqOnqtime2Enabled()) {
+        onqtimeLong.set(metricVals[1], attributes);
+      }
     }
   }
 }

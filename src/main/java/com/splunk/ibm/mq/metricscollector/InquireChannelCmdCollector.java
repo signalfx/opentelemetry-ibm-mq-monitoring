@@ -120,28 +120,36 @@ public final class InquireChannelCmdCollector implements Consumer<MetricsCollect
             .put("channel.type", channelType)
             .put("queue.manager", context.getQueueManagerName())
             .build();
-    if (message.getParameter(CMQCFC.MQIACH_MAX_INSTANCES) != null) {
+    if (context.getMetricsConfig().isMqMaxInstancesEnabled()
+        && message.getParameter(CMQCFC.MQIACH_MAX_INSTANCES) != null) {
       this.maxClientsGauge.set(
           message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTANCES), attributes);
     }
-    if (message.getParameter(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT) != null) {
+    if (context.getMetricsConfig().isMqInstancesPerClientEnabled()
+        && message.getParameter(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT) != null) {
       this.instancesPerClientGauge.set(
           message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT), attributes);
     }
-    int count = 0;
-    if (message.getParameter(CMQCFC.MQIACH_MR_COUNT) != null) {
-      count = message.getIntParameterValue(CMQCFC.MQIACH_MR_COUNT);
+    if (context.getMetricsConfig().isMqMessageRetryCountEnabled()) {
+      int count = 0;
+      if (message.getParameter(CMQCFC.MQIACH_MR_COUNT) != null) {
+        count = message.getIntParameterValue(CMQCFC.MQIACH_MR_COUNT);
+      }
+      this.messageRetryCountGauge.set(count, attributes);
     }
-    this.messageRetryCountGauge.set(count, attributes);
-    int received = 0;
-    if (message.getParameter(CMQCFC.MQIACH_MSGS_RECEIVED) != null) {
-      received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_RECEIVED);
+    if (context.getMetricsConfig().isMqInstancesPerClientEnabled()) {
+      int received = 0;
+      if (message.getParameter(CMQCFC.MQIACH_MSGS_RECEIVED) != null) {
+        received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_RECEIVED);
+      }
+      this.messageReceivedCountGauge.set(received, attributes);
     }
-    this.messageReceivedCountGauge.set(received, attributes);
-    int sent = 0;
-    if (message.getParameter(CMQCFC.MQIACH_MSGS_SENT) != null) {
-      sent = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_SENT);
+    if (context.getMetricsConfig().isMqMessageSentCountEnabled()) {
+      int sent = 0;
+      if (message.getParameter(CMQCFC.MQIACH_MSGS_SENT) != null) {
+        sent = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_SENT);
+      }
+      this.messageSentCountGauge.set(sent, attributes);
     }
-    this.messageSentCountGauge.set(sent, attributes);
   }
 }
