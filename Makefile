@@ -66,3 +66,16 @@ generate-java:
 		java \
 		--future \
 		/home/weaver/target
+
+.PHONY: generate-yaml
+generate-yaml:
+	$(DOCKER_RUN) --rm \
+		$(DOCKER_USER_IS_HOST_USER_ARG) \
+		--mount 'type=bind,source=$(PWD)/model,target=/home/weaver/model,readonly' \
+		--mount 'type=bind,source=$(PWD)/templates,target=/home/weaver/templates,readonly' \
+		--mount 'type=bind,source=$(PWD)/,target=/home/weaver/target' \
+		${WEAVER_CONTAINER} registry generate \
+		--registry=/home/weaver/model \
+		yaml \
+		--future \
+		/home/weaver/target

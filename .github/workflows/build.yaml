@@ -33,10 +33,14 @@ jobs:
         run: |
           make generate-docs
           git diff --exit-code || (echo 'Docs out of date')
+      - name: Check config generation
+        run: |
+          make generate-yaml
+          git diff --exit-code || (echo 'YAML out of date')
       - name: Check java generation
         run: |
           make generate-java
           ./mvnw spotless:apply
-          git diff --exit-code || (echo 'Docs out of date')
+          git diff --exit-code || (echo 'Java out of date')
       - name: Maven build and test
         run: ./mvnw test package
