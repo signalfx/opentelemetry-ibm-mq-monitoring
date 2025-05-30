@@ -4,4 +4,5 @@ services:
     volumes:
       - ./log.txt:/tmp/log.txt
       - ./log.json:/tmp/log.json
+      - ./error_log.txt:/tmp/error_log.txt
       - ./otelconf.yaml:/etc/otelcol-contrib/config.yaml

@@ -1,0 +1,103 @@
+----- amqxloga.c : 3150 -------------------------------------------------------
+05/30/2025 11:52:04 AM - Process(7093.843) User(mqm) Program(amqrmppa)
+                    Host(vrtdl30222) Installation(Installation2)
+                    VRMF(9.3.0.21) QMgr(UMB.DEVAPPL1)
+                    Time(2025-05-30T16:52:04.227Z)
+                    ArithInsert1(1) ArithInsert2(1)
+                    CommentInsert1(SYSTEM.ADMIN.SVRCONN)
+                    CommentInsert2(10.162.0.60)
+
+AMQ9490E: The maximum number of instances, 1, of channel 'SYSTEM.ADMIN.SVRCONN'
+was reached for an individual client.
+
+EXPLANATION:
+The server-connection channel 'SYSTEM.ADMIN.SVRCONN' is configured so that the
+maximum number of instances that can run at the same time for any individual
+client is 1. This limit was reached for the client with remote network address
+'10.162.0.60'.
+ACTION:
+Try the operation again when a new instance can be started for this client.
+
+If the limit has been reached because there are too many connections from the
+relevant client application, consider changing the application to make fewer
+connections.
+
+If you are not making use of sharing conversations, consider switching to this
+mode of operation because several client connections can then share one channel
+instance.
+----- amqxloga.c : 3150 -------------------------------------------------------
+05/30/2025 11:52:04 AM - Process(7093.843) User(mqm) Program(amqrmppa)
+                    Host(vrtdl30222) Installation(Installation2)
+                    VRMF(9.3.0.21) QMgr(UMB.DEVAPPL1)
+                    Time(2025-05-30T16:52:04.227Z)
+                    ArithInsert1(1) ArithInsert2(1)
+                    CommentInsert1(SYSTEM.ADMIN.SVRCONN)
+                    CommentInsert2(10.162.0.60)
+
+AMQ9490E: The maximum number of instances, 1, of channel 'SYSTEM.ADMIN.SVRCONN'
+was reached for an individual client.
+
+EXPLANATION:
+The server-connection channel 'SYSTEM.ADMIN.SVRCONN' is configured so that the
+maximum number of instances that can run at the same time for any individual
+client is 1. This limit was reached for the client with remote network address
+'10.162.0.60'.
+ACTION:
+Try the operation again when a new instance can be started for this client.
+
+If the limit has been reached because there are too many connections from the
+relevant client application, consider changing the application to make fewer
+connections.
+
+If you are not making use of sharing conversations, consider switching to this
+mode of operation because several client connections can then share one channel
+instance.
+----- amqxloga.c : 3150 -------------------------------------------------------
+05/30/2025 11:52:04 AM - Process(7093.843) User(mqm) Program(amqrmppa)
+                    Host(vrtdl30222) Installation(Installation2)
+                    VRMF(9.3.0.21) QMgr(UMB.DEVAPPL1)
+                    Time(2025-05-30T16:52:04.227Z)
+                    ArithInsert1(1) ArithInsert2(1)
+                    CommentInsert1(SYSTEM.ADMIN.SVRCONN)
+                    CommentInsert2(10.162.0.60)
+
+AMQ9490E: The maximum number of instances, 1, of channel 'SYSTEM.ADMIN.SVRCONN'
+was reached for an individual client.
+
+EXPLANATION:
+The server-connection channel 'SYSTEM.ADMIN.SVRCONN' is configured so that the
+maximum number of instances that can run at the same time for any individual
+client is 1. This limit was reached for the client with remote network address
+'10.162.0.60'.
+ACTION:
+Try the operation again when a new instance can be started for this client.
+
+If the limit has been reached because there are too many connections from the
+relevant client application, consider changing the application to make fewer
+connections.
+
+If you are not making use of sharing conversations, consider switching to this
+mode of operation because several client connections can then share one channel
+instance.
+----- amqrmrsa.c : 442 --------------------------------------------------------
+05/30/2025 12:10:33 PM - Process(2490308.72) User(mqm) Program(amqrmppa)
+                    Host(vrtdl30219) Installation(Installation2)
+                    VRMF(9.3.0.21) QMgr(SNDQMD01)
+                    Time(2025-05-30T17:10:33.720Z)
+                    ArithInsert1(13) ArithInsert2(4)
+                    CommentInsert1(APPD.TEST.SEQ)
+                    CommentInsert2(10.172.60.13)
+
+AMQ9703W: Message sequence number mismatch detected for channel
+'APPD.TEST.SEQ'.
+
+EXPLANATION:
+The local and remote queue managers do not agree on the next message sequence
+number. A message with sequence number 13 has been sent when sequence number 4
+was expected. The remote host is '10.172.60.13'. The channel will ignore the
+mismatch in sequence numbers and attempt to continue.
+ACTION:
+Determine the cause of the inconsistency. It could be that a channel has been
+deleted and redefined, an MCA has previously ended abnormally whilst confirming
+a message batch, or the channel is being intentionally redirected to an
+equivalent queue manager (i.e. disaster recovery).
