@@ -213,7 +213,42 @@ groups:
         requirement_level: required
       - ref: queue.type
         requirement_level: required
-
+  - id: "mq.queue.depth.full.event"
+    type: metric
+    metric_name: "mq.queue.depth.full.event"
+    stability: development
+    brief: "The number of full queue events"
+    instrument: counter
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: queue.name
+        requirement_level: required
+  - id: "mq.queue.depth.high.event"
+    type: metric
+    metric_name: "mq.queue.depth.high.event"
+    stability: development
+    brief: "The number of high queue events"
+    instrument: counter
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: queue.name
+        requirement_level: required
+  - id: "mq.queue.depth.low.event"
+    type: metric
+    metric_name: "mq.queue.depth.low.event"
+    stability: development
+    brief: "The number of low queue events"
+    instrument: counter
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: queue.name
+        requirement_level: required
   - id: mq.uncommitted.messages
     type: metric
     metric_name: mq.uncommitted.messages
@@ -537,4 +572,40 @@ groups:
       - ref: queue.manager
         requirement_level: required
       - ref: topic.name
+        requirement_level: required
+  - id: mq.listener.status
+    type: metric
+    metric_name: mq.listener.status
+    stability: development
+    brief: "Listener status"
+    instrument: gauge
+    unit: "1"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: listener.name
+        requirement_level: required
+  - id: mq.unauthorized.event
+    type: metric
+    metric_name: mq.unauthorized.event
+    stability: development
+    brief: "Number of authentication error events"
+    instrument: counter
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: user.name
+        requirement_level: required
+      - ref: application.name
+        requirement_level: required
+  - id: mq.manager.max.handles
+    type: metric
+    metric_name: mq.manager.max.handles
+    stability: development
+    brief: "Max open handles"
+    instrument: gauge
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
         requirement_level: required

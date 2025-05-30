@@ -52,3 +52,17 @@ check:
 		--mount 'type=bind,source=$(PWD)/docs,target=/home/weaver/target' \
 		${WEAVER_CONTAINER} registry check \
 		--registry=/home/weaver/model
+
+.PHONY: generate-java
+generate-java:
+	mkdir -p src/main/java/com/splunk/ibm/mq/metrics
+	$(DOCKER_RUN) --rm \
+		$(DOCKER_USER_IS_HOST_USER_ARG) \
+		--mount 'type=bind,source=$(PWD)/model,target=/home/weaver/model,readonly' \
+		--mount 'type=bind,source=$(PWD)/templates,target=/home/weaver/templates,readonly' \
+		--mount 'type=bind,source=$(PWD)/src/main/java/com/splunk/ibm/mq/metrics,target=/home/weaver/target' \
+		${WEAVER_CONTAINER} registry generate \
+		--registry=/home/weaver/model \
+		java \
+		--future \
+		/home/weaver/target

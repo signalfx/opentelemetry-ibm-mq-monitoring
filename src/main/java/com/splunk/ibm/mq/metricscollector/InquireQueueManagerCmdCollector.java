@@ -20,6 +20,7 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
@@ -37,8 +38,7 @@ public final class InquireQueueManagerCmdCollector implements Consumer<MetricsCo
   private final LongGauge statisticsIntervalGauge;
 
   public InquireQueueManagerCmdCollector(Meter meter) {
-    this.statisticsIntervalGauge =
-        meter.gaugeBuilder("mq.manager.statistics.interval").ofLongs().build();
+    this.statisticsIntervalGauge = Metrics.createMqManagerStatisticsInterval(meter);
   }
 
   @Override

@@ -20,6 +20,7 @@ import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.MQCFIL;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
@@ -40,12 +41,11 @@ public final class InquireChannelCmdCollector implements Consumer<MetricsCollect
   private final LongGauge messageSentCountGauge;
 
   public InquireChannelCmdCollector(Meter meter) {
-    this.maxClientsGauge = meter.gaugeBuilder("mq.max.instances").ofLongs().build();
-    this.instancesPerClientGauge = meter.gaugeBuilder("mq.instances.per.client").ofLongs().build();
-    this.messageRetryCountGauge = meter.gaugeBuilder("mq.message.retry.count").ofLongs().build();
-    this.messageReceivedCountGauge =
-        meter.gaugeBuilder("mq.message.received.count").ofLongs().build();
-    this.messageSentCountGauge = meter.gaugeBuilder("mq.message.sent.count").ofLongs().build();
+    this.maxClientsGauge = Metrics.createMqMaxInstances(meter);
+    this.instancesPerClientGauge = Metrics.createMqInstancesPerClient(meter);
+    this.messageRetryCountGauge = Metrics.createMqMessageRetryCount(meter);
+    this.messageReceivedCountGauge = Metrics.createMqMessageReceivedCount(meter);
+    this.messageSentCountGauge = Metrics.createMqMessageSentCount(meter);
   }
 
   @Override

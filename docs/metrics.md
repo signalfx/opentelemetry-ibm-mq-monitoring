@@ -238,6 +238,54 @@
 
 
 
+## Metric `mq.queue.depth.full.event`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.queue.depth.full.event` | Counter | `{events}` | The number of full queue events | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.queue.depth.full.event` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.name` | string | The queue name | `DEV.DEAD.LETTER.QUEUE` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.queue.depth.high.event`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.queue.depth.high.event` | Counter | `{events}` | The number of high queue events | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.queue.depth.high.event` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.name` | string | The queue name | `DEV.DEAD.LETTER.QUEUE` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.queue.depth.low.event`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.queue.depth.low.event` | Counter | `{events}` | The number of low queue events | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.queue.depth.low.event` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.name` | string | The queue name | `DEV.DEAD.LETTER.QUEUE` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
 ## Metric `mq.uncommitted.messages`
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
@@ -657,5 +705,53 @@
 |---|---|---|---|---|---|
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `topic.name` | string | The name of the topic | `dev/` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.listener.status`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.listener.status` | Gauge | `1` | Listener status | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.listener.status` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `listener.name` | string | The listener name | `listener` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.unauthorized.event`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.unauthorized.event` | Counter | `{events}` | Number of authentication error events | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.unauthorized.event` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `application.name` | string | The application name | `Wordle`; `JMSService` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `user.name` | string | The user name | `foo`; `root` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.manager.max.handles`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.manager.max.handles` | Gauge | `{events}` | Max open handles | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.manager.max.handles` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 
 

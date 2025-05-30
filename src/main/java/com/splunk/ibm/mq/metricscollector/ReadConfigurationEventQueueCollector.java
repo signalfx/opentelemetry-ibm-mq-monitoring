@@ -23,6 +23,7 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
@@ -42,7 +43,7 @@ public final class ReadConfigurationEventQueueCollector
 
   public ReadConfigurationEventQueueCollector(Meter meter) {
     this.bootTime = System.currentTimeMillis();
-    this.maxHandlesGauge = meter.gaugeBuilder("mq.manager.max.handles").ofLongs().build();
+    this.maxHandlesGauge = Metrics.createMqManagerMaxHandles(meter);
   }
 
   private PCFMessage findLastUpdate(

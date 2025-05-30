@@ -23,6 +23,7 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.constants.MQConstants;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongCounter;
@@ -39,7 +40,7 @@ public final class QueueManagerEventCollector implements Consumer<MetricsCollect
   private final LongCounter authorityEventCounter;
 
   public QueueManagerEventCollector(Meter meter) {
-    this.authorityEventCounter = meter.counterBuilder("mq.unauthorized.event").setUnit("1").build();
+    this.authorityEventCounter = Metrics.createMqUnauthorizedEvent(meter);
   }
 
   private void readEvents(MetricsCollectorContext context, String queueManagerEventsQueueName)
