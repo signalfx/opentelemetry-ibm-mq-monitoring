@@ -148,7 +148,7 @@ See [docs/metrics.md](docs/metrics.md).
 
 ## Capturing logs
 
-See [Capturing logs as metrics](log_captures/README.md) for a tutorial to capture and extract metrics from logs.
+See [Capturing logs as metrics](docs/log_captures/README.md) for a tutorial to capture and extract metrics from logs.
 
 ## Troubleshooting
 1. Please follow the steps listed in this [troubleshooting-document](https://community.appdynamics.com/t5/Knowledge-Base/How-to-troubleshoot-missing-custom-metrics-or-extensions-metrics/ta-p/28695) in order to troubleshoot your issue. These are a set of common issues that customers might have faced during the installation of the extension.
