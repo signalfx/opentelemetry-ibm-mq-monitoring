@@ -19,6 +19,8 @@ import com.splunk.ibm.mq.WMQMonitor;
 import io.opentelemetry.api.metrics.MeterProvider;
 import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -65,9 +67,19 @@ public class Main {
   }
 
   public static void run(ConfigWrapper config, final ScheduledExecutorService service) {
+    Map<String, String> props = new HashMap<>();
+    if (config._exposed().get("otlpExporter") instanceof Map) {
+      Map otlpConfig = (Map) config._exposed().get("otlpExporter");
+      for (Object key : otlpConfig.keySet()) {
+        if (key instanceof String && otlpConfig.get(key) instanceof String) {
+          props.put((String) key, (String) otlpConfig.get(key));
+        }
+      }
+    }
 
     AutoConfiguredOpenTelemetrySdk sdk =
         AutoConfiguredOpenTelemetrySdk.builder()
+            .addPropertiesSupplier(() -> props)
             .addMeterProviderCustomizer(
                 (builder, configProps) -> builder.setResource(Resource.empty()))
             .build();

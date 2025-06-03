@@ -31,15 +31,15 @@ class Config {
   //  static MetricExporter createOtlpHttpMetricsExporter(Map<String, ?> config) {
   //    OtlpHttpMetricExporterBuilder builder = OtlpHttpMetricExporter.builder();
   //
-  //    Map<String, String> props = new HashMap<>();
-  //    if (config.get("otlpExporter") instanceof Map) {
-  //      Map otlpConfig = (Map) config.get("otlpExporter");
-  //      for (Object key : otlpConfig.keySet()) {
-  //        if (key instanceof String && otlpConfig.get(key) instanceof String) {
-  //          props.put((String) key, (String) otlpConfig.get(key));
+  //      Map<String, String> props = new HashMap<>();
+  //      if (config.get("otlpExporter") instanceof Map) {
+  //        Map otlpConfig = (Map) config.get("otlpExporter");
+  //        for (Object key : otlpConfig.keySet()) {
+  //          if (key instanceof String && otlpConfig.get(key) instanceof String) {
+  //            props.put((String) key, (String) otlpConfig.get(key));
+  //          }
   //        }
   //      }
-  //    }
   //
   //    // TODO: Don't use internal classes from opentelemetry
   //    OtlpConfigUtil.configureOtlpExporterBuilder(
