@@ -270,7 +270,7 @@ class WMQMonitorIntegrationTest {
     ScheduledExecutorService service =
         Executors.newScheduledThreadPool(config.getNumberOfThreads());
     TestResultMetricExporter exporter = new TestResultMetricExporter();
-    Main.run(config, service, exporter);
+    Main.run(config, service);
     Thread.sleep(5000);
     service.shutdown();
     service.awaitTermination(10, TimeUnit.SECONDS);
