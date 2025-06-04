@@ -25,51 +25,13 @@ class Config {
 
   private static final Logger logger = LoggerFactory.getLogger(Config.class);
 
-  // TODO: Delete this boneyard. Are we confident we can do all of this?
-  // TOOD: What about the magical aggregation selector? Can't we just use the default? If not, why
-  // not?
-  //  static MetricExporter createOtlpHttpMetricsExporter(Map<String, ?> config) {
-  //    OtlpHttpMetricExporterBuilder builder = OtlpHttpMetricExporter.builder();
-  //
-  //    Map<String, String> props = new HashMap<>();
-  //    if (config.get("otlpExporter") instanceof Map) {
-  //      Map otlpConfig = (Map) config.get("otlpExporter");
-  //      for (Object key : otlpConfig.keySet()) {
-  //        if (key instanceof String && otlpConfig.get(key) instanceof String) {
-  //          props.put((String) key, (String) otlpConfig.get(key));
-  //        }
-  //      }
-  //    }
-  //
-  //    // TODO: Don't use internal classes from opentelemetry
-  //    OtlpConfigUtil.configureOtlpExporterBuilder(
-  //        DATA_TYPE_METRICS,
-  //        DefaultConfigProperties.create(props),
-  //        builder::setEndpoint,
-  //        builder::addHeader,
-  //        builder::setCompression,
-  //        builder::setTimeout,
-  //        builder::setTrustedCertificates,
-  //        builder::setClientTls,
-  //        builder::setRetryPolicy,
-  //        builder::setMemoryMode);
-  //
-  //    builder.setDefaultAggregationSelector((instrumentType) -> Aggregation.lastValue());
-  //    return builder.build();
-  //  }
-
   static void setUpSSLConnection(Map<String, ?> config) {
-    if (config.get("sslConnection") instanceof Map) {
-      Map otlpConfig = (Map) config.get("sslConnection");
-
-      getConfigValueAndSetSystemProperty(otlpConfig, "keyStorePath", "javax.net.ssl.keyStore");
-      getConfigValueAndSetSystemProperty(
-          otlpConfig, "keyStorePassword", "javax.net.ssl.keyStorePassword");
-      getConfigValueAndSetSystemProperty(
-          otlpConfig, "trustStorePath", "javax.net.ssl.trustStorePath");
-      getConfigValueAndSetSystemProperty(
-          otlpConfig, "trustStorePassword", "javax.net.ssl.trustStorePassword");
-    }
+    getConfigValueAndSetSystemProperty(config, "keyStorePath", "javax.net.ssl.keyStore");
+    getConfigValueAndSetSystemProperty(
+        config, "keyStorePassword", "javax.net.ssl.keyStorePassword");
+    getConfigValueAndSetSystemProperty(config, "trustStorePath", "javax.net.ssl.trustStorePath");
+    getConfigValueAndSetSystemProperty(
+        config, "trustStorePassword", "javax.net.ssl.trustStorePassword");
   }
 
   private static void getConfigValueAndSetSystemProperty(

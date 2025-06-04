@@ -69,8 +69,7 @@ class InquireChannelCmdCollectorTest {
         SdkMeterProvider.builder().registerMetricReader(reader).build();
     meter = meterProvider.get("opentelemetry.io/mq");
     context =
-        new MetricsCollectorContext(
-            queueManager, pcfMessageAgent, null, new MetricsConfig(config._exposed()));
+        new MetricsCollectorContext(queueManager, pcfMessageAgent, null, new MetricsConfig(config));
   }
 
   @Test
