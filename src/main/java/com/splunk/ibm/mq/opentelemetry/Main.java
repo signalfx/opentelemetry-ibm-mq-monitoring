@@ -62,7 +62,7 @@ public class Main {
             });
 
     Config.configureSecurity(config);
-    Config.setUpSSLConnection(config._exposed());
+    Config.setUpSSLConnection(config.getSslConnection());
 
     run(config, service);
   }

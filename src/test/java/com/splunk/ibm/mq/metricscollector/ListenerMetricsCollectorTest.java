@@ -72,8 +72,7 @@ class ListenerMetricsCollectorTest {
     SdkMeterProvider meterProvider =
         SdkMeterProvider.builder().registerMetricReader(reader).build();
     MetricsCollectorContext context =
-        new MetricsCollectorContext(
-            queueManager, pcfMessageAgent, null, new MetricsConfig(config._exposed()));
+        new MetricsCollectorContext(queueManager, pcfMessageAgent, null, new MetricsConfig(config));
     classUnderTest = new ListenerMetricsCollector(meterProvider.get("opentelemetry.io/mq"));
     classUnderTest.accept(context);
 

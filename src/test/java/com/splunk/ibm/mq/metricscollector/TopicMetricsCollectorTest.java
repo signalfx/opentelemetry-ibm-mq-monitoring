@@ -74,8 +74,7 @@ public class TopicMetricsCollectorTest {
         SdkMeterProvider.builder().registerMetricReader(reader).build();
 
     MetricsCollectorContext context =
-        new MetricsCollectorContext(
-            queueManager, pcfMessageAgent, null, new MetricsConfig(config._exposed()));
+        new MetricsCollectorContext(queueManager, pcfMessageAgent, null, new MetricsConfig(config));
     classUnderTest = new TopicMetricsCollector(meterProvider.get("opentelemetry.io/mq"));
 
     when(pcfMessageAgent.send(any(PCFMessage.class)))

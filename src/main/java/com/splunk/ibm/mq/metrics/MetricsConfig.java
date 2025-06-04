@@ -15,6 +15,7 @@
  */
 package com.splunk.ibm.mq.metrics;
 
+import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import java.util.Map;
 
 // This file is generated using weaver. Do not edit manually.
@@ -24,11 +25,8 @@ public class MetricsConfig {
 
   private final Map<String, ?> config;
 
-  public MetricsConfig(Map<String, ?> config) {
-    if (config == null || !(config.get("metrics") instanceof Map)) {
-      throw new IllegalArgumentException("config metrics section is missing");
-    }
-    this.config = (Map<String, ?>) config.get("metrics");
+  public MetricsConfig(ConfigWrapper config) {
+    this.config = config.getMetrics();
   }
 
   public boolean isMqMessageRetryCountEnabled() {

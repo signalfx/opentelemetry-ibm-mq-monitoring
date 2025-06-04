@@ -108,6 +108,15 @@ public final class ConfigWrapper {
     return (Integer) result;
   }
 
+  @NotNull
+  public Map<String, ?> getMetrics() {
+    Object metrics = config.get("metrics");
+    if (!(metrics instanceof Map)) {
+      throw new IllegalArgumentException("config metrics section is missing");
+    }
+    return (Map<String, ?>) metrics;
+  }
+
   private int defaultedInt(Map<String, ?> section, String key, int defaultValue) {
     Object val = section.get(key);
     return val instanceof Integer ? (Integer) val : defaultValue;
@@ -118,14 +127,5 @@ public final class ConfigWrapper {
       return (Map<String, ?>) config.get("taskSchedule");
     }
     return Collections.emptyMap();
-  }
-
-  /**
-   * A stop-gap method to expose the underlying raw content. This should go away. As usages of this
-   * are found, we can migrate them into semantic methods on this class.
-   */
-  @Deprecated // Deprecated to highlight raw usages as problematic while WIP
-  public Map<String, ?> _exposed() {
-    return Collections.unmodifiableMap(config);
   }
 }

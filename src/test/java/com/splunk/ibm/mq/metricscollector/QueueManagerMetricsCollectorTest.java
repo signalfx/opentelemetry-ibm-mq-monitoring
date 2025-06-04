@@ -65,8 +65,7 @@ class QueueManagerMetricsCollectorTest {
             .setExecutor(Executors.newScheduledThreadPool(1))
             .build();
     context =
-        new MetricsCollectorContext(
-            queueManager, pcfMessageAgent, null, new MetricsConfig(config._exposed()));
+        new MetricsCollectorContext(queueManager, pcfMessageAgent, null, new MetricsConfig(config));
   }
 
   @Test

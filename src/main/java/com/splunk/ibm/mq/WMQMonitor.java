@@ -62,7 +62,7 @@ public class WMQMonitor {
       }
     }
 
-    this.metricsConfig = new MetricsConfig(config._exposed());
+    this.metricsConfig = new MetricsConfig(config);
 
     this.heartbeatGauge = meter.gaugeBuilder("mq.heartbeat").setUnit("1").ofLongs().build();
     this.threadPool = threadPool;
