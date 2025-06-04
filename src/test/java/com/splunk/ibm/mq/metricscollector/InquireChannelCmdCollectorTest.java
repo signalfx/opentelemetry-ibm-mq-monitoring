@@ -44,6 +44,7 @@ class InquireChannelCmdCollectorTest {
 
   @RegisterExtension
   static final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+
   InquireChannelCmdCollector classUnderTest;
 
   MetricsCollectorContext context;

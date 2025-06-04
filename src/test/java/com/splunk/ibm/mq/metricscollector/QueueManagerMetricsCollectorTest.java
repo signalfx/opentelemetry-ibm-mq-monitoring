@@ -28,8 +28,8 @@ import com.splunk.ibm.mq.config.QueueManager;
 import com.splunk.ibm.mq.metrics.MetricsConfig;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import io.opentelemetry.sdk.metrics.data.MetricData;
-import java.util.ArrayList;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +43,7 @@ class QueueManagerMetricsCollectorTest {
 
   @RegisterExtension
   static final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+
   QueueManagerMetricsCollector classUnderTest;
   QueueManager queueManager;
   MetricsCollectorContext context;
@@ -62,9 +63,11 @@ class QueueManagerMetricsCollectorTest {
   public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireQMgrStatusCmd());
-    classUnderTest = new QueueManagerMetricsCollector(otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq"));
+    classUnderTest =
+        new QueueManagerMetricsCollector(
+            otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq"));
     classUnderTest.accept(context);
-        List<String> metricsList = new ArrayList<>(List.of("mq.manager.status"));
+    List<String> metricsList = new ArrayList<>(List.of("mq.manager.status"));
 
     for (MetricData metric : otelTesting.getMetrics()) {
       if (metricsList.remove(metric.getName())) {

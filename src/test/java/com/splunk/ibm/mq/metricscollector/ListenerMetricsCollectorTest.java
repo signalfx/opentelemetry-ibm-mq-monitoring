@@ -43,6 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ListenerMetricsCollectorTest {
   @RegisterExtension
   static final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+
   ListenerMetricsCollector classUnderTest;
   QueueManager queueManager;
   ConfigWrapper config;
@@ -62,7 +63,9 @@ class ListenerMetricsCollectorTest {
 
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, pcfMessageAgent, null, new MetricsConfig(config));
-    classUnderTest = new ListenerMetricsCollector(otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq"));
+    classUnderTest =
+        new ListenerMetricsCollector(
+            otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq"));
     classUnderTest.accept(context);
 
     MetricData metric = otelTesting.getMetrics().get(0);

@@ -1,6 +1,7 @@
 services:
   mq:
-    image: icr.io/ibm-messaging/mq:9.4.2.1-r1
+    #    image: icr.io/ibm-messaging/mq:9.4.2.1-r1
+    image: ibm-mqadvanced-server-dev:9.4.2.1-arm64
     ports:
       - 1414:1414
       - 9443:9443

@@ -28,8 +28,8 @@ import com.splunk.ibm.mq.metrics.MetricsConfig;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
-import java.util.ArrayList;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -45,6 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class TopicMetricsCollectorTest {
   @RegisterExtension
   static final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+
   TopicMetricsCollector classUnderTest;
   QueueManager queueManager;
   ConfigWrapper config;
@@ -61,7 +62,8 @@ public class TopicMetricsCollectorTest {
   void testPublishMetrics() throws Exception {
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, pcfMessageAgent, null, new MetricsConfig(config));
-    classUnderTest = new TopicMetricsCollector(otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq"));
+    classUnderTest =
+        new TopicMetricsCollector(otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq"));
 
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireTopicStatusCmd());

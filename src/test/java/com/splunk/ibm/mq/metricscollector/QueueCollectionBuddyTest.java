@@ -45,6 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 public class QueueCollectionBuddyTest {
   @RegisterExtension
   static final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+
   QueueCollectionBuddy classUnderTest;
   QueueManager queueManager;
   MetricsCollectorContext collectorContext;
