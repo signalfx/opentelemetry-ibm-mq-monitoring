@@ -90,6 +90,8 @@ This example also shows how to read the log entries formatted as JSON.
 
 This legacy format has a longer, multiline error log, where each entry is delimited with a dash line.
 
+This format is richer and allows us to determine the host and queue manager as well.
+
 This example also shows how to read those log entries:
 
 ```yaml
@@ -104,7 +106,7 @@ This example also shows how to read those log entries:
     operators:
       - type: regex_parser
         parse_from: body
-        regex: '(?m)Time\((?P<timestamp>.*?)\)(.|\n)*\n(?P<code>\w+):(.|\n)*EXPLANATION'
+        regex: '(?m)Host\((?P<host_name>.*?)\)(.|\n)*QMgr\((?P<queue_manager>.*?)\)(.|\n)*Time\((?P<timestamp>.*?)\)(.|\n)*\n(?P<code>\w+):(.|\n)*EXPLANATION'
         on_error: drop_quiet
       - type: time_parser
         parse_from: attributes.timestamp
@@ -112,6 +114,12 @@ This example also shows how to read those log entries:
         # 2025-05-30T16:52:04.227Z
         layout: "%Y-%m-%dT%H:%M:%S.%L%z"
         on_error: drop_quiet
+      - type: move
+        from: attributes.host_name
+        to: attributes["host.name"]
+      - type: move
+        from: attributes.queue_manager
+        to: attributes["queue.manager"]
 ```
 
 ## Transforming logs into metrics
@@ -126,6 +134,8 @@ We use the `countconnector` for this.
       mq.log.codes: # the name of the metric
         attributes:
           - key: code # Group by the code attribute.
+          # - key: queue.manager # uncomment if using the extended log format.
+          # - key: host.name
 ```
 
 Connectors work as both exporters and receivers across signals.

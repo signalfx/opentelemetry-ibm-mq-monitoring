@@ -45,7 +45,7 @@ receivers:
     operators:
       - type: regex_parser
         parse_from: body
-        regex: '(?m)Time\((?P<timestamp>.*?)\)(.|\n)*\n(?P<code>\w+):(.|\n)*EXPLANATION'
+        regex: '(?m)Host\((?P<host_name>.*?)\)(.|\n)*QMgr\((?P<queue_manager>.*?)\)(.|\n)*Time\((?P<timestamp>.*?)\)(.|\n)*\n(?P<code>\w+):(.|\n)*EXPLANATION'
         on_error: drop_quiet
       - type: time_parser
         parse_from: attributes.timestamp
@@ -53,6 +53,12 @@ receivers:
         # 2025-05-30T16:52:04.227Z
         layout: "%Y-%m-%dT%H:%M:%S.%L%z"
         on_error: drop_quiet
+      - type: move
+        from: attributes.host_name
+        to: attributes["host.name"]
+      - type: move
+        from: attributes.queue_manager
+        to: attributes["queue.manager"]
 
 exporters:
   debug:
@@ -63,6 +69,8 @@ connectors:
       mq.log.codes:
         attributes:
           - key: code
+          - key: queue.manager
+          - key: host.name
 
 service:
   pipelines:
