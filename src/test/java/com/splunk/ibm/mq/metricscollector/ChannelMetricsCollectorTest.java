@@ -90,7 +90,7 @@ class ChannelMetricsCollectorTest {
     for (MetricData metric : otelTesting.getMetrics()) {
       if (metricsList.remove(metric.getName())) {
         if (metric.getName().equals("mq.message.count")) {
-          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+          assertThat(metric.getLongSumData().getPoints().iterator().next().getValue())
               .isEqualTo(17);
         }
 
@@ -99,19 +99,19 @@ class ChannelMetricsCollectorTest {
               .isEqualTo(3);
         }
         if (metric.getName().equals("mq.byte.sent")) {
-          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+          assertThat(metric.getLongSumData().getPoints().iterator().next().getValue())
               .isEqualTo(6984);
         }
         if (metric.getName().equals("mq.byte.received")) {
-          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+          assertThat(metric.getLongSumData().getPoints().iterator().next().getValue())
               .isEqualTo(5772);
         }
         if (metric.getName().equals("mq.buffers.sent")) {
-          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+          assertThat(metric.getLongSumData().getPoints().iterator().next().getValue())
               .isEqualTo(19);
         }
         if (metric.getName().equals("mq.buffers.received")) {
-          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+          assertThat(metric.getLongSumData().getPoints().iterator().next().getValue())
               .isEqualTo(20);
         }
       }

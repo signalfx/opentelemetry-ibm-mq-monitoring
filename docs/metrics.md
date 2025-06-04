@@ -5,7 +5,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.message.retry.count` | Counter | `{messages}` | Number of message retries | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.message.retry.count` | UpDownCounter | `{messages}` | Number of message retries | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.message.retry.count` Attributes
@@ -79,7 +79,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.byte.received` | Counter | `{bytes}` | Number of bytes received | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.byte.received` | UpDownCounter | `{bytes}` | Number of bytes received | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.byte.received` Attributes
@@ -98,7 +98,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.byte.sent` | Counter | `{bytes}` | Number of bytes sent | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.byte.sent` | UpDownCounter | `{bytes}` | Number of bytes sent | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.byte.sent` Attributes
@@ -117,7 +117,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.buffers.received` | Counter | `{buffers}` | Buffers received | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.buffers.received` | UpDownCounter | `{buffers}` | Buffers received | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.buffers.received` Attributes
@@ -136,7 +136,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.buffers.sent` | Counter | `{buffers}` | Buffers sent | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.buffers.sent` | UpDownCounter | `{buffers}` | Buffers sent | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.buffers.sent` Attributes
@@ -155,7 +155,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.message.count` | Counter | `{messages}` | Message count | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.message.count` | UpDownCounter | `{messages}` | Message count | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.message.count` Attributes
@@ -375,7 +375,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.message.deq.count` | Counter | `{messages}` | Message dequeue count | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.message.deq.count` | UpDownCounter | `{messages}` | Message dequeue count | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.message.deq.count` Attributes
@@ -392,7 +392,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.message.enq.count` | Counter | `{messages}` | Message enqueue count | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.message.enq.count` | UpDownCounter | `{messages}` | Message enqueue count | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.message.enq.count` Attributes
@@ -539,7 +539,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.message.received.count` | Counter | `{messages}` | Number of messages received | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.message.received.count` | UpDownCounter | `{messages}` | Number of messages received | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.message.received.count` Attributes
@@ -556,7 +556,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.message.sent.count` | Counter | `{messages}` | Number of messages sent | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.message.sent.count` | UpDownCounter | `{messages}` | Number of messages sent | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.message.sent.count` Attributes

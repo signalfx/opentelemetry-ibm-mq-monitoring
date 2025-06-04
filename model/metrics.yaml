@@ -4,7 +4,7 @@ groups:
     metric_name: mq.message.retry.count
     stability: development
     brief: "Number of message retries"
-    instrument: counter
+    instrument: updowncounter
     unit: "{messages}"
     attributes:
       - ref: channel.name
@@ -72,7 +72,7 @@ groups:
     metric_name: mq.byte.received
     stability: development
     brief: "Number of bytes received"
-    instrument: counter
+    instrument: updowncounter
     unit: "{bytes}"
     attributes:
       - ref: channel.name
@@ -90,7 +90,7 @@ groups:
     metric_name: mq.byte.sent
     stability: development
     brief: "Number of bytes sent"
-    instrument: counter
+    instrument: updowncounter
     unit: "{bytes}"
     attributes:
       - ref: channel.name
@@ -108,7 +108,7 @@ groups:
     metric_name: mq.buffers.received
     stability: development
     brief: "Buffers received"
-    instrument: counter
+    instrument: updowncounter
     unit: "{buffers}"
     attributes:
       - ref: channel.name
@@ -127,7 +127,7 @@ groups:
     stability: development
     brief: "Buffers sent"
     unit: "{buffers}"
-    instrument: counter
+    instrument: updowncounter
     attributes:
       - ref: channel.name
         requirement_level: required
@@ -145,7 +145,7 @@ groups:
     stability: development
     brief: "Message count"
     unit: "{messages}"
-    instrument: counter
+    instrument: updowncounter
     attributes:
       - ref: channel.name
         requirement_level: required
@@ -324,7 +324,7 @@ groups:
     metric_name: mq.message.deq.count
     stability: development
     brief: "Message dequeue count"
-    instrument: counter
+    instrument: updowncounter
     unit: "{messages}"
     attributes:
       - ref: queue.manager
@@ -338,7 +338,7 @@ groups:
     metric_name: mq.message.enq.count
     stability: development
     brief: "Message enqueue count"
-    instrument: counter
+    instrument: updowncounter
     unit: "{messages}"
     attributes:
       - ref: queue.manager
@@ -452,7 +452,7 @@ groups:
     metric_name: mq.message.received.count
     stability: development
     brief: "Number of messages received"
-    instrument: counter
+    instrument: updowncounter
     unit: "{messages}"
     attributes:
       - ref: channel.name
@@ -466,7 +466,7 @@ groups:
     metric_name: mq.message.sent.count
     stability: development
     brief: "Number of messages sent"
-    instrument: counter
+    instrument: updowncounter
     unit: "{messages}"
     attributes:
       - ref: channel.name

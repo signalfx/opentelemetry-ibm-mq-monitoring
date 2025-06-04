@@ -75,15 +75,15 @@ class InquireChannelCmdCollectorTest {
     for (MetricData metric : otelTesting.getMetrics()) {
       if (metricsList.remove(metric.getName())) {
         if (metric.getName().equals("mq.message.retry.count")) {
-          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+          assertThat(metric.getLongSumData().getPoints().iterator().next().getValue())
               .isEqualTo(22);
         }
         if (metric.getName().equals("mq.message.received.count")) {
-          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+          assertThat(metric.getLongSumData().getPoints().iterator().next().getValue())
               .isEqualTo(42);
         }
         if (metric.getName().equals("mq.message.sent.count")) {
-          assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue())
+          assertThat(metric.getLongSumData().getPoints().iterator().next().getValue())
               .isEqualTo(64);
         }
       }

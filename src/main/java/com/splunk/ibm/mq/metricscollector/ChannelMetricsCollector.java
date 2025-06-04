@@ -28,6 +28,7 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 import java.util.ArrayList;
+import io.opentelemetry.api.metrics.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -42,11 +43,11 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
 
   private final LongGauge activeChannelsGauge;
   private final LongGauge channelStatusGauge;
-  private final ObservableLongMeasurement messageCounter;
-  private final LongCounter byteSentCounter;
-  private final LongCounter byteReceivedCounter;
-  private final LongCounter buffersSentCounter;
-  private final LongCounter buffersReceivedCounter;
+  private final LongUpDownCounterBuilder messageCounter;
+  private final LongUpDownCounterBuilder byteSentCounter;
+  private final LongUpDownCounterBuilder byteReceivedCounter;
+  private final LongUpDownCounterBuilder buffersSentCounter;
+  private final LongUpDownCounterBuilder buffersReceivedCounter;
   private final LongGauge currentSharingConvsGauge;
   private final LongGauge maxSharingConvsGauge;
 
@@ -56,7 +57,7 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
   public ChannelMetricsCollector(Meter meter) {
     this.activeChannelsGauge = Metrics.createMqManagerActiveChannels(meter);
     this.channelStatusGauge = Metrics.createMqStatus(meter);
-    this.messageCounter = meter.counterBuilder("mq.message.count").setUnit("{messages}").setDescription("Message count").buildObserver();
+    this.messageCounter = Metrics.createMqMessageCount(meter);
     this.byteSentCounter = Metrics.createMqByteSent(meter);
     this.byteReceivedCounter = Metrics.createMqByteReceived(meter);
     this.buffersSentCounter = Metrics.createMqBuffersSent(meter);
@@ -194,7 +195,10 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
             .build();
     if (context.getMetricsConfig().isMqMessageCountEnabled()) {
       int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
-      messageCounter.record(received, attributes);
+      messageCounter.buildWithCallback(
+          measurement -> {
+            measurement.record(received, attributes);
+          });
     }
     int status = message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_STATUS);
     if (context.getMetricsConfig().isMqStatusEnabled()) {
@@ -208,17 +212,23 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
       activeChannels.add(channelName);
     }
     if (context.getMetricsConfig().isMqByteSentEnabled()) {
-      byteSentCounter.record(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT), attributes);
+      int sent = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT);
+      byteSentCounter.buildWithCallback(measurement -> measurement.record(sent, attributes));
     }
     if (context.getMetricsConfig().isMqByteReceivedEnabled()) {
-      byteReceivedCounter.set(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED), attributes);
+      int received = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED);
+      byteReceivedCounter.buildWithCallback(
+          measurement -> measurement.record(received, attributes));
     }
     if (context.getMetricsConfig().isMqBuffersSentEnabled()) {
-      buffersSentCounter.set(message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT), attributes);
+      int buffersSent = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT);
+      buffersSentCounter.buildWithCallback(
+          measurement -> measurement.record(buffersSent, attributes));
     }
     if (context.getMetricsConfig().isMqBuffersReceivedEnabled()) {
-      buffersReceivedCounter.set(
-          message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED), attributes);
+      int buffersReceived = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED);
+      buffersReceivedCounter.buildWithCallback(
+          measurement -> measurement.record(buffersReceived, attributes));
     }
     if (context.getMetricsConfig().isMqCurrentSharingConversationsEnabled()) {
       int currentSharingConvs = 0;

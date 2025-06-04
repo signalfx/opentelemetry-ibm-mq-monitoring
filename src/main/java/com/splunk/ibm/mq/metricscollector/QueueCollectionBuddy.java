@@ -30,6 +30,7 @@ import com.splunk.ibm.mq.metrics.MetricsConfig;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.LongUpDownCounterBuilder;
 import io.opentelemetry.api.metrics.Meter;
 import java.io.IOException;
 import java.util.HashMap;
@@ -45,23 +46,32 @@ import org.slf4j.LoggerFactory;
  */
 final class QueueCollectionBuddy {
   private static final Logger logger = LoggerFactory.getLogger(QueueCollectionBuddy.class);
-  private Map<Integer, AllowedGauge> gauges;
+  private Map<Integer, AllowedMeasurement> gauges;
 
   private final QueueCollectorSharedState sharedState;
   private final LongGauge onqtimeShort;
   private final LongGauge onqtimeLong;
 
   @FunctionalInterface
-  private interface AllowedGauge {
+  private interface AllowedMeasurement {
 
     void set(MetricsCollectorContext context, Integer value, Attributes attributes);
   }
 
-  private AllowedGauge createAllowedGauge(
+  private AllowedMeasurement createAllowedMeasurement(
       LongGauge gauge, Function<MetricsConfig, Boolean> allowed) {
     return (context, val, attributes) -> {
       if (allowed.apply(context.getMetricsConfig())) {
         gauge.set(val, attributes);
+      }
+    };
+  }
+
+  private AllowedMeasurement createAllowedbservableLongMeasurement(
+      LongUpDownCounterBuilder measurement, Function<MetricsConfig, Boolean> allowed) {
+    return (context, val, attributes) -> {
+      if (allowed.apply(context.getMetricsConfig())) {
+        measurement.buildWithCallback(measurement1 -> measurement1.record(val, attributes));
       }
     };
   }
@@ -71,58 +81,58 @@ final class QueueCollectionBuddy {
     this.gauges = new HashMap<>();
     gauges.put(
         CMQC.MQIA_CURRENT_Q_DEPTH,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqQueueDepth(meter), MetricsConfig::isMqQueueDepthEnabled));
     gauges.put(
         CMQC.MQIA_MAX_Q_DEPTH,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqMaxQueueDepth(meter), MetricsConfig::isMqMaxQueueDepthEnabled));
     gauges.put(
         CMQC.MQIA_OPEN_INPUT_COUNT,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqOpenInputCount(meter), MetricsConfig::isMqOpenInputCountEnabled));
     gauges.put(
         CMQC.MQIA_OPEN_OUTPUT_COUNT,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqOpenOutputCount(meter), MetricsConfig::isMqOpenOutputCountEnabled));
     gauges.put(
         CMQC.MQIA_Q_SERVICE_INTERVAL,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqServiceInterval(meter), MetricsConfig::isMqServiceIntervalEnabled));
     gauges.put(
         CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqServiceIntervalEvent(meter),
             MetricsConfig::isMqServiceIntervalEventEnabled));
     gauges.put(
         CMQCFC.MQIACF_OLDEST_MSG_AGE,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqOldestMsgAge(meter), MetricsConfig::isMqOldestMsgAgeEnabled));
     gauges.put(
         CMQCFC.MQIACF_UNCOMMITTED_MSGS,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqUncommittedMessages(meter),
             MetricsConfig::isMqUncommittedMessagesEnabled));
     gauges.put(
         CMQC.MQIA_MSG_DEQ_COUNT,
-        createAllowedGauge(
+        createAllowedbservableLongMeasurement(
             Metrics.createMqMessageDeqCount(meter), MetricsConfig::isMqMessageDeqCountEnabled));
     gauges.put(
         CMQC.MQIA_MSG_ENQ_COUNT,
-        createAllowedGauge(
+        createAllowedbservableLongMeasurement(
             Metrics.createMqMessageEnqCount(meter), MetricsConfig::isMqMessageEnqCountEnabled));
     gauges.put(
         CMQC.MQIA_HIGH_Q_DEPTH,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqHighQueueDepth(meter), MetricsConfig::isMqHighQueueDepthEnabled));
     gauges.put(
         CMQCFC.MQIACF_CUR_Q_FILE_SIZE,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqCurrentQueueFilesize(meter),
             MetricsConfig::isMqCurrentQueueFilesizeEnabled));
     gauges.put(
         CMQCFC.MQIACF_CUR_MAX_FILE_SIZE,
-        createAllowedGauge(
+        createAllowedMeasurement(
             Metrics.createMqCurrentMaxQueueFilesize(meter),
             MetricsConfig::isMqCurrentMaxQueueFilesizeEnabled));
 
@@ -283,7 +293,7 @@ final class QueueCollectionBuddy {
             context.getQueueManagerName());
 
     if (pcfParam instanceof MQCFIN) {
-      AllowedGauge g = this.gauges.get(constantValue);
+      AllowedMeasurement g = this.gauges.get(constantValue);
       if (g == null) {
         throw new IllegalArgumentException("Unknown constantValue " + constantValue);
       }
