@@ -24,53 +24,39 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.metrics.MetricsConfig;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.metrics.Meter;
-import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
-import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 public class QueueCollectionBuddyTest {
-
-  private QueueCollectionBuddy classUnderTest;
-
-  @Mock private PCFMessageAgent pcfMessageAgent;
-
-  private QueueManager queueManager;
+  @RegisterExtension
+  static final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+  QueueCollectionBuddy classUnderTest;
+  QueueManager queueManager;
   MetricsCollectorContext collectorContext;
-  private TestResultMetricExporter testExporter;
-  private PeriodicMetricReader reader;
-  private Meter meter;
+  Meter meter;
+  @Mock private PCFMessageAgent pcfMessageAgent;
 
   @BeforeEach
   void setup() throws Exception {
     ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    testExporter = new TestResultMetricExporter();
-
-    reader =
-        PeriodicMetricReader.builder(testExporter)
-            .setExecutor(Executors.newScheduledThreadPool(1))
-            .build();
-    SdkMeterProvider meterProvider =
-        SdkMeterProvider.builder().registerMetricReader(reader).build();
-    meter = meterProvider.get("opentelemetry.io/mq");
+    meter = otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq");
     collectorContext =
         new MetricsCollectorContext(queueManager, pcfMessageAgent, null, new MetricsConfig(config));
   }
@@ -87,8 +73,6 @@ public class QueueCollectionBuddyTest {
     classUnderTest = new QueueCollectionBuddy(meter, sharedState);
     classUnderTest.processPCFRequestAndPublishQMetrics(
         collectorContext, request, "*", InquireQStatusCmdCollector.ATTRIBUTES);
-
-    reader.forceFlush().join(1, TimeUnit.SECONDS);
 
     Map<String, Map<String, Long>> expectedValues =
         new HashMap<String, Map<String, Long>>() {
@@ -118,7 +102,7 @@ public class QueueCollectionBuddyTest {
           }
         };
 
-    for (MetricData metric : testExporter.getExportedMetrics()) {
+    for (MetricData metric : otelTesting.getMetrics()) {
       for (LongPointData d : metric.getLongGaugeData().getPoints()) {
         String queueName = d.getAttributes().get(AttributeKey.stringKey("queue.name"));
         Long expectedValue = expectedValues.get(queueName).remove(metric.getName());
@@ -138,7 +122,6 @@ public class QueueCollectionBuddyTest {
     classUnderTest = new QueueCollectionBuddy(meter, new QueueCollectorSharedState());
     classUnderTest.processPCFRequestAndPublishQMetrics(
         collectorContext, request, "*", InquireQCmdCollector.ATTRIBUTES);
-    reader.forceFlush().join(1, TimeUnit.SECONDS);
 
     Map<String, Map<String, Long>> expectedValues =
         new HashMap<String, Map<String, Long>>() {
@@ -166,7 +149,7 @@ public class QueueCollectionBuddyTest {
           }
         };
 
-    for (MetricData metric : testExporter.getExportedMetrics()) {
+    for (MetricData metric : otelTesting.getMetrics()) {
       for (LongPointData d : metric.getLongGaugeData().getPoints()) {
         String queueName = d.getAttributes().get(AttributeKey.stringKey("queue.name"));
         Long expectedValue = expectedValues.get(queueName).remove(metric.getName());
@@ -190,9 +173,8 @@ public class QueueCollectionBuddyTest {
     classUnderTest = new QueueCollectionBuddy(meter, sharedState);
     classUnderTest.processPCFRequestAndPublishQMetrics(
         collectorContext, request, "*", ResetQStatsCmdCollector.ATTRIBUTES);
-    reader.forceFlush().join(1, TimeUnit.SECONDS);
 
-    for (MetricData metric : testExporter.getExportedMetrics()) {
+    for (MetricData metric : otelTesting.getMetrics()) {
       Iterator<LongPointData> iterator = metric.getLongGaugeData().getPoints().iterator();
       if (metric.getName().equals("mq.high.queue.depth")) {
         assertThat(iterator.next().getValue()).isEqualTo(10);
