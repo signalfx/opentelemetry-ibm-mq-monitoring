@@ -39,18 +39,12 @@ class ConfigTest {
   @Test
   void testSSLConnection() {
     Config.setUpSSLConnection(
-        new HashMap<String, Object>() {
+        new HashMap<String,Object>() {
           {
-            put(
-                "sslConnection",
-                new HashMap<String, Object>() {
-                  {
-                    put("keyStorePath", "foo");
-                    put("trustStorePath", "bar");
-                    put("keyStorePassword", "password");
-                    put("trustStorePassword", "password1");
-                  }
-                });
+            put("keyStorePath", "foo");
+            put("trustStorePath", "bar");
+            put("keyStorePassword", "password");
+            put("trustStorePassword", "password1");
           }
         });
 
