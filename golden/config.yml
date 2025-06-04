@@ -209,6 +209,6 @@ sslConnection:
   keyStorePassword: ""
 
 otlpExporter:
-  otel.metric.export.interval: 5s
+  otel.metric.export.interval: 20s
   otel.exporter.otlp.protocol: http/protobuf
   otel.exporter.otlp.endpoint: http://0.0.0.0:4318
