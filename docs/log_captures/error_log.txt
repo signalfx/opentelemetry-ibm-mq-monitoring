@@ -1,7 +1,7 @@
 ----- amqxloga.c : 3150 -------------------------------------------------------
 05/30/2025 11:52:04 AM - Process(7093.843) User(mqm) Program(amqrmppa)
-                    Host(vrtdl30222) Installation(Installation2)
-                    VRMF(9.3.0.21) QMgr(UMB.DEVAPPL1)
+                    Host(example) Installation(Installation2)
+                    VRMF(9.3.0.21) QMgr(DEV.DEVAPPL1)
                     Time(2025-05-30T16:52:04.227Z)
                     ArithInsert1(1) ArithInsert2(1)
                     CommentInsert1(SYSTEM.ADMIN.SVRCONN)
@@ -27,8 +27,8 @@ mode of operation because several client connections can then share one channel
 instance.
 ----- amqxloga.c : 3150 -------------------------------------------------------
 05/30/2025 11:52:04 AM - Process(7093.843) User(mqm) Program(amqrmppa)
-                    Host(vrtdl30222) Installation(Installation2)
-                    VRMF(9.3.0.21) QMgr(UMB.DEVAPPL1)
+                    Host(example) Installation(Installation2)
+                    VRMF(9.3.0.21) QMgr(DEV.DEVAPPL1)
                     Time(2025-05-30T16:52:04.227Z)
                     ArithInsert1(1) ArithInsert2(1)
                     CommentInsert1(SYSTEM.ADMIN.SVRCONN)
@@ -54,8 +54,8 @@ mode of operation because several client connections can then share one channel
 instance.
 ----- amqxloga.c : 3150 -------------------------------------------------------
 05/30/2025 11:52:04 AM - Process(7093.843) User(mqm) Program(amqrmppa)
-                    Host(vrtdl30222) Installation(Installation2)
-                    VRMF(9.3.0.21) QMgr(UMB.DEVAPPL1)
+                    Host(example) Installation(Installation2)
+                    VRMF(9.3.0.21) QMgr(DEV.DEVAPPL1)
                     Time(2025-05-30T16:52:04.227Z)
                     ArithInsert1(1) ArithInsert2(1)
                     CommentInsert1(SYSTEM.ADMIN.SVRCONN)
@@ -82,14 +82,14 @@ instance.
 ----- amqrmrsa.c : 442 --------------------------------------------------------
 05/30/2025 12:10:33 PM - Process(2490308.72) User(mqm) Program(amqrmppa)
                     Host(vrtdl30219) Installation(Installation2)
-                    VRMF(9.3.0.21) QMgr(SNDQMD01)
+                    VRMF(9.3.0.21) QMgr(TEST)
                     Time(2025-05-30T17:10:33.720Z)
                     ArithInsert1(13) ArithInsert2(4)
-                    CommentInsert1(APPD.TEST.SEQ)
+                    CommentInsert1(FOO.TEST.SEQ)
                     CommentInsert2(10.172.60.13)
 
 AMQ9703W: Message sequence number mismatch detected for channel
-'APPD.TEST.SEQ'.
+'FOO.TEST.SEQ'.
 
 EXPLANATION:
 The local and remote queue managers do not agree on the next message sequence
