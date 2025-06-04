@@ -31,7 +31,7 @@ import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -78,7 +78,7 @@ class QueueManagerMetricsCollectorTest {
     classUnderTest = new QueueManagerMetricsCollector(meterProvider.get("opentelemetry.io/mq"));
     classUnderTest.accept(context);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
-    List<String> metricsList = Arrays.asList("mq.manager.status");
+    List<String> metricsList = new ArrayList<>(List.of("mq.manager.status"));
 
     for (MetricData metric : testExporter.getExportedMetrics()) {
       if (metricsList.remove(metric.getName())) {

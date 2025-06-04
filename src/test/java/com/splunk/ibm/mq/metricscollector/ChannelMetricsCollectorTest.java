@@ -36,7 +36,7 @@ import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -91,13 +91,14 @@ class ChannelMetricsCollectorTest {
     reader.forceFlush().join(1, TimeUnit.SECONDS);
 
     List<String> metricsList =
-        Arrays.asList(
-            "mq.message.count",
-            "mq.status",
-            "mq.byte.sent",
-            "mq.byte.received",
-            "mq.buffers.sent",
-            "mq.buffers.received");
+        new ArrayList<>(
+            List.of(
+                "mq.message.count",
+                "mq.status",
+                "mq.byte.sent",
+                "mq.byte.received",
+                "mq.buffers.sent",
+                "mq.buffers.received"));
 
     for (MetricData metric : testExporter.getExportedMetrics()) {
       if (metricsList.remove(metric.getName())) {
