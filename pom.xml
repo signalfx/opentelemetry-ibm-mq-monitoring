@@ -304,13 +304,11 @@
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
                                         <Implementation-Title>WMQMonitor v${project.version} Build Date ${maven.build.timestamp}</Implementation-Title>
-                                        <Main-Class>com.appdynamics.extensions.workbench.WorkbenchServerLauncher</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
                             <artifactSet>
                                 <excludes>
-                                    <exclude>com.appdynamics:machineagent-repackaged</exclude>
                                     <exclude>org.slf4j:slf4j-simple</exclude>
                                     <exclude>com.ibm.mq:*</exclude>
                                 </excludes>
@@ -478,18 +476,6 @@
             </plugin>
         </plugins>
     </build>
-    <repositories>
-        <repository>
-            <id>github-maven-repo</id>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <url>https://github.com/Appdynamics/maven-repo/raw/master/releases</url>
-        </repository>
-    </repositories>
     <scm>
         <connection>scm:git:https://github.com/signalfx/ibm-mq-monitoring-extension.git</connection>
     </scm>
