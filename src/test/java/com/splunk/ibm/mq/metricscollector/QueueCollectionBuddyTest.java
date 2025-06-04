@@ -176,12 +176,14 @@ public class QueueCollectionBuddyTest {
         collectorContext, request, "*", ResetQStatsCmdCollector.ATTRIBUTES);
 
     for (MetricData metric : otelTesting.getMetrics()) {
-      Iterator<LongPointData> iterator = metric.getLongGaugeData().getPoints().iterator();
       if (metric.getName().equals("mq.high.queue.depth")) {
+        Iterator<LongPointData> iterator = metric.getLongGaugeData().getPoints().iterator();
         assertThat(iterator.next().getValue()).isEqualTo(10);
       } else if (metric.getName().equals("mq.message.deq.count")) {
+        Iterator<LongPointData> iterator = metric.getLongSumData().getPoints().iterator();
         assertThat(iterator.next().getValue()).isEqualTo(0);
       } else if (metric.getName().equals("mq.message.enq.count")) {
+        Iterator<LongPointData> iterator = metric.getLongSumData().getPoints().iterator();
         assertThat(iterator.next().getValue()).isEqualTo(3);
       }
     }

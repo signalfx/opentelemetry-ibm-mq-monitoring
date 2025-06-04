@@ -15,9 +15,7 @@
  */
 package com.splunk.ibm.mq.metrics;
 
-import io.opentelemetry.api.metrics.LongCounter;
-import io.opentelemetry.api.metrics.LongGauge;
-import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.*;
 
 // This file is generated using weaver. Do not edit manually.
 
@@ -26,8 +24,8 @@ import io.opentelemetry.api.metrics.Meter;
  */
 public class Metrics {
 {% for metric in ctx %}
-  public static {% if metric.instrument == "gauge" %}LongGauge{% elif metric.instrument == "counter" %}LongCounter{% endif %} create{{ metric.metric_name.split('.')|map('capitalize')|join }}(Meter meter) {
-    return meter.{% if metric.instrument == "gauge" %}gauge{% elif metric.instrument == "counter" %}counter{% endif %}Builder("{{ metric.metric_name }}").{% if metric.instrument == "gauge" %}ofLongs().{% endif %}setUnit("{{ metric.unit }}").setDescription("{{ metric.brief }}").build();
+  public static {% if metric.instrument == "gauge" %}LongGauge{% elif metric.instrument == "counter" %}LongCounter{% elif metric.instrument == "updowncounter" %}LongUpDownCounterBuilder{% endif %} create{{ metric.metric_name.split('.')|map('capitalize')|join }}(Meter meter) {
+    return meter.{% if metric.instrument == "gauge" %}gauge{% elif metric.instrument == "counter" %}counter{% elif metric.instrument == "updowncounter" %}upDownCounter{% endif %}Builder("{{ metric.metric_name }}").{% if metric.instrument == "gauge" %}ofLongs().{% endif %}setUnit("{{ metric.unit }}").setDescription("{{ metric.brief }}"){% if metric.instrument == "counter" or metric.instrument == "gauge" %}.build(){% elif metric.instrument == "updowncounter" %}{% endif %};
   }
 {% endfor %}
 }
