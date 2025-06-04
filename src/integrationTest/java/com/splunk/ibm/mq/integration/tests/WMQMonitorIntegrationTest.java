@@ -31,10 +31,12 @@ import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.Main;
 import com.splunk.ibm.mq.util.WMQUtil;
 import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import io.opentelemetry.sdk.resources.Resource;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -270,7 +272,23 @@ class WMQMonitorIntegrationTest {
     ScheduledExecutorService service =
         Executors.newScheduledThreadPool(config.getNumberOfThreads());
     TestResultMetricExporter exporter = new TestResultMetricExporter();
-    Main.run(config, service);
+    Map<String, String> props = new HashMap<>();
+    if (config._exposed().get("otlpExporter") instanceof Map) {
+      Map otlpConfig = (Map) config._exposed().get("otlpExporter");
+      for (Object key : otlpConfig.keySet()) {
+        if (key instanceof String && otlpConfig.get(key) instanceof String) {
+          props.put((String) key, (String) otlpConfig.get(key));
+        }
+      }
+    }
+    AutoConfiguredOpenTelemetrySdk sdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .addPropertiesSupplier(() -> props)
+            .addMetricExporterCustomizer((metricExporter, configProperties) -> exporter)
+            .addMeterProviderCustomizer(
+                (builder, configProps) -> builder.setResource(Resource.empty()))
+            .build();
+    Main.run(config, service, sdk.getOpenTelemetrySdk().getMeterProvider());
     Thread.sleep(5000);
     service.shutdown();
     service.awaitTermination(10, TimeUnit.SECONDS);

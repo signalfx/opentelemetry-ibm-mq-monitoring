@@ -207,3 +207,8 @@ sslConnection:
 
   keyStorePath: ""
   keyStorePassword: ""
+
+otlpExporter:
+  otel.metric.export.interval: 5s
+  otel.exporter.otlp.protocol: http/protobuf
+  otel.exporter.otlp.endpoint: http://localhost:4318

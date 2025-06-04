@@ -166,3 +166,5 @@ sslConnection:
 # Configure the OTLP exporter using system properties keys following the specification https://opentelemetry.io/docs/languages/java/configuration/
 otlpExporter:
   otel.exporter.otlp.endpoint: http://0.0.0.0:4318
+  otel.exporter.otlp.protocol: http/protobuf
+  otel.metric.export.interval: 5s

@@ -63,10 +63,6 @@ public class Main {
     Config.configureSecurity(config);
     Config.setUpSSLConnection(config._exposed());
 
-    run(config, service);
-  }
-
-  public static void run(ConfigWrapper config, final ScheduledExecutorService service) {
     Map<String, String> props = new HashMap<>();
     if (config._exposed().get("otlpExporter") instanceof Map) {
       Map otlpConfig = (Map) config._exposed().get("otlpExporter");
@@ -84,7 +80,13 @@ public class Main {
                 (builder, configProps) -> builder.setResource(Resource.empty()))
             .build();
 
-    MeterProvider meterProvider = sdk.getOpenTelemetrySdk().getMeterProvider();
+    run(config, service, sdk.getOpenTelemetrySdk().getMeterProvider());
+  }
+
+  public static void run(
+      ConfigWrapper config,
+      final ScheduledExecutorService service,
+      final MeterProvider meterProvider) {
 
     Runtime.getRuntime().addShutdownHook(new Thread(service::shutdown));
     WMQMonitor monitor = new WMQMonitor(config, service, meterProvider.get("websphere/mq"));
