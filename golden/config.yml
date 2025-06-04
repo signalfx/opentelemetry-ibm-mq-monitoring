@@ -211,4 +211,4 @@ sslConnection:
 otlpExporter:
   otel.metric.export.interval: 5s
   otel.exporter.otlp.protocol: http/protobuf
-  otel.exporter.otlp.endpoint: http://localhost:4318
+  otel.exporter.otlp.endpoint: http://0.0.0.0:4318
