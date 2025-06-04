@@ -208,10 +208,10 @@ sslConnection:
   keyStorePassword: ""
 
 
-  # Configure the OTLP exporter using system properties keys following the specification https://opentelemetry.io/docs/languages/java/configuration/
-  otlpExporter:
-    otel.exporter.otlp.endpoint: https://localhost:4318
-    otel.exporter.otlp.protocol: http/protobuf
-    otel.metric.export.interval: 5s
-    otel.logs.exporter: none
-    otel.traces.exporter: none
+# Configure the OTLP exporter using system properties keys following the specification https://opentelemetry.io/docs/languages/java/configuration/
+otlpExporter:
+  otel.exporter.otlp.endpoint: https://localhost:4318
+  otel.exporter.otlp.protocol: http/protobuf
+  otel.metric.export.interval: 5s
+  otel.logs.exporter: none
+  otel.traces.exporter: none
