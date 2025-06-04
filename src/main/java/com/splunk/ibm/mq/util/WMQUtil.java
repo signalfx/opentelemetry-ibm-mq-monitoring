@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.util;
 
-import com.google.common.base.Strings;
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.MQDataException;
@@ -36,8 +35,8 @@ public class WMQUtil {
       QueueManager queueManager, MQQueueManager ibmQueueManager) {
     try {
       PCFMessageAgent agent;
-      if (!Strings.isNullOrEmpty(queueManager.getModelQueueName())
-          && !Strings.isNullOrEmpty(queueManager.getReplyQueuePrefix())) {
+      if (isNotNullOrEmpty(queueManager.getModelQueueName())
+          && isNotNullOrEmpty(queueManager.getReplyQueuePrefix())) {
         logger.debug("Initializing the PCF agent for model queue and reply queue prefix.");
         agent = new PCFMessageAgent();
         agent.setModelQueueName(queueManager.getModelQueueName());
@@ -81,5 +80,9 @@ public class WMQUtil {
         queueManager.getName(),
         Thread.currentThread().getName());
     return ibmQueueManager;
+  }
+
+  private static boolean isNotNullOrEmpty(String str) {
+    return str != null && !str.isEmpty();
   }
 }

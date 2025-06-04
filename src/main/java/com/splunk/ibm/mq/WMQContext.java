@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq;
 
-import com.google.common.base.Strings;
 import com.ibm.mq.constants.CMQC;
 import com.splunk.ibm.mq.config.QueueManager;
 import java.util.Hashtable;
@@ -70,7 +69,7 @@ public class WMQContext {
     if (null != propVal) {
       if (propVal instanceof String) {
         String propString = (String) propVal;
-        if (Strings.isNullOrEmpty(propString)) {
+        if (propString.isEmpty()) {
           return;
         }
       }

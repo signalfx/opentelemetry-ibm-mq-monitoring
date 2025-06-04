@@ -15,9 +15,9 @@
  */
 package com.splunk.ibm.mq.metricscollector;
 
-import com.google.common.collect.Lists;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import io.opentelemetry.api.metrics.Meter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +30,7 @@ public final class QueueMetricsCollector implements Consumer<MetricsCollectorCon
 
   private static final Logger logger = LoggerFactory.getLogger(QueueMetricsCollector.class);
 
-  private final List<Consumer<MetricsCollectorContext>> publishers = Lists.newArrayList();
+  private final List<Consumer<MetricsCollectorContext>> publishers = new ArrayList<>();
   private final InquireQCmdCollector inquireQueueCmd;
   private final ExecutorService threadPool;
   private final ConfigWrapper config;
@@ -53,7 +53,7 @@ public final class QueueMetricsCollector implements Consumer<MetricsCollectorCon
     inquireQueueCmd.accept(context);
 
     // schedule all other jobs in parallel.
-    List<Callable<Void>> taskJobs = Lists.newArrayList();
+    List<Callable<Void>> taskJobs = new ArrayList<>();
     for (Consumer<MetricsCollectorContext> p : publishers) {
       taskJobs.add(
           () -> {
