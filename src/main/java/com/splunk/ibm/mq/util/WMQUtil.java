@@ -82,7 +82,7 @@ public class WMQUtil {
     return ibmQueueManager;
   }
 
-  private static boolean isNotNullOrEmpty(String str){
+  private static boolean isNotNullOrEmpty(String str) {
     return str != null && !str.isEmpty();
   }
 }
