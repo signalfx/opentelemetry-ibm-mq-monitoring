@@ -183,14 +183,6 @@ class WMQMonitorIntegrationTest {
 
   @Test
   void test_monitor_with_full_config() throws Exception {
-    //    logger.info("\n\n\n\n\n\nRunning test: test_monitor_with_full_config");
-    //    TestResultMetricExporter testExporter = new TestResultMetricExporter();
-    //    MetricReader reader =
-    //        PeriodicMetricReader.builder(testExporter)
-    //            .setExecutor(Executors.newScheduledThreadPool(1))
-    //            .build();
-    //    SdkMeterProvider meterProvider =
-    //        SdkMeterProvider.builder().registerMetricReader(reader).build();
     String configFile = getConfigFile("conf/test-config.yml");
 
     ConfigWrapper config = ConfigWrapper.parse(configFile);
@@ -198,9 +190,6 @@ class WMQMonitorIntegrationTest {
     TestWMQMonitor monitor = new TestWMQMonitor(config, meter, service);
     monitor.runTest();
 
-    //    reader.forceFlush().join(5, TimeUnit.SECONDS);
-    //    meterProvider.close();
-    //    List<MetricData> data = testExporter.getExportedMetrics();
     List<MetricData> data = otelTesting.getMetrics();
     Map<String, MetricData> metrics = new HashMap<>();
     for (MetricData metricData : data) {
@@ -256,14 +245,6 @@ class WMQMonitorIntegrationTest {
 
   @Test
   void test_wmqmonitor() throws Exception {
-    //    logger.info("\n\n\n\n\n\nRunning test: test_wmqmonitor");
-    //    TestResultMetricExporter testExporter = new TestResultMetricExporter();
-    //    MetricReader reader =
-    //        PeriodicMetricReader.builder(testExporter)
-    //            .setExecutor(Executors.newScheduledThreadPool(1))
-    //            .build();
-    //    SdkMeterProvider meterProvider =
-    //        SdkMeterProvider.builder().registerMetricReader(reader).build();
     String configFile = getConfigFile("conf/test-queuemgr-config.yml");
     ConfigWrapper config = ConfigWrapper.parse(configFile);
     Meter meter = otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq");
