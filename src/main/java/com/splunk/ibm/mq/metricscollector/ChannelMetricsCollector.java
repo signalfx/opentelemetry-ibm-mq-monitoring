@@ -42,11 +42,11 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
 
   private final LongGauge activeChannelsGauge;
   private final LongGauge channelStatusGauge;
-  private final LongGauge messageCountGauge;
-  private final LongGauge byteSentGauge;
-  private final LongGauge byteReceivedGauge;
-  private final LongGauge buffersSentGauge;
-  private final LongGauge buffersReceivedGauge;
+  private final ObservableLongMeasurement messageCounter;
+  private final LongCounter byteSentCounter;
+  private final LongCounter byteReceivedCounter;
+  private final LongCounter buffersSentCounter;
+  private final LongCounter buffersReceivedCounter;
   private final LongGauge currentSharingConvsGauge;
   private final LongGauge maxSharingConvsGauge;
 
@@ -56,11 +56,11 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
   public ChannelMetricsCollector(Meter meter) {
     this.activeChannelsGauge = Metrics.createMqManagerActiveChannels(meter);
     this.channelStatusGauge = Metrics.createMqStatus(meter);
-    this.messageCountGauge = Metrics.createMqMessageCount(meter);
-    this.byteSentGauge = Metrics.createMqByteSent(meter);
-    this.byteReceivedGauge = Metrics.createMqByteReceived(meter);
-    this.buffersSentGauge = Metrics.createMqBuffersSent(meter);
-    this.buffersReceivedGauge = Metrics.createMqBuffersReceived(meter);
+    this.messageCounter = meter.counterBuilder("mq.message.count").setUnit("{messages}").setDescription("Message count").buildObserver();
+    this.byteSentCounter = Metrics.createMqByteSent(meter);
+    this.byteReceivedCounter = Metrics.createMqByteReceived(meter);
+    this.buffersSentCounter = Metrics.createMqBuffersSent(meter);
+    this.buffersReceivedCounter = Metrics.createMqBuffersReceived(meter);
     this.currentSharingConvsGauge = Metrics.createMqCurrentSharingConversations(meter);
     this.maxSharingConvsGauge = Metrics.createMqMaxSharingConversations(meter);
   }
@@ -194,7 +194,7 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
             .build();
     if (context.getMetricsConfig().isMqMessageCountEnabled()) {
       int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
-      messageCountGauge.set(received, attributes);
+      messageCounter.record(received, attributes);
     }
     int status = message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_STATUS);
     if (context.getMetricsConfig().isMqStatusEnabled()) {
@@ -208,16 +208,16 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
       activeChannels.add(channelName);
     }
     if (context.getMetricsConfig().isMqByteSentEnabled()) {
-      byteSentGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT), attributes);
+      byteSentCounter.record(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT), attributes);
     }
     if (context.getMetricsConfig().isMqByteReceivedEnabled()) {
-      byteReceivedGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED), attributes);
+      byteReceivedCounter.set(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED), attributes);
     }
     if (context.getMetricsConfig().isMqBuffersSentEnabled()) {
-      buffersSentGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT), attributes);
+      buffersSentCounter.set(message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT), attributes);
     }
     if (context.getMetricsConfig().isMqBuffersReceivedEnabled()) {
-      buffersReceivedGauge.set(
+      buffersReceivedCounter.set(
           message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED), attributes);
     }
     if (context.getMetricsConfig().isMqCurrentSharingConversationsEnabled()) {
