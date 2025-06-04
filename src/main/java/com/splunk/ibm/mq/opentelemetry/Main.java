@@ -16,14 +16,15 @@
 package com.splunk.ibm.mq.opentelemetry;
 
 import com.splunk.ibm.mq.WMQMonitor;
-import io.opentelemetry.sdk.metrics.SdkMeterProvider;
-import io.opentelemetry.sdk.metrics.export.MetricExporter;
-import io.opentelemetry.sdk.metrics.export.MetricReader;
-import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.metrics.MeterProvider;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.AutoConfiguredOpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,37 +63,32 @@ public class Main {
 
     Config.configureSecurity(config);
     Config.setUpSSLConnection(config._exposed());
-    MetricExporter exporter = Config.createOtlpHttpMetricsExporter(config._exposed());
 
-    run(config, service, exporter);
+    run(config, service);
   }
 
-  public static void run(
-      ConfigWrapper config, final ScheduledExecutorService service, final MetricExporter exporter) {
+  public static void run(ConfigWrapper config, final ScheduledExecutorService service) {
 
-    MetricReader reader = PeriodicMetricReader.builder(exporter).build();
-
-    SdkMeterProvider meterProvider =
-        SdkMeterProvider.builder()
-            .setResource(Resource.empty())
-            .registerMetricReader(reader)
+    AutoConfiguredOpenTelemetrySdk sdk =
+        AutoConfiguredOpenTelemetrySdk.builder()
+            .addMeterProviderCustomizer(
+                (builder, configProps) -> builder.setResource(Resource.empty()))
             .build();
 
-    Runtime.getRuntime()
-        .addShutdownHook(
-            new Thread(
-                () -> {
-                  meterProvider.shutdown();
-                  reader.shutdown();
-                  service.shutdown();
-                  exporter.shutdown();
-                }));
+    OpenTelemetrySdk otel = sdk.getOpenTelemetrySdk();
+
+    run(config, service, otel);
+  }
+
+  @VisibleForTesting
+  public static void run(
+      ConfigWrapper config, ScheduledExecutorService service, OpenTelemetry otel) {
+    MeterProvider meterProvider = otel.getMeterProvider();
+
+    Runtime.getRuntime().addShutdownHook(new Thread(service::shutdown));
     WMQMonitor monitor = new WMQMonitor(config, service, meterProvider.get("websphere/mq"));
     service.scheduleAtFixedRate(
-        () -> {
-          monitor.run();
-          reader.forceFlush().whenComplete(exporter::flush);
-        },
+        monitor::run,
         config.getTaskInitialDelaySeconds(),
         config.getTaskDelaySeconds(),
         TimeUnit.SECONDS);

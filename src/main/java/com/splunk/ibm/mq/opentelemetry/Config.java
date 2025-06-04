@@ -15,16 +15,7 @@
  */
 package com.splunk.ibm.mq.opentelemetry;
 
-import static io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil.DATA_TYPE_METRICS;
-
 import com.google.common.base.Strings;
-import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporter;
-import io.opentelemetry.exporter.otlp.http.metrics.OtlpHttpMetricExporterBuilder;
-import io.opentelemetry.exporter.otlp.internal.OtlpConfigUtil;
-import io.opentelemetry.sdk.autoconfigure.spi.internal.DefaultConfigProperties;
-import io.opentelemetry.sdk.metrics.Aggregation;
-import io.opentelemetry.sdk.metrics.export.MetricExporter;
-import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,35 +25,38 @@ class Config {
 
   private static final Logger logger = LoggerFactory.getLogger(Config.class);
 
-  static MetricExporter createOtlpHttpMetricsExporter(Map<String, ?> config) {
-    OtlpHttpMetricExporterBuilder builder = OtlpHttpMetricExporter.builder();
-
-    Map<String, String> props = new HashMap<>();
-    if (config.get("otlpExporter") instanceof Map) {
-      Map otlpConfig = (Map) config.get("otlpExporter");
-      for (Object key : otlpConfig.keySet()) {
-        if (key instanceof String && otlpConfig.get(key) instanceof String) {
-          props.put((String) key, (String) otlpConfig.get(key));
-        }
-      }
-    }
-
-    // TODO: Don't use internal classes from opentelemetry
-    OtlpConfigUtil.configureOtlpExporterBuilder(
-        DATA_TYPE_METRICS,
-        DefaultConfigProperties.create(props),
-        builder::setEndpoint,
-        builder::addHeader,
-        builder::setCompression,
-        builder::setTimeout,
-        builder::setTrustedCertificates,
-        builder::setClientTls,
-        builder::setRetryPolicy,
-        builder::setMemoryMode);
-
-    builder.setDefaultAggregationSelector((instrumentType) -> Aggregation.lastValue());
-    return builder.build();
-  }
+  // TODO: Delete this boneyard. Are we confident we can do all of this?
+  // TOOD: What about the magical aggregation selector? Can't we just use the default? If not, why
+  // not?
+  //  static MetricExporter createOtlpHttpMetricsExporter(Map<String, ?> config) {
+  //    OtlpHttpMetricExporterBuilder builder = OtlpHttpMetricExporter.builder();
+  //
+  //    Map<String, String> props = new HashMap<>();
+  //    if (config.get("otlpExporter") instanceof Map) {
+  //      Map otlpConfig = (Map) config.get("otlpExporter");
+  //      for (Object key : otlpConfig.keySet()) {
+  //        if (key instanceof String && otlpConfig.get(key) instanceof String) {
+  //          props.put((String) key, (String) otlpConfig.get(key));
+  //        }
+  //      }
+  //    }
+  //
+  //    // TODO: Don't use internal classes from opentelemetry
+  //    OtlpConfigUtil.configureOtlpExporterBuilder(
+  //        DATA_TYPE_METRICS,
+  //        DefaultConfigProperties.create(props),
+  //        builder::setEndpoint,
+  //        builder::addHeader,
+  //        builder::setCompression,
+  //        builder::setTimeout,
+  //        builder::setTrustedCertificates,
+  //        builder::setClientTls,
+  //        builder::setRetryPolicy,
+  //        builder::setMemoryMode);
+  //
+  //    builder.setDefaultAggregationSelector((instrumentType) -> Aggregation.lastValue());
+  //    return builder.build();
+  //  }
 
   static void setUpSSLConnection(Map<String, ?> config) {
     if (config.get("sslConnection") instanceof Map) {
