@@ -25,33 +25,29 @@ import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.metrics.MetricsConfig;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
-import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
-import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class QueueManagerMetricsCollectorTest {
 
+  @RegisterExtension
+  static final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
+
   QueueManagerMetricsCollector classUnderTest;
-
-  @Mock PCFMessageAgent pcfMessageAgent;
-
   QueueManager queueManager;
   MetricsCollectorContext context;
-  private TestResultMetricExporter testExporter;
-  private PeriodicMetricReader reader;
+  @Mock PCFMessageAgent pcfMessageAgent;
 
   @BeforeEach
   public void setup() throws Exception {
@@ -59,11 +55,6 @@ class QueueManagerMetricsCollectorTest {
     ConfigWrapper config = ConfigWrapper.parse("src/test/resources/conf/config.yml");
     ObjectMapper mapper = new ObjectMapper();
     queueManager = mapper.convertValue(config.getQueueManagers().get(0), QueueManager.class);
-    testExporter = new TestResultMetricExporter();
-    reader =
-        PeriodicMetricReader.builder(testExporter)
-            .setExecutor(Executors.newScheduledThreadPool(1))
-            .build();
     context =
         new MetricsCollectorContext(queueManager, pcfMessageAgent, null, new MetricsConfig(config));
   }
@@ -72,14 +63,13 @@ class QueueManagerMetricsCollectorTest {
   public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
         .thenReturn(createPCFResponseForInquireQMgrStatusCmd());
-    SdkMeterProvider meterProvider =
-        SdkMeterProvider.builder().registerMetricReader(reader).build();
-    classUnderTest = new QueueManagerMetricsCollector(meterProvider.get("opentelemetry.io/mq"));
+    classUnderTest =
+        new QueueManagerMetricsCollector(
+            otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq"));
     classUnderTest.accept(context);
-    reader.forceFlush().join(1, TimeUnit.SECONDS);
     List<String> metricsList = new ArrayList<>(List.of("mq.manager.status"));
 
-    for (MetricData metric : testExporter.getExportedMetrics()) {
+    for (MetricData metric : otelTesting.getMetrics()) {
       if (metricsList.remove(metric.getName())) {
         assertThat(metric.getLongGaugeData().getPoints().iterator().next().getValue()).isEqualTo(2);
       }
