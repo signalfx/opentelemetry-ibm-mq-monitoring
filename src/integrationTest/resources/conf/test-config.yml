@@ -193,3 +193,5 @@ otlpExporter:
   otel.exporter.otlp.endpoint: http://0.0.0.0:4318
   otel.exporter.otlp.protocol: http/protobuf
   otel.metric.export.interval: 5s
+  otel.logs.exporter: none
+  otel.traces.exporter: none
