@@ -20,7 +20,6 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
@@ -32,6 +31,7 @@ import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -78,7 +78,7 @@ class QueueManagerMetricsCollectorTest {
     classUnderTest = new QueueManagerMetricsCollector(meterProvider.get("opentelemetry.io/mq"));
     classUnderTest.accept(context);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
-    List<String> metricsList = Lists.newArrayList("mq.manager.status");
+    List<String> metricsList = Arrays.asList("mq.manager.status");
 
     for (MetricData metric : testExporter.getExportedMetrics()) {
       if (metricsList.remove(metric.getName())) {

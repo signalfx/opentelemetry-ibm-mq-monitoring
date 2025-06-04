@@ -16,7 +16,6 @@
 package com.splunk.ibm.mq;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
@@ -52,7 +51,7 @@ public class WMQMonitor {
     List<Map<String, ?>> queueManagers = getQueueManagers(config);
     ObjectMapper mapper = new ObjectMapper();
 
-    this.queueManagers = Lists.newArrayList();
+    this.queueManagers = new ArrayList<>();
 
     for (Map<String, ?> queueManager : queueManagers) {
       try {
@@ -135,7 +134,7 @@ public class WMQMonitor {
     logger.debug("Queueing {} jobs", jobs.size());
     MetricsCollectorContext context =
         new MetricsCollectorContext(queueManager, agent, mqQueueManager, this.metricsConfig);
-    List<Callable<Void>> tasks = Lists.newArrayList();
+    List<Callable<Void>> tasks = new ArrayList<>();
     for (Consumer<MetricsCollectorContext> collector : jobs) {
       tasks.add(
           () -> {

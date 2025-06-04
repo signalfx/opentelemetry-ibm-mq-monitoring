@@ -15,7 +15,6 @@
  */
 package com.splunk.ibm.mq.config;
 
-import com.google.common.base.Strings;
 import com.splunk.ibm.mq.metricscollector.FilterType;
 import java.util.Collection;
 import java.util.HashSet;
@@ -55,7 +54,7 @@ public class ExcludeFilters {
   }
 
   public boolean isExcluded(String resourceName) {
-    if (Strings.isNullOrEmpty(resourceName)) {
+    if (resourceName == null || resourceName.isEmpty()) {
       return true;
     }
     switch (FilterType.valueOf(type)) {

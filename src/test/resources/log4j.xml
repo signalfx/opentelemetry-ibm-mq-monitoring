@@ -29,11 +29,6 @@
         <appender-ref ref="ConsoleAppender"/>
     </logger>
 
-    <logger name="com.appdynamics" additivity="false">
-        <level value="debug"/>
-        <appender-ref ref="ConsoleAppender"/>
-    </logger>
-
     <root>
         <priority value="error"/>
         <appender-ref ref="ConsoleAppender"/>

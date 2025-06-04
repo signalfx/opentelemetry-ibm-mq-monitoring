@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
@@ -32,6 +31,7 @@ import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -84,7 +84,7 @@ public class TopicMetricsCollectorTest {
     classUnderTest.accept(context);
     reader.forceFlush().join(1, TimeUnit.SECONDS);
 
-    List<String> metricsList = Lists.newArrayList("mq.publish.count", "mq.subscription.count");
+    List<String> metricsList = Arrays.asList("mq.publish.count", "mq.subscription.count");
 
     for (MetricData metric : testExporter.getExportedMetrics()) {
       if (metricsList.remove(metric.getName())) {

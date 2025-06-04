@@ -18,7 +18,6 @@ package com.splunk.ibm.mq.metricscollector;
 import static com.ibm.mq.constants.CMQC.MQRC_SELECTOR_ERROR;
 import static com.ibm.mq.constants.CMQCFC.MQRCCF_CHL_STATUS_NOT_FOUND;
 
-import com.google.common.collect.Lists;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFException;
@@ -28,6 +27,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -99,7 +99,7 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
     // The MQCMD_INQUIRE_CHANNEL_STATUS command queries the current operational status of channels.
     // This includes information about whether a channel is running, stopped, or in another state,
     // as well as details about the channel’s performance and usage.
-    List<String> activeChannels = Lists.newArrayList();
+    List<String> activeChannels = new ArrayList<>();
     for (String channelGenericName : channelGenericNames) {
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS);
       request.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, channelGenericName);
