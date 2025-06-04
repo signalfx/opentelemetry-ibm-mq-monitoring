@@ -17,6 +17,7 @@ package com.splunk.ibm.mq.integration.tests;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ibm.mq.MQQueueManager;
@@ -26,20 +27,23 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.integration.opentelemetry.TestResultMetricExporter;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.Main;
 import com.splunk.ibm.mq.util.WMQUtil;
 import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
-import io.opentelemetry.sdk.metrics.export.MetricReader;
-import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
+import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -51,6 +55,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,6 +63,9 @@ import org.slf4j.LoggerFactory;
 class WMQMonitorIntegrationTest {
 
   private static final Logger logger = LoggerFactory.getLogger(WMQMonitorIntegrationTest.class);
+
+  @RegisterExtension
+  static final OpenTelemetryExtension otelTesting = OpenTelemetryExtension.create();
 
   private static final ExecutorService service =
       Executors.newFixedThreadPool(
@@ -175,24 +183,25 @@ class WMQMonitorIntegrationTest {
 
   @Test
   void test_monitor_with_full_config() throws Exception {
-    logger.info("\n\n\n\n\n\nRunning test: test_monitor_with_full_config");
-    TestResultMetricExporter testExporter = new TestResultMetricExporter();
-    MetricReader reader =
-        PeriodicMetricReader.builder(testExporter)
-            .setExecutor(Executors.newScheduledThreadPool(1))
-            .build();
-    SdkMeterProvider meterProvider =
-        SdkMeterProvider.builder().registerMetricReader(reader).build();
+    //    logger.info("\n\n\n\n\n\nRunning test: test_monitor_with_full_config");
+    //    TestResultMetricExporter testExporter = new TestResultMetricExporter();
+    //    MetricReader reader =
+    //        PeriodicMetricReader.builder(testExporter)
+    //            .setExecutor(Executors.newScheduledThreadPool(1))
+    //            .build();
+    //    SdkMeterProvider meterProvider =
+    //        SdkMeterProvider.builder().registerMetricReader(reader).build();
     String configFile = getConfigFile("conf/test-config.yml");
 
     ConfigWrapper config = ConfigWrapper.parse(configFile);
-    TestWMQMonitor monitor =
-        new TestWMQMonitor(config, meterProvider.get("opentelemetry.io/mq"), service);
+    Meter meter = otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq");
+    TestWMQMonitor monitor = new TestWMQMonitor(config, meter, service);
     monitor.runTest();
 
-    reader.forceFlush().join(5, TimeUnit.SECONDS);
-    meterProvider.close();
-    List<MetricData> data = testExporter.getExportedMetrics();
+    //    reader.forceFlush().join(5, TimeUnit.SECONDS);
+    //    meterProvider.close();
+    //    List<MetricData> data = testExporter.getExportedMetrics();
+    List<MetricData> data = otelTesting.getMetrics();
     Map<String, MetricData> metrics = new HashMap<>();
     for (MetricData metricData : data) {
       metrics.put(metricData.getName(), metricData);
@@ -241,41 +250,43 @@ class WMQMonitorIntegrationTest {
               .map(pt -> pt.getAttributes().get(AttributeKey.stringKey("queue.manager")))
               .collect(Collectors.toSet());
       assertThat(queueManagers).contains("QM1");
+      // TODO: Add more asserts about data values, units, attributes, etc, not just names
     }
   }
 
   @Test
   void test_wmqmonitor() throws Exception {
-    logger.info("\n\n\n\n\n\nRunning test: test_wmqmonitor");
-    TestResultMetricExporter testExporter = new TestResultMetricExporter();
-    MetricReader reader =
-        PeriodicMetricReader.builder(testExporter)
-            .setExecutor(Executors.newScheduledThreadPool(1))
-            .build();
-    SdkMeterProvider meterProvider =
-        SdkMeterProvider.builder().registerMetricReader(reader).build();
+    //    logger.info("\n\n\n\n\n\nRunning test: test_wmqmonitor");
+    //    TestResultMetricExporter testExporter = new TestResultMetricExporter();
+    //    MetricReader reader =
+    //        PeriodicMetricReader.builder(testExporter)
+    //            .setExecutor(Executors.newScheduledThreadPool(1))
+    //            .build();
+    //    SdkMeterProvider meterProvider =
+    //        SdkMeterProvider.builder().registerMetricReader(reader).build();
     String configFile = getConfigFile("conf/test-queuemgr-config.yml");
     ConfigWrapper config = ConfigWrapper.parse(configFile);
+    Meter meter = otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq");
 
-    TestWMQMonitor monitor =
-        new TestWMQMonitor(config, meterProvider.get("opentelemetry.io/mq"), service);
+    TestWMQMonitor monitor = new TestWMQMonitor(config, meter, service);
     monitor.runTest();
+    // TODO: Wait why are there no asserts here?
   }
 
   @Test
   void test_otlphttp() throws Exception {
-    logger.info("\n\n\n\n\n\nRunning test: test_otlphttp");
     ConfigWrapper config =
         ConfigWrapper.parse(WMQMonitorIntegrationTest.getConfigFile("conf/test-config.yml"));
     ScheduledExecutorService service =
         Executors.newScheduledThreadPool(config.getNumberOfThreads());
-    TestResultMetricExporter exporter = new TestResultMetricExporter();
-    Main.run(config, service);
-    Thread.sleep(5000);
+    Main.run(config, service, otelTesting.getOpenTelemetry());
+    CountDownLatch latch = new CountDownLatch(1);
+    service.submit(latch::countDown);
+    Thread.sleep(5000); // TODO: This is fragile and time consuming and should be made better
     service.shutdown();
-    service.awaitTermination(10, TimeUnit.SECONDS);
+    assertTrue(service.awaitTermination(30, TimeUnit.SECONDS));
 
-    List<MetricData> data = exporter.getExportedMetrics();
+    List<MetricData> data = otelTesting.getMetrics();
     Set<String> metricNames = new HashSet<>();
     for (MetricData metricData : data) {
       metricNames.add(metricData.getName());

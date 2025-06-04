@@ -116,6 +116,12 @@
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-sdk-testing</artifactId>
+            <version>1.50.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
             <artifactId>opentelemetry-sdk</artifactId>
             <version>1.49.0</version>
         </dependency>
