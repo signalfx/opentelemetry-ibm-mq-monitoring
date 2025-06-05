@@ -241,10 +241,17 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
       }
       maxSharingConvsGauge.set(maxSharingConvs, attributes);
     }
-    BatchCallback callback = meter.batchCallback(() -> {
-      for (Runnable r : updates) {
-        r.run();
-      }
-    }, messageCounter, byteSentCounter, byteReceivedCounter, buffersSentCounter, buffersReceivedCounter);
+    BatchCallback callback =
+        meter.batchCallback(
+            () -> {
+              for (Runnable r : updates) {
+                r.run();
+              }
+            },
+            messageCounter,
+            byteSentCounter,
+            byteReceivedCounter,
+            buffersSentCounter,
+            buffersReceivedCounter);
   }
 }

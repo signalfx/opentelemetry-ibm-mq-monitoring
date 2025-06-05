@@ -38,8 +38,7 @@ public final class QueueMetricsCollector implements Consumer<MetricsCollectorCon
   public QueueMetricsCollector(Meter meter, ExecutorService threadPool, ConfigWrapper config) {
     this.threadPool = threadPool;
     this.config = config;
-    QueueCollectionBuddy queueBuddy =
-        new QueueCollectionBuddy(new QueueCollectorSharedState());
+    QueueCollectionBuddy queueBuddy = new QueueCollectionBuddy(new QueueCollectorSharedState());
     this.inquireQueueCmd = new InquireQCmdCollector(queueBuddy, meter);
     publishers.add(new InquireQStatusCmdCollector(queueBuddy, meter));
     publishers.add(new ResetQStatsCmdCollector(queueBuddy, meter));
