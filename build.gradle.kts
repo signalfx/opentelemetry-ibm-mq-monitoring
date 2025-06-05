@@ -1,3 +1,5 @@
+import org.gradle.kotlin.dsl.provideDelegate
+
 plugins {
   `java-library`
   `maven-publish`
@@ -32,6 +34,11 @@ val integrationTestRuntimeOnly by configurations.getting
 
 configurations["integrationTestRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
+val ibmClientJar: Configuration by configurations.creating {
+  isCanBeResolved = true
+  isCanBeConsumed = false
+}
+
 dependencies {
   api(libs.com.google.code.findbugs.jsr305)
   api(libs.org.jetbrains.annotations)
@@ -63,6 +70,13 @@ dependencies {
   integrationTestImplementation(libs.jakarta.jms.jakarta.jms.api)
   integrationTestImplementation(libs.org.junit.jupiter.junit.jupiter.engine)
   integrationTestRuntimeOnly(libs.org.junit.platform.junit.platform.launcher)
+  ibmClientJar(libs.com.ibm.mq.com.ibm.mq.allclient) {
+    artifact {
+      name = "com.ibm.mq.allclient"
+      extension = "jar"
+    }
+    isTransitive = false
+  }
 }
 
 tasks.shadowJar {
@@ -73,6 +87,16 @@ tasks.shadowJar {
 
 tasks.test {
   useJUnitPlatform()
+}
+
+tasks {
+// This exists purely to get the extension jar into our build dir
+  val copyIbmClientJar by registering(Jar::class) {
+    archiveFileName.set("com.ibm.mq.allclient.jar")
+    doFirst {
+      from(zipTree(ibmClientJar.singleFile))
+    }
+  }
 }
 
 val integrationTest = tasks.register<Test>("integrationTest") {
