@@ -43,4 +43,4 @@ jobs:
           ./gradlew spotlessApply
           git diff --exit-code || (echo 'Java out of date')
       - name: Maven build and test
-        run: ./gradlew clean test shadowJar
+        run: ./gradlew clean check shadowJar
