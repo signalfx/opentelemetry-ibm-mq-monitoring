@@ -24,11 +24,6 @@
             <AppenderRef ref="Console"/>
             <AppenderRef ref="IntegrationTestFile"/>
         </Logger>
-
-        <Logger name="com.appdynamics" level="debug" additivity="false">
-            <AppenderRef ref="Console"/>
-            <AppenderRef ref="IntegrationTestFile"/>
-        </Logger>
     </Loggers>
 
 </Configuration>

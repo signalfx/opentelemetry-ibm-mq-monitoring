@@ -56,5 +56,5 @@ jobs:
       - name: Run Integration Tests
         run: |
           echo "Running integration tests"
-          ./mvnw verify
+          ./gradlew integrationTest
 
