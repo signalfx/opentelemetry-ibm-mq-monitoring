@@ -66,9 +66,11 @@ final class InquireQStatusCmdCollector implements Consumer<MetricsCollectorConte
   private final LongGauge uncommittedMessagesGauge;
   private final LongGauge onqtime1Gauge;
   private final LongGauge onqtime2Gauge;
+    private final LongGauge currentQueueDepthGauge;
 
-  InquireQStatusCmdCollector(QueueCollectionBuddy queueBuddy, Meter meter) {
+    InquireQStatusCmdCollector(QueueCollectionBuddy queueBuddy, Meter meter) {
     this.queueBuddy = queueBuddy;
+      this.currentQueueDepthGauge = Metrics.createMqQueueDepth(meter);
     this.currentQueueFilesizeGauge = Metrics.createMqCurrentQueueFilesize(meter);
     this.currentMaxFilesizeGauge = Metrics.createMqCurrentMaxQueueFilesize(meter);
     this.oldestMessageAgeGauge = Metrics.createMqOldestMsgAge(meter);
@@ -91,6 +93,9 @@ final class InquireQStatusCmdCollector implements Consumer<MetricsCollectorConte
       request.addParameter(CMQCFC.MQIACF_Q_STATUS_ATTRS, ATTRIBUTES);
       queueBuddy.processPCFRequestAndPublishQMetrics(
           context, request, queueGenericName, ((message, attributes) -> {
+                  if (context.getMetricsConfig().isMqQueueDepthEnabled()) {
+                      currentQueueDepthGauge.set(message.getIntParameterValue(CMQC.MQIA_CURRENT_Q_DEPTH), attributes);
+                  }
                 if (context.getMetricsConfig().isMqCurrentQueueFilesizeEnabled()) {
                   this.currentQueueFilesizeGauge.set(message.getIntParameterValue(CMQCFC.MQIACF_CUR_Q_FILE_SIZE), attributes);
                 }
