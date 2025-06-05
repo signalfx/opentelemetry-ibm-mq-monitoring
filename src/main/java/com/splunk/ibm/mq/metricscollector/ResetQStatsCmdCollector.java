@@ -19,8 +19,21 @@ import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+
+import com.splunk.ibm.mq.metrics.Metrics;
+import com.splunk.ibm.mq.metrics.MetricsConfig;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.ObservableLongMeasurement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +46,31 @@ final class ResetQStatsCmdCollector implements Consumer<MetricsCollectorContext>
 
   static final String COMMAND = "MQCMD_RESET_Q_STATS";
   private final QueueCollectionBuddy queueBuddy;
+  private final LongGauge highQueueDepthGauge;
+  private final ObservableLongMeasurement messageDeqCounter;
+  private final ObservableLongMeasurement messageEnqCounter;
 
-  ResetQStatsCmdCollector(QueueCollectionBuddy queueBuddy) {
+  private final Map<Attributes, Long> deqValues = new ConcurrentHashMap<Attributes, Long>();
+  private final Map<Attributes, Long> enqValues = new ConcurrentHashMap<Attributes, Long>();
+
+  ResetQStatsCmdCollector(QueueCollectionBuddy queueBuddy, Meter meter) {
     this.queueBuddy = queueBuddy;
+    this.highQueueDepthGauge = Metrics.createMqHighQueueDepth(meter);
+    this.messageDeqCounter = Metrics.createMqMessageDeqCount(meter);
+    this.messageEnqCounter = Metrics.createMqMessageEnqCount(meter);
+
+    meter.batchCallback(() -> {
+      Set<Attributes> keys = deqValues.keySet();
+      for (Attributes key : keys) {
+        Long value = deqValues.remove(key);
+        messageDeqCounter.record(value, key);
+      }
+      keys = enqValues.keySet();
+      for (Attributes key : keys) {
+        Long value = enqValues.remove(key);
+        messageEnqCounter.record(value, key);
+      }
+    }, messageDeqCounter, messageEnqCounter);
   }
 
   @Override
@@ -55,7 +90,15 @@ final class ResetQStatsCmdCollector implements Consumer<MetricsCollectorContext>
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_RESET_Q_STATS);
       request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
       queueBuddy.processPCFRequestAndPublishQMetrics(
-          context, request, queueGenericName, ATTRIBUTES);
+          context, request, queueGenericName, ((message, attributes) -> {
+                highQueueDepthGauge.set(message.getIntParameterValue(CMQC.MQIA_HIGH_Q_DEPTH));
+                if (context.getMetricsConfig().isMqMessageDeqCountEnabled()) {
+                  deqValues.put(attributes, (long) message.getIntParameterValue(CMQC.MQIA_MSG_DEQ_COUNT));
+                }
+                if (context.getMetricsConfig().isMqMessageEnqCountEnabled()) {
+                  enqValues.put(attributes, (long) message.getIntParameterValue(CMQC.MQIA_MSG_ENQ_COUNT));
+                }
+              }));
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(
