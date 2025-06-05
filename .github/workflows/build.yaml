@@ -40,7 +40,7 @@ jobs:
       - name: Check java generation
         run: |
           make generate-java
-          ./mvnw spotless:apply
+          ./gradlew spotlessApply
           git diff --exit-code || (echo 'Java out of date')
       - name: Maven build and test
-        run: ./mvnw test package
+        run: ./gradlew clean test shadowJar

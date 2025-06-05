@@ -32,7 +32,6 @@ val integrationTestRuntimeOnly by configurations.getting
 
 configurations["integrationTestRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
-
 dependencies {
   api(libs.com.google.code.findbugs.jsr305)
   api(libs.org.jetbrains.annotations)

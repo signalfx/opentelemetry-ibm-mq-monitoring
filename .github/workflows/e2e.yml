@@ -28,7 +28,7 @@ jobs:
 
       - name: Build the jar
         run: |
-          ./mvnw package -DskipTests
+          ./gradlew clean shadowJar
 
       - name: Start MQ and the test services
         run: |
