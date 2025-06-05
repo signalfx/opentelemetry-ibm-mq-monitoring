@@ -53,7 +53,7 @@ Please turn on those events to take advantage of this monitoring.
 
 Build the package with:
 ```shell
-./mvnw package
+./gradlew shadowJar
 ```
 
 ### Format
@@ -62,7 +62,7 @@ This project uses [spotless](https://github.com/diffplug/spotless/tree/main/plug
 consistent code format. To format your code:
 
 ```shell
-./mvnw spotless:apply
+./gradlew spotlessApply
 ```
 
 ## Run
