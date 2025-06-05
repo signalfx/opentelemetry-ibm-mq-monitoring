@@ -25,10 +25,10 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.*;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 import java.util.ArrayList;
-import io.opentelemetry.api.metrics.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -43,13 +43,14 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
 
   private final LongGauge activeChannelsGauge;
   private final LongGauge channelStatusGauge;
-  private final LongUpDownCounterBuilder messageCounter;
-  private final LongUpDownCounterBuilder byteSentCounter;
-  private final LongUpDownCounterBuilder byteReceivedCounter;
-  private final LongUpDownCounterBuilder buffersSentCounter;
-  private final LongUpDownCounterBuilder buffersReceivedCounter;
+  private final ObservableLongMeasurement messageCounter;
+  private final ObservableLongMeasurement byteSentCounter;
+  private final ObservableLongMeasurement byteReceivedCounter;
+  private final ObservableLongMeasurement buffersSentCounter;
+  private final ObservableLongMeasurement buffersReceivedCounter;
   private final LongGauge currentSharingConvsGauge;
   private final LongGauge maxSharingConvsGauge;
+  private final Meter meter;
 
   /*
    * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
@@ -64,6 +65,7 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
     this.buffersReceivedCounter = Metrics.createMqBuffersReceived(meter);
     this.currentSharingConvsGauge = Metrics.createMqCurrentSharingConversations(meter);
     this.maxSharingConvsGauge = Metrics.createMqMaxSharingConversations(meter);
+    this.meter = meter;
   }
 
   @Override
@@ -193,12 +195,10 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
             .put("channel.start.time", channelStartTime)
             .put("job.name", jobName)
             .build();
+    List<Runnable> updates = new ArrayList<>();
     if (context.getMetricsConfig().isMqMessageCountEnabled()) {
       int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
-      messageCounter.buildWithCallback(
-          measurement -> {
-            measurement.record(received, attributes);
-          });
+      updates.add(() -> messageCounter.record(received, attributes));
     }
     int status = message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_STATUS);
     if (context.getMetricsConfig().isMqStatusEnabled()) {
@@ -213,22 +213,19 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
     }
     if (context.getMetricsConfig().isMqByteSentEnabled()) {
       int sent = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT);
-      byteSentCounter.buildWithCallback(measurement -> measurement.record(sent, attributes));
+      updates.add(() -> byteSentCounter.record(sent, attributes));
     }
     if (context.getMetricsConfig().isMqByteReceivedEnabled()) {
       int received = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED);
-      byteReceivedCounter.buildWithCallback(
-          measurement -> measurement.record(received, attributes));
+      updates.add(() -> byteReceivedCounter.record(received, attributes));
     }
     if (context.getMetricsConfig().isMqBuffersSentEnabled()) {
       int buffersSent = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT);
-      buffersSentCounter.buildWithCallback(
-          measurement -> measurement.record(buffersSent, attributes));
+      updates.add(() -> buffersSentCounter.record(buffersSent, attributes));
     }
     if (context.getMetricsConfig().isMqBuffersReceivedEnabled()) {
       int buffersReceived = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED);
-      buffersReceivedCounter.buildWithCallback(
-          measurement -> measurement.record(buffersReceived, attributes));
+      updates.add(() -> buffersReceivedCounter.record(buffersReceived, attributes));
     }
     if (context.getMetricsConfig().isMqCurrentSharingConversationsEnabled()) {
       int currentSharingConvs = 0;
@@ -244,5 +241,10 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
       }
       maxSharingConvsGauge.set(maxSharingConvs, attributes);
     }
+    BatchCallback callback = meter.batchCallback(() -> {
+      for (Runnable r : updates) {
+        r.run();
+      }
+    }, messageCounter, byteSentCounter, byteReceivedCounter, buffersSentCounter, buffersReceivedCounter);
   }
 }

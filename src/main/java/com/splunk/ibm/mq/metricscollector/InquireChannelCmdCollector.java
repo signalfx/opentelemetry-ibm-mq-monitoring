@@ -22,9 +22,7 @@ import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.metrics.LongGauge;
-import io.opentelemetry.api.metrics.LongUpDownCounterBuilder;
-import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.*;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -37,16 +35,18 @@ public final class InquireChannelCmdCollector implements Consumer<MetricsCollect
   public static final Logger logger = LoggerFactory.getLogger(InquireChannelCmdCollector.class);
   private final LongGauge maxClientsGauge;
   private final LongGauge instancesPerClientGauge;
-  private final LongUpDownCounterBuilder messageRetryCounterBuilder;
-  private final LongUpDownCounterBuilder messageReceivedCounterBuilder;
-  private final LongUpDownCounterBuilder messageSentCounterBuilder;
+  private final ObservableLongMeasurement messageRetryCounter;
+  private final ObservableLongMeasurement messageReceivedCounter;
+  private final ObservableLongMeasurement messageSentCounter;
+  private final Meter meter;
 
   public InquireChannelCmdCollector(Meter meter) {
     this.maxClientsGauge = Metrics.createMqMaxInstances(meter);
     this.instancesPerClientGauge = Metrics.createMqInstancesPerClient(meter);
-    this.messageRetryCounterBuilder = Metrics.createMqMessageRetryCount(meter);
-    this.messageReceivedCounterBuilder = Metrics.createMqMessageReceivedCount(meter);
-    this.messageSentCounterBuilder = Metrics.createMqMessageSentCount(meter);
+    this.messageRetryCounter = Metrics.createMqMessageRetryCount(meter);
+    this.messageReceivedCounter = Metrics.createMqMessageReceivedCount(meter);
+    this.messageSentCounter = Metrics.createMqMessageSentCount(meter);
+    this.meter = meter;
   }
 
   @Override
@@ -131,38 +131,38 @@ public final class InquireChannelCmdCollector implements Consumer<MetricsCollect
       this.instancesPerClientGauge.set(
           message.getIntParameterValue(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT), attributes);
     }
-    if (context.getMetricsConfig().isMqMessageRetryCountEnabled()) {
-      int count = 0;
-      if (message.getParameter(CMQCFC.MQIACH_MR_COUNT) != null) {
-        count = message.getIntParameterValue(CMQCFC.MQIACH_MR_COUNT);
-      }
-      int countFinal = count;
-      this.messageRetryCounterBuilder.buildWithCallback(
-          measurement -> {
-            measurement.record(countFinal, attributes);
-          });
-    }
-    if (context.getMetricsConfig().isMqInstancesPerClientEnabled()) {
-      int received = 0;
-      if (message.getParameter(CMQCFC.MQIACH_MSGS_RECEIVED) != null) {
-        received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_RECEIVED);
-      }
-      int receivedFinal = received;
-      this.messageReceivedCounterBuilder.buildWithCallback(
-          measurement -> {
-            measurement.record(receivedFinal, attributes);
-          });
-    }
+    int sent = 0;
     if (context.getMetricsConfig().isMqMessageSentCountEnabled()) {
-      int sent = 0;
       if (message.getParameter(CMQCFC.MQIACH_MSGS_SENT) != null) {
         sent = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_SENT);
       }
-      final int sentFinal = sent;
-      this.messageSentCounterBuilder.buildWithCallback(
-          measurement -> {
-            measurement.record(sentFinal, attributes);
-          });
     }
+    final int sentFinal = sent;
+    int count = 0;
+    if (message.getParameter(CMQCFC.MQIACH_MR_COUNT) != null) {
+      count = message.getIntParameterValue(CMQCFC.MQIACH_MR_COUNT);
+    }
+    final int countFinal = count;
+    int received = 0;
+    if (message.getParameter(CMQCFC.MQIACH_MSGS_RECEIVED) != null) {
+      received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_RECEIVED);
+    }
+    int receivedFinal = received;
+    BatchCallback callback =
+        meter.batchCallback(
+            () -> {
+              if (context.getMetricsConfig().isMqMessageRetryCountEnabled()) {
+                this.messageRetryCounter.record(countFinal, attributes);
+              }
+              if (context.getMetricsConfig().isMqInstancesPerClientEnabled()) {
+                this.messageReceivedCounter.record(receivedFinal, attributes);
+              }
+              if (context.getMetricsConfig().isMqMessageSentCountEnabled()) {
+                this.messageSentCounter.record(sentFinal, attributes);
+              }
+            },
+            this.messageReceivedCounter,
+            this.messageSentCounter,
+            this.messageRetryCounter);
   }
 }
