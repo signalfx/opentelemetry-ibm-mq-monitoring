@@ -2,6 +2,7 @@ plugins {
   `java-library`
   `maven-publish`
   id("com.diffplug.spotless") version "7.0.4"
+  id("com.gradleup.shadow") version "9.0.0-beta15"
 }
 
 group = "com.splunk.ibm.mq"
@@ -17,6 +18,21 @@ repositories {
   }
 }
 
+sourceSets {
+  create("integrationTest") {
+    compileClasspath += sourceSets.main.get().output
+    runtimeClasspath += sourceSets.main.get().output
+  }
+}
+
+val integrationTestImplementation by configurations.getting {
+  extendsFrom(configurations.implementation.get())
+}
+val integrationTestRuntimeOnly by configurations.getting
+
+configurations["integrationTestRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
+
+
 dependencies {
   api(libs.com.google.code.findbugs.jsr305)
   api(libs.org.jetbrains.annotations)
@@ -31,7 +47,7 @@ dependencies {
   api(libs.org.apache.logging.log4j.log4j.core)
   api(libs.org.apache.logging.log4j.log4j.slf4j.impl)
   api(libs.org.json.json)
-  testImplementation(libs.org.junit.jupiter.junit.jupiter.engine)
+  testImplementation(libs.org.junit.jupiter.junit.jupiter.api)
   testImplementation(libs.org.junit.jupiter.junit.jupiter.params)
   testImplementation(libs.org.mockito.mockito.core)
   testImplementation(libs.org.mockito.mockito.junit.jupiter)
@@ -39,7 +55,43 @@ dependencies {
   testImplementation(libs.io.opentelemetry.opentelemetry.sdk.testing)
   testImplementation(libs.com.ibm.mq.com.ibm.mq.jakarta.client)
   testImplementation(libs.jakarta.jms.jakarta.jms.api)
+  testImplementation(libs.org.junit.jupiter.junit.jupiter.engine)
+  testRuntimeOnly(libs.org.junit.platform.junit.platform.launcher)
+  integrationTestImplementation(libs.org.assertj.assertj.core)
+  integrationTestImplementation(libs.org.junit.jupiter.junit.jupiter.api)
+  integrationTestImplementation(libs.io.opentelemetry.opentelemetry.sdk.testing)
+  integrationTestImplementation(libs.com.ibm.mq.com.ibm.mq.jakarta.client)
+  integrationTestImplementation(libs.jakarta.jms.jakarta.jms.api)
+  integrationTestImplementation(libs.org.junit.jupiter.junit.jupiter.engine)
+  integrationTestRuntimeOnly(libs.org.junit.platform.junit.platform.launcher)
 }
+
+tasks.shadowJar {
+  dependencies {
+    exclude(dependency(libs.com.ibm.mq.com.ibm.mq.allclient))
+  }
+}
+
+tasks.test {
+  useJUnitPlatform()
+}
+
+val integrationTest = tasks.register<Test>("integrationTest") {
+  description = "Runs integration tests."
+  group = "verification"
+
+  testClassesDirs = sourceSets["integrationTest"].output.classesDirs
+  classpath = sourceSets["integrationTest"].runtimeClasspath
+  shouldRunAfter("test")
+
+  useJUnitPlatform()
+
+  testLogging {
+    events("passed")
+  }
+}
+
+tasks.check { dependsOn(integrationTest) }
 
 publishing {
   publications.create<MavenPublication>("maven") {
