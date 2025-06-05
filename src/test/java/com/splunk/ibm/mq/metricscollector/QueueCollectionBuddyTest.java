@@ -81,6 +81,7 @@ public class QueueCollectionBuddyTest {
                 "DEV.DEAD.LETTER.QUEUE",
                 new HashMap<String, Long>() {
                   {
+                    put("mq.queue.depth", 0L);
                     put("mq.current.max.queue.filesize", 20L);
                     put("mq.current.queue.filesize", 10L);
                     put("mq.oldest.msg.age", -1L);
@@ -93,6 +94,7 @@ public class QueueCollectionBuddyTest {
                 "DEV.QUEUE.1",
                 new HashMap<String, Long>() {
                   {
+                    put("mq.queue.depth", 1L);
                     put("mq.current.max.queue.filesize", 20L);
                     put("mq.current.queue.filesize", 10L);
                     put("mq.oldest.msg.age", -1L);
@@ -121,7 +123,8 @@ public class QueueCollectionBuddyTest {
   void testProcessPCFRequestAndPublishQMetricsForInquireQCmd() throws Exception {
     PCFMessage request = createPCFRequestForInquireQCmd();
     when(pcfMessageAgent.send(any())).thenReturn(createPCFResponseForInquireQCmd());
-   InquireQCmdCollector classUnderTest = new InquireQCmdCollector(new QueueCollectionBuddy( new QueueCollectorSharedState()), meter);
+    InquireQCmdCollector classUnderTest =
+        new InquireQCmdCollector(new QueueCollectionBuddy(new QueueCollectorSharedState()), meter);
     classUnderTest.accept(collectorContext);
 
     Map<String, Map<String, Long>> expectedValues =
@@ -131,7 +134,6 @@ public class QueueCollectionBuddyTest {
                 "DEV.DEAD.LETTER.QUEUE",
                 new HashMap<String, Long>() {
                   {
-                    put("mq.queue.depth", 2L);
                     put("mq.max.queue.depth", 5000L);
                     put("mq.open.input.count", 2L);
                     put("mq.open.output.count", 2L);
@@ -143,7 +145,6 @@ public class QueueCollectionBuddyTest {
                 "DEV.QUEUE.1",
                 new HashMap<String, Long>() {
                   {
-                    put("mq.queue.depth", 3L);
                     put("mq.max.queue.depth", 5000L);
                     put("mq.open.input.count", 3L);
                     put("mq.open.output.count", 3L);
@@ -175,9 +176,9 @@ public class QueueCollectionBuddyTest {
     sharedState.putQueueType("DEV.QUEUE.1", "local-transmission");
     PCFMessage request = createPCFRequestForResetQStatsCmd();
     when(pcfMessageAgent.send(request)).thenReturn(createPCFResponseForResetQStatsCmd());
-    ResetQStatsCmdCollector classUnderTest = new ResetQStatsCmdCollector(new QueueCollectionBuddy(sharedState), meter);
-    classUnderTest.accept(
-        collectorContext);
+    ResetQStatsCmdCollector classUnderTest =
+        new ResetQStatsCmdCollector(new QueueCollectionBuddy(sharedState), meter);
+    classUnderTest.accept(collectorContext);
 
     for (MetricData metric : otelTesting.getMetrics()) {
       if (metric.getName().equals("mq.high.queue.depth")) {
@@ -240,7 +241,7 @@ public class QueueCollectionBuddyTest {
     response1.addParameter(CMQCFC.MQIACF_Q_STATUS_TYPE, 1105);
 
     response1.addParameter(CMQCFC.MQIACF_CUR_MAX_FILE_SIZE, 20);
-    response1.addParameter( CMQCFC.MQIACF_CUR_Q_FILE_SIZE, 10);
+    response1.addParameter(CMQCFC.MQIACF_CUR_Q_FILE_SIZE, 10);
     response1.addParameter(CMQCFC.MQIACF_OLDEST_MSG_AGE, -1);
     response1.addParameter(CMQCFC.MQIACF_Q_TIME_INDICATOR, new int[] {-1, -1});
     response1.addParameter(CMQCFC.MQIACF_UNCOMMITTED_MSGS, 0);
@@ -248,17 +249,17 @@ public class QueueCollectionBuddyTest {
     PCFMessage response2 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_Q_STATUS, 2, false);
     response2.addParameter(CMQC.MQCA_Q_NAME, "DEV.DEAD.LETTER.QUEUE");
     response2.addParameter(CMQCFC.MQIACF_CUR_MAX_FILE_SIZE, 20);
-    response2.addParameter( CMQCFC.MQIACF_CUR_Q_FILE_SIZE, 10);
+    response2.addParameter(CMQCFC.MQIACF_CUR_Q_FILE_SIZE, 10);
     response2.addParameter(CMQCFC.MQIACF_Q_STATUS_TYPE, 1105);
     response2.addParameter(CMQC.MQIA_CURRENT_Q_DEPTH, 0);
-    response2.addParameter(CMQCFC.MQIACF_OLDEST_MSG_AGE,  -1);
+    response2.addParameter(CMQCFC.MQIACF_OLDEST_MSG_AGE, -1);
     response2.addParameter(CMQCFC.MQIACF_Q_TIME_INDICATOR, new int[] {-1, -1});
     response2.addParameter(CMQCFC.MQIACF_UNCOMMITTED_MSGS, 0);
 
     PCFMessage response3 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_Q_STATUS, 1, false);
     response3.addParameter(CMQC.MQCA_Q_NAME, "DEV.QUEUE.1");
     response3.addParameter(CMQCFC.MQIACF_CUR_MAX_FILE_SIZE, 20);
-    response3.addParameter( CMQCFC.MQIACF_CUR_Q_FILE_SIZE, 10);
+    response3.addParameter(CMQCFC.MQIACF_CUR_Q_FILE_SIZE, 10);
     response3.addParameter(CMQCFC.MQIACF_Q_STATUS_TYPE, 1105);
     response3.addParameter(CMQC.MQIA_CURRENT_Q_DEPTH, 1);
     response3.addParameter(CMQCFC.MQIACF_OLDEST_MSG_AGE, -1);

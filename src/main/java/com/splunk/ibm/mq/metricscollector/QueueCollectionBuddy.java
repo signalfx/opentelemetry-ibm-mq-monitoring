@@ -18,34 +18,23 @@ package com.splunk.ibm.mq.metricscollector;
 import static com.ibm.mq.constants.CMQC.*;
 
 import com.ibm.mq.constants.CMQC;
-import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
-import com.ibm.mq.headers.pcf.MQCFIL;
-import com.ibm.mq.headers.pcf.MQCFIN;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.ibm.mq.headers.pcf.PCFParameter;
-import com.splunk.ibm.mq.metrics.Metrics;
-import com.splunk.ibm.mq.metrics.MetricsConfig;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.*;
-
 import java.io.IOException;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 @FunctionalInterface
 interface MetricCallback {
 
   void accept(PCFMessage message, Attributes attributes) throws PCFException;
 }
+
 /**
  * A collaborator buddy of the queue collectors that helps them to send a message, process the
  * response, and generate metrics.
@@ -59,14 +48,15 @@ final class QueueCollectionBuddy {
     this.sharedState = sharedState;
   }
 
-
-
   /**
    * Sends a PCFMessage request, reads the response, and generates metrics from the response. It
    * handles all exceptions.
    */
   void processPCFRequestAndPublishQMetrics(
-      MetricsCollectorContext context, PCFMessage request, String queueGenericName, MetricCallback callback) {
+      MetricsCollectorContext context,
+      PCFMessage request,
+      String queueGenericName,
+      MetricCallback callback) {
     try {
       doProcessPCFRequestAndPublishQMetrics(context, request, queueGenericName, callback);
     } catch (PCFException pcfe) {
@@ -90,7 +80,10 @@ final class QueueCollectionBuddy {
   }
 
   private void doProcessPCFRequestAndPublishQMetrics(
-      MetricsCollectorContext context, PCFMessage request, String queueGenericName, MetricCallback callback)
+      MetricsCollectorContext context,
+      PCFMessage request,
+      String queueGenericName,
+      MetricCallback callback)
       throws IOException, MQDataException {
     logger.debug(
         "sending PCF agent request to query metrics for generic queue {}", queueGenericName);
@@ -117,7 +110,8 @@ final class QueueCollectionBuddy {
     }
   }
 
-  private void handleMessage(MetricsCollectorContext context, PCFMessage message, MetricCallback callback)
+  private void handleMessage(
+      MetricsCollectorContext context, PCFMessage message, MetricCallback callback)
       throws PCFException {
     String queueName = MessageBuddy.queueName(message);
     String queueType = getQueueTypeFromName(message, queueName);
@@ -129,13 +123,13 @@ final class QueueCollectionBuddy {
     logger.debug("Pulling out metrics for queue name {}", queueName);
 
     Attributes attributes =
-            Attributes.of(
-                    AttributeKey.stringKey("queue.name"),
-                    queueName,
-                    AttributeKey.stringKey("queue.type"),
-                    queueType,
-                    AttributeKey.stringKey("queue.manager"),
-                    context.getQueueManagerName());
+        Attributes.of(
+            AttributeKey.stringKey("queue.name"),
+            queueName,
+            AttributeKey.stringKey("queue.type"),
+            queueType,
+            AttributeKey.stringKey("queue.manager"),
+            context.getQueueManagerName());
     callback.accept(message, attributes);
   }
 
@@ -184,5 +178,4 @@ final class QueueCollectionBuddy {
     logger.warn("Unknown type of queue {}", message.getIntParameterValue(CMQC.MQIA_Q_TYPE));
     return "unknown";
   }
-
 }
