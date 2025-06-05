@@ -39,7 +39,6 @@ final class InquireQCmdCollector implements Consumer<MetricsCollectorContext> {
                     CMQC.MQCA_Q_NAME,
                     CMQC.MQIA_USAGE,
                     CMQC.MQIA_Q_TYPE,
-                    CMQC.MQIA_CURRENT_Q_DEPTH,
                     CMQC.MQIA_MAX_Q_DEPTH,
                     CMQC.MQIA_OPEN_INPUT_COUNT,
                     CMQC.MQIA_OPEN_OUTPUT_COUNT,
@@ -49,7 +48,6 @@ final class InquireQCmdCollector implements Consumer<MetricsCollectorContext> {
 
     static final String COMMAND = "MQCMD_INQUIRE_Q";
     private final QueueCollectionBuddy queueBuddy;
-    private final LongGauge currentQueueDepthGauge;
     private final LongGauge maxQueueDepthGauge;
     private final LongGauge openInputCountGauge;
     private final LongGauge openOutputCountGauge;
@@ -58,7 +56,6 @@ final class InquireQCmdCollector implements Consumer<MetricsCollectorContext> {
 
     public InquireQCmdCollector(QueueCollectionBuddy queueBuddy, Meter meter) {
         this.queueBuddy = queueBuddy;
-        this.currentQueueDepthGauge = Metrics.createMqQueueDepth(meter);
         this.maxQueueDepthGauge = Metrics.createMqMaxQueueDepth(meter);
         this.openInputCountGauge = Metrics.createMqOpenInputCount(meter);
         this.openOutputCountGauge = Metrics.createMqOpenOutputCount(meter);
@@ -87,9 +84,6 @@ final class InquireQCmdCollector implements Consumer<MetricsCollectorContext> {
 
             queueBuddy.processPCFRequestAndPublishQMetrics(
                     context, request, queueGenericName, ((pcfMessage, attributes) -> {
-                        if (context.getMetricsConfig().isMqQueueDepthEnabled()) {
-                            currentQueueDepthGauge.set(pcfMessage.getIntParameterValue(CMQC.MQIA_CURRENT_Q_DEPTH), attributes);
-                        }
                         if (context.getMetricsConfig().isMqMaxQueueDepthEnabled()) {
                             maxQueueDepthGauge.set(pcfMessage.getIntParameterValue(CMQC.MQIA_MAX_Q_DEPTH), attributes);
                         }
