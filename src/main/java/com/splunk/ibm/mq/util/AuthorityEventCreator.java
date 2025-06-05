@@ -29,7 +29,7 @@ import javax.jms.JMSRuntimeException;
  * <p>You can run it with
  *
  * <pre>
- * <code>java -cp ibm-mq-monitoring-extension-opentelemetry.jar:com.ibm.mq.allclient.jar com.splunk.ibm.mq.util.AuthorityEventCreator <host> <port> <queueManagerName> <channelName> <username> <password> </code>
+ * <code>java -cp ibm-mq-monitoring-<version>-all.jar:com.ibm.mq.allclient.jar com.splunk.ibm.mq.util.AuthorityEventCreator <host> <port> <queueManagerName> <channelName> <username> <password> </code>
  * </pre>
  */
 public class AuthorityEventCreator {
