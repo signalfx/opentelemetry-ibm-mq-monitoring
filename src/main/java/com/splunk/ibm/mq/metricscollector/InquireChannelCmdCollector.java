@@ -24,7 +24,9 @@ import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.metrics.*;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +37,12 @@ public final class InquireChannelCmdCollector implements Consumer<MetricsCollect
   public static final Logger logger = LoggerFactory.getLogger(InquireChannelCmdCollector.class);
   private final LongGauge maxClientsGauge;
   private final LongGauge instancesPerClientGauge;
-  private final ObservableLongMeasurement messageRetryCounter;
-  private final ObservableLongMeasurement messageReceivedCounter;
-  private final ObservableLongMeasurement messageSentCounter;
-  private final Meter meter;
+  private final LongUpDownCounter messageRetryCounter;
+  private final LongUpDownCounter messageReceivedCounter;
+  private final LongUpDownCounter messageSentCounter;
+  private final Map<Attributes, Long> messageRetryCache = new ConcurrentHashMap<>();
+  private final Map<Attributes, Long> messageReceivedCache = new ConcurrentHashMap<>();
+  private final Map<Attributes, Long> messageSentCache = new ConcurrentHashMap<>();
 
   public InquireChannelCmdCollector(Meter meter) {
     this.maxClientsGauge = Metrics.createMqMaxInstances(meter);
@@ -46,7 +50,6 @@ public final class InquireChannelCmdCollector implements Consumer<MetricsCollect
     this.messageRetryCounter = Metrics.createMqMessageRetryCount(meter);
     this.messageReceivedCounter = Metrics.createMqMessageReceivedCount(meter);
     this.messageSentCounter = Metrics.createMqMessageSentCount(meter);
-    this.meter = meter;
   }
 
   @Override
@@ -142,27 +145,27 @@ public final class InquireChannelCmdCollector implements Consumer<MetricsCollect
     if (message.getParameter(CMQCFC.MQIACH_MR_COUNT) != null) {
       count = message.getIntParameterValue(CMQCFC.MQIACH_MR_COUNT);
     }
-    final int countFinal = count;
     int received = 0;
     if (message.getParameter(CMQCFC.MQIACH_MSGS_RECEIVED) != null) {
       received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_RECEIVED);
     }
-    int receivedFinal = received;
-    BatchCallback callback =
-        meter.batchCallback(
-            () -> {
               if (context.getMetricsConfig().isMqMessageRetryCountEnabled()) {
-                this.messageRetryCounter.record(countFinal, attributes);
+                Long oldValue = messageRetryCache.replace(attributes, (long) count);
+                if (oldValue != null) {
+                  this.messageRetryCounter.add(count - oldValue, attributes);
+                }
               }
               if (context.getMetricsConfig().isMqInstancesPerClientEnabled()) {
-                this.messageReceivedCounter.record(receivedFinal, attributes);
+                Long oldValue = messageReceivedCache.replace(attributes, (long) received);
+                if (oldValue != null) {
+                  this.messageReceivedCounter.add(received - oldValue, attributes);
+                }
               }
               if (context.getMetricsConfig().isMqMessageSentCountEnabled()) {
-                this.messageSentCounter.record(sentFinal, attributes);
+                Long oldValue = messageSentCache.replace(attributes, (long) sent);
+                if (oldValue != null) {
+                  this.messageSentCounter.add(sent - oldValue, attributes);
+                }
               }
-            },
-            this.messageReceivedCounter,
-            this.messageSentCounter,
-            this.messageRetryCounter);
   }
 }

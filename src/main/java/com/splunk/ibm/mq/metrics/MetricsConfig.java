@@ -20,14 +20,18 @@ import java.util.Map;
 
 // This file is generated using weaver. Do not edit manually.
 
-/** Configuration of metrics as defined in config.yml. */
+/**
+ * Configuration of metrics as defined in config.yml.
+ *
+ */
 public class MetricsConfig {
 
   private final Map<String, ?> config;
 
   public MetricsConfig(ConfigWrapper config) {
-    this.config = config.getMetrics();
+      this.config = config.getMetrics();
   }
+
 
   public boolean isMqMessageRetryCountEnabled() {
     Object metricInfo = config.get("mq.message.retry.count");
@@ -568,4 +572,5 @@ public class MetricsConfig {
     }
     return false;
   }
+
 }
