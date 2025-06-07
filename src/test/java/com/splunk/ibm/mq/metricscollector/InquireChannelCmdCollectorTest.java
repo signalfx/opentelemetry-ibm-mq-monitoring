@@ -31,6 +31,7 @@ import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -65,12 +66,15 @@ class InquireChannelCmdCollectorTest {
   @Test
   public void testProcessPCFRequestAndPublishQMetricsForInquireQStatusCmd() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
-        .thenReturn(createPCFResponseForInquireChannelCmd());
+        .thenReturn(createInitialPCFResponseForInquireChannelCmd());
     classUnderTest = new InquireChannelCmdCollector(meter);
+    classUnderTest.accept(context);
+    when(pcfMessageAgent.send(any(PCFMessage.class)))
+        .thenReturn(createPCFResponseForInquireChannelCmd());
     classUnderTest.accept(context);
     List<String> metricsList =
         new ArrayList<>(
-            List.of(
+            Arrays.asList(
                 "mq.message.retry.count", "mq.message.received.count", "mq.message.sent.count"));
     for (MetricData metric : otelTesting.getMetrics()) {
       if (metricsList.remove(metric.getName())) {
@@ -89,6 +93,19 @@ class InquireChannelCmdCollectorTest {
       }
     }
     assertThat(metricsList).isEmpty();
+  }
+
+  private PCFMessage[] createInitialPCFResponseForInquireChannelCmd() {
+    PCFMessage response1 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_CHANNEL, 1, true);
+    response1.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, "my.channel");
+    response1.addParameter(CMQCFC.MQIACH_CHANNEL_TYPE, CMQXC.MQCHT_SVRCONN);
+    response1.addParameter(CMQCFC.MQIACH_MR_COUNT, 0);
+    response1.addParameter(CMQCFC.MQIACH_MSGS_RECEIVED, 0);
+    response1.addParameter(CMQCFC.MQIACH_MSGS_SENT, 0);
+    response1.addParameter(CMQCFC.MQIACH_MAX_INSTANCES, 3);
+    response1.addParameter(CMQCFC.MQIACH_MAX_INSTS_PER_CLIENT, 3);
+
+    return new PCFMessage[] {response1};
   }
 
   private PCFMessage[] createPCFResponseForInquireChannelCmd() {

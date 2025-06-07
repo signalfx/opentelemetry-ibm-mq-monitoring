@@ -149,23 +149,23 @@ public final class InquireChannelCmdCollector implements Consumer<MetricsCollect
     if (message.getParameter(CMQCFC.MQIACH_MSGS_RECEIVED) != null) {
       received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS_RECEIVED);
     }
-              if (context.getMetricsConfig().isMqMessageRetryCountEnabled()) {
-                Long oldValue = messageRetryCache.replace(attributes, (long) count);
-                if (oldValue != null) {
-                  this.messageRetryCounter.add(count - oldValue, attributes);
-                }
-              }
-              if (context.getMetricsConfig().isMqInstancesPerClientEnabled()) {
-                Long oldValue = messageReceivedCache.replace(attributes, (long) received);
-                if (oldValue != null) {
-                  this.messageReceivedCounter.add(received - oldValue, attributes);
-                }
-              }
-              if (context.getMetricsConfig().isMqMessageSentCountEnabled()) {
-                Long oldValue = messageSentCache.replace(attributes, (long) sent);
-                if (oldValue != null) {
-                  this.messageSentCounter.add(sent - oldValue, attributes);
-                }
-              }
+    if (context.getMetricsConfig().isMqMessageRetryCountEnabled()) {
+      Long oldValue = messageRetryCache.put(attributes, (long) count);
+      if (oldValue != null) {
+        this.messageRetryCounter.add(count - oldValue, attributes);
+      }
+    }
+    if (context.getMetricsConfig().isMqInstancesPerClientEnabled()) {
+      Long oldValue = messageReceivedCache.put(attributes, (long) received);
+      if (oldValue != null) {
+        this.messageReceivedCounter.add(received - oldValue, attributes);
+      }
+    }
+    if (context.getMetricsConfig().isMqMessageSentCountEnabled()) {
+      Long oldValue = messageSentCache.put(attributes, (long) sent);
+      if (oldValue != null) {
+        this.messageSentCounter.add(sent - oldValue, attributes);
+      }
+    }
   }
 }

@@ -35,6 +35,7 @@ import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,14 +73,18 @@ class ChannelMetricsCollectorTest {
   @Test
   void testPublishMetrics() throws Exception {
     when(pcfMessageAgent.send(any(PCFMessage.class)))
-        .thenReturn(createPCFResponseForInquireChannelStatusCmd());
+        .thenReturn(createInitialPCFResponseForInquireChannelStatusCmd());
     classUnderTest = new ChannelMetricsCollector(meter);
 
     classUnderTest.accept(context);
 
+    when(pcfMessageAgent.send(any(PCFMessage.class)))
+        .thenReturn(createPCFResponseForInquireChannelStatusCmd());
+    classUnderTest.accept(context);
+
     List<String> metricsList =
         new ArrayList<>(
-            List.of(
+            Arrays.asList(
                 "mq.message.count",
                 "mq.status",
                 "mq.byte.sent",
@@ -142,6 +147,58 @@ class ChannelMetricsCollectorTest {
      MQCFIN [type: 3, strucLength: 16, parameter: 1527 (MQIACH_CHANNEL_STATUS), value: 3]
      MQCFIN [type: 3, strucLength: 16, parameter: 1609 (MQIACH_CHANNEL_SUBSTATE), value: 300]
   */
+
+  private PCFMessage[] createInitialPCFResponseForInquireChannelStatusCmd() {
+    PCFMessage response1 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, 1, true);
+    response1.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, "DEV.ADMIN.SVRCONN");
+    response1.addParameter(CMQCFC.MQIACH_CHANNEL_TYPE, 7);
+    response1.addParameter(CMQCFC.MQIACH_BUFFERS_RECEIVED, 0);
+    response1.addParameter(CMQCFC.MQIACH_BUFFERS_SENT, 0);
+    response1.addParameter(CMQCFC.MQIACH_BYTES_RECEIVED, 0);
+    response1.addParameter(CMQCFC.MQIACH_BYTES_SENT, 0);
+    response1.addParameter(CMQCFC.MQCACH_CONNECTION_NAME, "172.17.0.1 ");
+    response1.addParameter(CMQCFC.MQIACH_CHANNEL_INSTANCE_TYPE, 1011);
+    response1.addParameter(CMQCFC.MQIACH_MSGS, 0);
+    response1.addParameter(CMQCFC.MQIACH_CHANNEL_STATUS, 3);
+    response1.addParameter(CMQCFC.MQIACH_CHANNEL_SUBSTATE, 300);
+    response1.addParameter(CMQCFC.MQCACH_CHANNEL_START_DATE, "2012-01-03");
+    response1.addParameter(CMQCFC.MQCACH_CHANNEL_START_TIME, "22.33.44");
+    response1.addParameter(CMQCFC.MQCACH_MCA_JOB_NAME, "000042040000000C");
+
+    PCFMessage response2 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, 2, true);
+    response2.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, "DEV.APP.SVRCONN");
+    response2.addParameter(CMQCFC.MQIACH_CHANNEL_TYPE, 7);
+    response2.addParameter(CMQCFC.MQIACH_BUFFERS_RECEIVED, 0);
+    response2.addParameter(CMQCFC.MQIACH_BUFFERS_SENT, 0);
+    response2.addParameter(CMQCFC.MQIACH_BYTES_RECEIVED, 0);
+    response2.addParameter(CMQCFC.MQIACH_BYTES_SENT, 0);
+    response2.addParameter(CMQCFC.MQCACH_CONNECTION_NAME, "172.17.0.2 ");
+    response2.addParameter(CMQCFC.MQIACH_CHANNEL_INSTANCE_TYPE, 1011);
+    response2.addParameter(CMQCFC.MQIACH_MSGS, 0);
+    response2.addParameter(CMQCFC.MQIACH_CHANNEL_STATUS, 3);
+    response2.addParameter(CMQCFC.MQIACH_CHANNEL_SUBSTATE, 300);
+    response2.addParameter(CMQCFC.MQCACH_CHANNEL_START_DATE, "2012-01-04");
+    response2.addParameter(CMQCFC.MQCACH_CHANNEL_START_TIME, "22.33.45");
+    response2.addParameter(CMQCFC.MQCACH_MCA_JOB_NAME, "000042040000000D");
+
+    PCFMessage response3 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, 2, true);
+    response3.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, "TEST.APP.SVRCONN");
+    response3.addParameter(CMQCFC.MQIACH_CHANNEL_TYPE, 7);
+    response3.addParameter(CMQCFC.MQIACH_BUFFERS_RECEIVED, 0);
+    response3.addParameter(CMQCFC.MQIACH_BUFFERS_SENT, 0);
+    response3.addParameter(CMQCFC.MQIACH_BYTES_RECEIVED, 0);
+    response3.addParameter(CMQCFC.MQIACH_BYTES_SENT, 0);
+    response3.addParameter(CMQCFC.MQCACH_CONNECTION_NAME, "172.17.0.2 ");
+    response3.addParameter(CMQCFC.MQIACH_CHANNEL_INSTANCE_TYPE, 1011);
+    response3.addParameter(CMQCFC.MQIACH_MSGS, 0);
+    response3.addParameter(CMQCFC.MQIACH_CHANNEL_STATUS, 3);
+    response3.addParameter(CMQCFC.MQIACH_CHANNEL_SUBSTATE, 300);
+    response3.addParameter(CMQCFC.MQCACH_CHANNEL_START_DATE, "2012-01-05");
+    response3.addParameter(CMQCFC.MQCACH_CHANNEL_START_TIME, "22.33.46");
+    response3.addParameter(CMQCFC.MQCACH_MCA_JOB_NAME, "000042040000000E");
+
+    return new PCFMessage[] {response1, response2, response3};
+  }
 
   private PCFMessage[] createPCFResponseForInquireChannelStatusCmd() {
     PCFMessage response1 = new PCFMessage(2, CMQCFC.MQCMD_INQUIRE_CHANNEL_STATUS, 1, true);
