@@ -31,6 +31,7 @@ import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -70,7 +71,7 @@ class InquireChannelCmdCollectorTest {
     classUnderTest.accept(context);
     List<String> metricsList =
         new ArrayList<>(
-            List.of(
+            Arrays.asList(
                 "mq.message.retry.count", "mq.message.received.count", "mq.message.sent.count"));
     for (MetricData metric : otelTesting.getMetrics()) {
       if (metricsList.remove(metric.getName())) {
