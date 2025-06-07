@@ -89,20 +89,29 @@ final class InquireQCmdCollector implements Consumer<MetricsCollectorContext> {
                   pcfMessage.getIntParameterValue(CMQC.MQIA_MAX_Q_DEPTH), attributes);
             }
             if (context.getMetricsConfig().isMqOpenInputCountEnabled()) {
-              openInputCountGauge.set(
-                  pcfMessage.getIntParameterValue(CMQC.MQIA_OPEN_INPUT_COUNT), attributes);
+              if (pcfMessage.getParameter(CMQC.MQIA_OPEN_INPUT_COUNT) != null) {
+                openInputCountGauge.set(
+                    pcfMessage.getIntParameterValue(CMQC.MQIA_OPEN_INPUT_COUNT), attributes);
+              }
             }
             if (context.getMetricsConfig().isMqOpenOutputCountEnabled()) {
-              openOutputCountGauge.set(
-                  pcfMessage.getIntParameterValue(CMQC.MQIA_OPEN_OUTPUT_COUNT), attributes);
+              if (pcfMessage.getParameter(CMQC.MQIA_OPEN_OUTPUT_COUNT) != null) {
+                openOutputCountGauge.set(
+                    pcfMessage.getIntParameterValue(CMQC.MQIA_OPEN_OUTPUT_COUNT), attributes);
+              }
             }
             if (context.getMetricsConfig().isMqServiceIntervalEnabled()) {
-              serviceIntervalGauge.set(
-                  pcfMessage.getIntParameterValue(CMQC.MQIA_Q_SERVICE_INTERVAL), attributes);
+              if (pcfMessage.getParameter(CMQC.MQIA_Q_SERVICE_INTERVAL) != null) {
+                serviceIntervalGauge.set(
+                    pcfMessage.getIntParameterValue(CMQC.MQIA_Q_SERVICE_INTERVAL), attributes);
+              }
             }
             if (context.getMetricsConfig().isMqServiceIntervalEventEnabled()) {
-              serviceIntervalEventGauge.set(
-                  pcfMessage.getIntParameterValue(CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT), attributes);
+              if (pcfMessage.getParameter(CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT) != null) {
+                serviceIntervalEventGauge.set(
+                    pcfMessage.getIntParameterValue(CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT),
+                    attributes);
+              }
             }
           }));
     }
