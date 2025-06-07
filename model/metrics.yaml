@@ -4,7 +4,7 @@ groups:
     metric_name: mq.message.retry.count
     stability: development
     brief: "Number of message retries"
-    instrument: gauge
+    instrument: updowncounter
     unit: "{messages}"
     attributes:
       - ref: channel.name
@@ -72,7 +72,7 @@ groups:
     metric_name: mq.byte.received
     stability: development
     brief: "Number of bytes received"
-    instrument: gauge
+    instrument: updowncounter
     unit: "{bytes}"
     attributes:
       - ref: channel.name
@@ -90,7 +90,7 @@ groups:
     metric_name: mq.byte.sent
     stability: development
     brief: "Number of bytes sent"
-    instrument: gauge
+    instrument: updowncounter
     unit: "{bytes}"
     attributes:
       - ref: channel.name
@@ -108,7 +108,7 @@ groups:
     metric_name: mq.buffers.received
     stability: development
     brief: "Buffers received"
-    instrument: gauge
+    instrument: updowncounter
     unit: "{buffers}"
     attributes:
       - ref: channel.name
@@ -127,7 +127,7 @@ groups:
     stability: development
     brief: "Buffers sent"
     unit: "{buffers}"
-    instrument: gauge
+    instrument: updowncounter
     attributes:
       - ref: channel.name
         requirement_level: required
@@ -145,7 +145,7 @@ groups:
     stability: development
     brief: "Message count"
     unit: "{messages}"
-    instrument: gauge
+    instrument: updowncounter
     attributes:
       - ref: channel.name
         requirement_level: required
@@ -213,7 +213,7 @@ groups:
         requirement_level: required
       - ref: queue.type
         requirement_level: required
-  - id: "mq.queue.depth.full.event"
+  - id: mq.queue.depth.full.event
     type: metric
     metric_name: "mq.queue.depth.full.event"
     stability: development
@@ -225,7 +225,7 @@ groups:
         requirement_level: required
       - ref: queue.name
         requirement_level: required
-  - id: "mq.queue.depth.high.event"
+  - id: mq.queue.depth.high.event
     type: metric
     metric_name: "mq.queue.depth.high.event"
     stability: development
@@ -237,7 +237,7 @@ groups:
         requirement_level: required
       - ref: queue.name
         requirement_level: required
-  - id: "mq.queue.depth.low.event"
+  - id: mq.queue.depth.low.event
     type: metric
     metric_name: "mq.queue.depth.low.event"
     stability: development
@@ -324,7 +324,7 @@ groups:
     metric_name: mq.message.deq.count
     stability: development
     brief: "Message dequeue count"
-    instrument: gauge
+    instrument: updowncounter
     unit: "{messages}"
     attributes:
       - ref: queue.manager
@@ -338,7 +338,7 @@ groups:
     metric_name: mq.message.enq.count
     stability: development
     brief: "Message enqueue count"
-    instrument: gauge
+    instrument: updowncounter
     unit: "{messages}"
     attributes:
       - ref: queue.manager
@@ -452,7 +452,7 @@ groups:
     metric_name: mq.message.received.count
     stability: development
     brief: "Number of messages received"
-    instrument: gauge
+    instrument: updowncounter
     unit: "{messages}"
     attributes:
       - ref: channel.name
@@ -466,7 +466,7 @@ groups:
     metric_name: mq.message.sent.count
     stability: development
     brief: "Number of messages sent"
-    instrument: gauge
+    instrument: updowncounter
     unit: "{messages}"
     attributes:
       - ref: channel.name

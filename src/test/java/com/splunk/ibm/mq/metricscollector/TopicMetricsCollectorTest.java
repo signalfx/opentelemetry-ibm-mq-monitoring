@@ -30,6 +30,7 @@ import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,7 +72,7 @@ public class TopicMetricsCollectorTest {
     classUnderTest.accept(context);
 
     List<String> metricsList =
-        new ArrayList<>(List.of("mq.publish.count", "mq.subscription.count"));
+        new ArrayList<>(Arrays.asList("mq.publish.count", "mq.subscription.count"));
 
     for (MetricData metric : otelTesting.getMetrics()) {
       if (metricsList.remove(metric.getName())) {

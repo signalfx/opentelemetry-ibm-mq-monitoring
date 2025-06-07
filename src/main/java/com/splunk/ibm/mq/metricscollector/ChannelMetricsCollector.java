@@ -25,12 +25,15 @@ import com.ibm.mq.headers.pcf.PCFMessage;
 import com.splunk.ibm.mq.metrics.Metrics;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.*;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,13 +45,18 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
 
   private final LongGauge activeChannelsGauge;
   private final LongGauge channelStatusGauge;
-  private final LongGauge messageCountGauge;
-  private final LongGauge byteSentGauge;
-  private final LongGauge byteReceivedGauge;
-  private final LongGauge buffersSentGauge;
-  private final LongGauge buffersReceivedGauge;
+  private final LongUpDownCounter messageCounter;
+  private final LongUpDownCounter byteSentCounter;
+  private final LongUpDownCounter byteReceivedCounter;
+  private final LongUpDownCounter buffersSentCounter;
+  private final LongUpDownCounter buffersReceivedCounter;
   private final LongGauge currentSharingConvsGauge;
   private final LongGauge maxSharingConvsGauge;
+  private final Map<Attributes, Long> messageCountCache = new ConcurrentHashMap<>();
+  private final Map<Attributes, Long> byteSentCache = new ConcurrentHashMap<>();
+  private final Map<Attributes, Long> byteReceivedCache = new ConcurrentHashMap<>();
+  private final Map<Attributes, Long> buffersSentCache = new ConcurrentHashMap<>();
+  private final Map<Attributes, Long> buffersReceivedCache = new ConcurrentHashMap<>();
 
   /*
    * The Channel Status values are mentioned here http://www.ibm.com/support/knowledgecenter/SSFKSJ_7.5.0/com.ibm.mq.ref.dev.doc/q090880_.htm
@@ -56,11 +64,11 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
   public ChannelMetricsCollector(Meter meter) {
     this.activeChannelsGauge = Metrics.createMqManagerActiveChannels(meter);
     this.channelStatusGauge = Metrics.createMqStatus(meter);
-    this.messageCountGauge = Metrics.createMqMessageCount(meter);
-    this.byteSentGauge = Metrics.createMqByteSent(meter);
-    this.byteReceivedGauge = Metrics.createMqByteReceived(meter);
-    this.buffersSentGauge = Metrics.createMqBuffersSent(meter);
-    this.buffersReceivedGauge = Metrics.createMqBuffersReceived(meter);
+    this.messageCounter = Metrics.createMqMessageCount(meter);
+    this.byteSentCounter = Metrics.createMqByteSent(meter);
+    this.byteReceivedCounter = Metrics.createMqByteReceived(meter);
+    this.buffersSentCounter = Metrics.createMqBuffersSent(meter);
+    this.buffersReceivedCounter = Metrics.createMqBuffersReceived(meter);
     this.currentSharingConvsGauge = Metrics.createMqCurrentSharingConversations(meter);
     this.maxSharingConvsGauge = Metrics.createMqMaxSharingConversations(meter);
   }
@@ -194,7 +202,10 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
             .build();
     if (context.getMetricsConfig().isMqMessageCountEnabled()) {
       int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
-      messageCountGauge.set(received, attributes);
+      Long oldValue = messageCountCache.put(attributes, (long) received);
+      if (oldValue != null) {
+        messageCounter.add(received - oldValue, attributes);
+      }
     }
     int status = message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_STATUS);
     if (context.getMetricsConfig().isMqStatusEnabled()) {
@@ -208,17 +219,32 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
       activeChannels.add(channelName);
     }
     if (context.getMetricsConfig().isMqByteSentEnabled()) {
-      byteSentGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT), attributes);
+      int sent = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_SENT);
+      Long oldValue = byteSentCache.put(attributes, (long) sent);
+      if (oldValue != null) {
+        byteSentCounter.add(sent - oldValue, attributes);
+      }
     }
     if (context.getMetricsConfig().isMqByteReceivedEnabled()) {
-      byteReceivedGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED), attributes);
+      int received = message.getIntParameterValue(CMQCFC.MQIACH_BYTES_RECEIVED);
+      Long oldValue = byteReceivedCache.put(attributes, (long) received);
+      if (oldValue != null) {
+        byteReceivedCounter.add(received - oldValue, attributes);
+      }
     }
     if (context.getMetricsConfig().isMqBuffersSentEnabled()) {
-      buffersSentGauge.set(message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT), attributes);
+      int buffersSent = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_SENT);
+      Long oldValue = buffersSentCache.put(attributes, (long) buffersSent);
+      if (oldValue != null) {
+        buffersSentCounter.add(buffersSent - oldValue, attributes);
+      }
     }
     if (context.getMetricsConfig().isMqBuffersReceivedEnabled()) {
-      buffersReceivedGauge.set(
-          message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED), attributes);
+      int buffersReceived = message.getIntParameterValue(CMQCFC.MQIACH_BUFFERS_RECEIVED);
+      Long oldValue = buffersReceivedCache.put(attributes, (long) buffersReceived);
+      if (oldValue != null) {
+        buffersReceivedCounter.add(buffersReceived - oldValue, attributes);
+      }
     }
     if (context.getMetricsConfig().isMqCurrentSharingConversationsEnabled()) {
       int currentSharingConvs = 0;
