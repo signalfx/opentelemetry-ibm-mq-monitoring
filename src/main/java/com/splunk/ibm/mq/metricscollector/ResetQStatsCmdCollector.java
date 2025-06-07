@@ -75,7 +75,9 @@ final class ResetQStatsCmdCollector implements Consumer<MetricsCollectorContext>
           request,
           queueGenericName,
           ((message, attributes) -> {
-            highQueueDepthGauge.set(message.getIntParameterValue(CMQC.MQIA_HIGH_Q_DEPTH));
+            if (context.getMetricsConfig().isMqHighQueueDepthEnabled()) {
+              highQueueDepthGauge.set(message.getIntParameterValue(CMQC.MQIA_HIGH_Q_DEPTH));
+            }
             if (context.getMetricsConfig().isMqMessageDeqCountEnabled()) {
               int value = message.getIntParameterValue(CMQC.MQIA_MSG_DEQ_COUNT);
               Long oldValue = deqValues.put(attributes, (long) value);
