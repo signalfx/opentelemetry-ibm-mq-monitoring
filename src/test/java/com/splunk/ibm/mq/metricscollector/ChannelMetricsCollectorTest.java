@@ -35,6 +35,7 @@ import io.opentelemetry.api.metrics.Meter;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.testing.junit5.OpenTelemetryExtension;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,7 +80,7 @@ class ChannelMetricsCollectorTest {
 
     List<String> metricsList =
         new ArrayList<>(
-            List.of(
+            Arrays.asList(
                 "mq.message.count",
                 "mq.status",
                 "mq.byte.sent",

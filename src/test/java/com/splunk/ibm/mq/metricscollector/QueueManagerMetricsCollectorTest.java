@@ -67,7 +67,8 @@ class QueueManagerMetricsCollectorTest {
         new QueueManagerMetricsCollector(
             otelTesting.getOpenTelemetry().getMeter("opentelemetry.io/mq"));
     classUnderTest.accept(context);
-    List<String> metricsList = new ArrayList<>(List.of("mq.manager.status"));
+    List<String> metricsList = new ArrayList<>();
+    metricsList.add("mq.manager.status");
 
     for (MetricData metric : otelTesting.getMetrics()) {
       if (metricsList.remove(metric.getName())) {
