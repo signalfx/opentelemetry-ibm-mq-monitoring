@@ -75,7 +75,7 @@ java \
    -Djavax.net.ssl.keyStorePassword=<password> \
    -Djavax.net.ssl.trustStore=key.jks \
    -Djavax.net.ssl.trustStorePassword=<password> \
-   -cp target/ibm-mq-monitoring-extension-opentelemetry.jar:lib/com.ibm.mq.allclient.jar \
+   -cp target/ibm-mq-monitoring-<version>-all.jar:lib/com.ibm.mq.allclient.jar \
    com.splunk.ibm.mq.opentelemetry.Main \
    ./my-config.yml
 ```
@@ -181,11 +181,11 @@ See [Capturing logs as metrics](docs/log_captures/README.md) for a tutorial to c
 
 6. If you are seeing "NoClassDefFoundError" or "ClassNotFound" error for any of the MQ dependency even after providing correct path in monitor.xml, then you can also try copying all the required jars in WMQMonitor (MAHome/monitors/WMQMonitor) folder and provide classpath in monitor.xml like below
    ```
-    <classpath>ibm-mq-monitoring-extension.jar;com.ibm.mq.allclient.jar</classpath>
+    <classpath>ibm-mq-monitoring-<version>-all.jar;com.ibm.mq.allclient.jar</classpath>
    ```
    OR
    ```
-    <classpath>ibm-mq-monitoring-extension.jar;com.ibm.mq.jar;com.ibm.mq.jmqi.jar;com.ibm.mq.commonservices.jar;com.ibm.mq.headers.jar;com.ibm.mq.pcf.jar;connector.jar;dhbcore.jar</classpath>
+    <classpath>ibm-mq-monitoring-<version>-all.jar;com.ibm.mq.jar;com.ibm.mq.jmqi.jar;com.ibm.mq.commonservices.jar;com.ibm.mq.headers.jar;com.ibm.mq.pcf.jar;connector.jar;dhbcore.jar</classpath>
    ```
 	
 ## Contributing
