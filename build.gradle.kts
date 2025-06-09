@@ -51,7 +51,7 @@ dependencies {
   api(libs.org.slf4j.slf4j.api)
   api(libs.org.apache.logging.log4j.log4j.api)
   api(libs.org.apache.logging.log4j.log4j.core)
-  api(libs.org.apache.logging.log4j.log4j.slf4j.impl)
+  api(libs.org.apache.logging.log4j.log4j.slf4j2.impl)
   api(libs.org.json.json)
   testImplementation(libs.org.junit.jupiter.junit.jupiter.api)
   testImplementation(libs.org.junit.jupiter.junit.jupiter.params)
