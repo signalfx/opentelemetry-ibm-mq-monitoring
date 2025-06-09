@@ -10,7 +10,6 @@ plugins {
 group = "com.splunk.ibm.mq"
 version = "0.1.0"
 description = "ibm-mq-monitoring"
-java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
   gradlePluginPortal()
@@ -90,7 +89,16 @@ tasks.test {
 }
 
 tasks {
-// This exists purely to get the extension jar into our build dir
+  java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+  }
+  compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_11.toString()
+    targetCompatibility = JavaVersion.VERSION_11.toString()
+  }
+
+  // This exists purely to get the extension jar into our build dir
   val copyIbmClientJar by registering(Jar::class) {
     archiveFileName.set("com.ibm.mq.allclient.jar")
     doFirst {
