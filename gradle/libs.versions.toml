@@ -11,9 +11,9 @@ io-opentelemetry-opentelemetry-sdk = "1.49.0"
 io-opentelemetry-opentelemetry-sdk-extension-autoconfigure = "1.49.0"
 io-opentelemetry-opentelemetry-sdk-testing = "1.50.0"
 jakarta-jms-jakarta-jms-api = "3.1.0"
-org-apache-logging-log4j-log4j-api = "2.20.0"
-org-apache-logging-log4j-log4j-core = "2.20.0"
-org-apache-logging-log4j-log4j-slf4j-impl = "2.20.0"
+org-apache-logging-log4j-log4j-api = "2.24.3"
+org-apache-logging-log4j-log4j-core = "2.24.3"
+org-apache-logging-log4j-log4j-slf4j2-impl = "2.24.3"
 org-assertj-assertj-core = "3.27.3"
 org-jetbrains-annotations = "26.0.2"
 org-json-json = "20250107"
@@ -38,7 +38,7 @@ io-opentelemetry-opentelemetry-sdk-testing = { module = "io.opentelemetry:opente
 jakarta-jms-jakarta-jms-api = { module = "jakarta.jms:jakarta.jms-api", version.ref = "jakarta-jms-jakarta-jms-api" }
 org-apache-logging-log4j-log4j-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "org-apache-logging-log4j-log4j-api" }
 org-apache-logging-log4j-log4j-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "org-apache-logging-log4j-log4j-core" }
-org-apache-logging-log4j-log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "org-apache-logging-log4j-log4j-slf4j-impl" }
+org-apache-logging-log4j-log4j-slf4j-impl = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "org-apache-logging-log4j-log4j-slf4j2-impl" }
 org-assertj-assertj-core = { module = "org.assertj:assertj-core", version.ref = "org-assertj-assertj-core" }
 org-jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "org-jetbrains-annotations" }
 org-json-json = { module = "org.json:json", version.ref = "org-json-json" }
