@@ -18,8 +18,15 @@ package com.splunk.ibm.mq.metricscollector;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.LongUpDownCounter;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +40,18 @@ final class ResetQStatsCmdCollector implements Consumer<MetricsCollectorContext>
 
   static final String COMMAND = "MQCMD_RESET_Q_STATS";
   private final QueueCollectionBuddy queueBuddy;
+  private final LongGauge highQueueDepthGauge;
+  private final LongUpDownCounter messageDeqCounter;
+  private final LongUpDownCounter messageEnqCounter;
 
-  ResetQStatsCmdCollector(QueueCollectionBuddy queueBuddy) {
+  private final Map<Attributes, Long> deqValues = new ConcurrentHashMap<Attributes, Long>();
+  private final Map<Attributes, Long> enqValues = new ConcurrentHashMap<Attributes, Long>();
+
+  ResetQStatsCmdCollector(QueueCollectionBuddy queueBuddy, Meter meter) {
     this.queueBuddy = queueBuddy;
+    this.highQueueDepthGauge = Metrics.createMqHighQueueDepth(meter);
+    this.messageDeqCounter = Metrics.createMqMessageDeqCount(meter);
+    this.messageEnqCounter = Metrics.createMqMessageEnqCount(meter);
   }
 
   @Override
@@ -55,7 +71,28 @@ final class ResetQStatsCmdCollector implements Consumer<MetricsCollectorContext>
       PCFMessage request = new PCFMessage(CMQCFC.MQCMD_RESET_Q_STATS);
       request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
       queueBuddy.processPCFRequestAndPublishQMetrics(
-          context, request, queueGenericName, ATTRIBUTES);
+          context,
+          request,
+          queueGenericName,
+          ((message, attributes) -> {
+            if (context.getMetricsConfig().isMqHighQueueDepthEnabled()) {
+              highQueueDepthGauge.set(message.getIntParameterValue(CMQC.MQIA_HIGH_Q_DEPTH));
+            }
+            if (context.getMetricsConfig().isMqMessageDeqCountEnabled()) {
+              int value = message.getIntParameterValue(CMQC.MQIA_MSG_DEQ_COUNT);
+              Long oldValue = deqValues.put(attributes, (long) value);
+              if (oldValue != null) {
+                messageDeqCounter.add(value - oldValue, attributes);
+              }
+            }
+            if (context.getMetricsConfig().isMqMessageEnqCountEnabled()) {
+              int value = message.getIntParameterValue(CMQC.MQIA_MSG_ENQ_COUNT);
+              Long oldValue = enqValues.put(attributes, (long) value);
+              if (oldValue != null) {
+                messageEnqCounter.add(value - oldValue, attributes);
+              }
+            }
+          }));
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(
