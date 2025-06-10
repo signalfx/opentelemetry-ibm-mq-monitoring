@@ -101,3 +101,26 @@ Determine the cause of the inconsistency. It could be that a channel has been
 deleted and redefined, an MCA has previously ended abnormally whilst confirming
 a message batch, or the channel is being intentionally redirected to an
 equivalent queue manager (i.e. disaster recovery).
+----- amqccita.c : 4809 -------------------------------------------------------
+04/20/2025 08:15:07 PM - Process(4106484.2973) User(mqm) Program(amqrmppa)
+                    Host(vrtdl30222) Installation(Installation2)
+                    VRMF(9.3.0.21) QMgr(SNDQMD01)
+                    Time(2025-04-21T01:15:07.707Z)
+                    CommentInsert1(DPI.ENTERPR.SVRCONN)
+                    CommentInsert2(4106484)
+                    CommentInsert3(vrtdo3089 (10.135.177.44))
+
+AMQ9999E: Channel 'DPI.ENTERPR.SVRCONN' to host 'vrtdo3089 (10.135.177.44)'
+ended abnormally.
+
+EXPLANATION:
+The channel program running under process ID 4106484 for channel
+'DPI.ENTERPR.SVRCONN' ended abnormally. The host name is 'vrtdo3089
+(10.135.177.44)'; in some cases the host name cannot be determined and so is
+shown as '????'.
+ACTION:
+Look at previous error messages for the channel program in the error logs to
+determine the cause of the failure. Note that this message can be excluded
+completely or suppressed by tuning the "ExcludeMessage" or "SuppressMessage"
+attributes under the "QMErrorLog" stanza in qm.ini. Further information can be
+found in the System Administration Guide.
