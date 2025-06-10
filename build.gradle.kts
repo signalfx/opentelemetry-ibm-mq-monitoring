@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.splunk.ibm.mq"
-version = "0.1.0"
+version = "0.2.0"
 description = "ibm-mq-monitoring"
 
 repositories {
