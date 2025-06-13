@@ -180,6 +180,18 @@ metrics:
     enabled: true
   "mq.manager.max.handles":  # Max open handles
     enabled: true
+  "mq.channel.activated.event":  # Channel activated event
+    enabled: true
+  "mq.channel.conv.error.event":  # Channel Conv Error event
+    enabled: true
+  "mq.channel.not.activated.event":  # Channel Not Activated event
+    enabled: true
+  "mq.channel.stopped.event":  # Channel Stopped event
+    enabled: true
+  "mq.channel.stopped.by.user.event":  # Channel Stopped By User event
+    enabled: true
+  "mq.channel.blocked.event":  # Channel Blocked event
+    enabled: true
 
 sslConnection:
  trustStorePath: ""

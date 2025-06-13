@@ -427,4 +427,52 @@ public class Metrics {
         .setDescription("Max open handles")
         .build();
   }
+
+  public static LongCounter createMqChannelActivatedEvent(Meter meter) {
+    return meter
+        .counterBuilder("mq.channel.activated.event")
+        .setUnit("{events}")
+        .setDescription("Channel activated event")
+        .build();
+  }
+
+  public static LongCounter createMqChannelConvErrorEvent(Meter meter) {
+    return meter
+        .counterBuilder("mq.channel.conv.error.event")
+        .setUnit("{events}")
+        .setDescription("Channel Conv Error event")
+        .build();
+  }
+
+  public static LongCounter createMqChannelNotActivatedEvent(Meter meter) {
+    return meter
+        .counterBuilder("mq.channel.not.activated.event")
+        .setUnit("{events}")
+        .setDescription("Channel Not Activated event")
+        .build();
+  }
+
+  public static LongCounter createMqChannelStoppedEvent(Meter meter) {
+    return meter
+        .counterBuilder("mq.channel.stopped.event")
+        .setUnit("{events}")
+        .setDescription("Channel Stopped event")
+        .build();
+  }
+
+  public static LongCounter createMqChannelStoppedByUserEvent(Meter meter) {
+    return meter
+        .counterBuilder("mq.channel.stopped.by.user.event")
+        .setUnit("{events}")
+        .setDescription("Channel Stopped By User event")
+        .build();
+  }
+
+  public static LongCounter createMqChannelBlockedEvent(Meter meter) {
+    return meter
+        .counterBuilder("mq.channel.blocked.event")
+        .setUnit("{events}")
+        .setDescription("Channel Blocked event")
+        .build();
+  }
 }

@@ -148,6 +148,8 @@ class WMQMonitorIntegrationTest {
 
     // create a queue and fill it up past its capacity.
     JakartaPutGet.createQueue(qManager, "smallqueue", 10);
+    // create a channel and configure it to forbid access to any IP
+    JakartaPutGet.createRestrictedChannel(qManager, "noaccesschannel");
 
     JakartaPutGet.runPutGet(qManager, "myqueue", 10, 1);
 
@@ -173,6 +175,8 @@ class WMQMonitorIntegrationTest {
     JakartaPutGet.sendMessages(qManager, "smallqueue", 8);
     Thread.sleep(1000);
     JakartaPutGet.sendMessages(qManager, "smallqueue", 5);
+    // try to connect to the forbidden channel
+    JakartaPutGet.accessChannelWithoutPermissions(qManager, "noaccesschannel");
   }
 
   @AfterEach
@@ -207,6 +211,20 @@ class WMQMonitorIntegrationTest {
     // this value is read from the performance event queue.
     assertThat(metricNames).contains("mq.queue.depth.high.event");
     assertThat(metricNames).contains("mq.queue.depth.low.event");
+    // this value is read from the channel event queue.
+    assertThat(metricNames).contains("mq.channel.blocked.event");
+    if (metrics.get("mq.channel.blocked.event") != null) {
+      Set<String> channelNames =
+          metrics.get("mq.channel.blocked.event").getLongSumData().getPoints().stream()
+              .map(pt -> pt.getAttributes().get(AttributeKey.stringKey("channel.name")))
+              .collect(Collectors.toSet());
+      assertThat(channelNames).contains("noaccesschannel");
+      Set<String> blockedReason =
+          metrics.get("mq.channel.blocked.event").getLongSumData().getPoints().stream()
+              .map(pt -> pt.getAttributes().get(AttributeKey.stringKey("blocked.reason")))
+              .collect(Collectors.toSet());
+      assertThat(blockedReason).contains("noaccess");
+    }
     // reads a value from the heartbeat gauge
     assertThat(metricNames).contains("mq.heartbeat");
     assertThat(metricNames).contains("mq.oldest.msg.age");
