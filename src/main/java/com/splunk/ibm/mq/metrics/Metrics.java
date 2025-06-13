@@ -22,7 +22,8 @@ import io.opentelemetry.api.metrics.Meter;
 // This file is generated using weaver. Do not edit manually.
 
 /** Metric definitions generated from a Weaver model. Do not edit manually. */
-public class Metrics {
+public final class Metrics {
+  private Metrics() {}
 
   public static LongGauge createMqMessageRetryCount(Meter meter) {
     return meter
