@@ -21,7 +21,7 @@ import java.util.Map;
 // This file is generated using weaver. Do not edit manually.
 
 /** Configuration of metrics as defined in config.yml. */
-public class MetricsConfig {
+public final class MetricsConfig {
 
   private final Map<String, ?> config;
 
@@ -30,541 +30,193 @@ public class MetricsConfig {
   }
 
   public boolean isMqMessageRetryCountEnabled() {
-    Object metricInfo = config.get("mq.message.retry.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.message.retry.count");
   }
 
   public boolean isMqStatusEnabled() {
-    Object metricInfo = config.get("mq.status");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.status");
   }
 
   public boolean isMqMaxSharingConversationsEnabled() {
-    Object metricInfo = config.get("mq.max.sharing.conversations");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.max.sharing.conversations");
   }
 
   public boolean isMqCurrentSharingConversationsEnabled() {
-    Object metricInfo = config.get("mq.current.sharing.conversations");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.current.sharing.conversations");
   }
 
   public boolean isMqByteReceivedEnabled() {
-    Object metricInfo = config.get("mq.byte.received");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.byte.received");
   }
 
   public boolean isMqByteSentEnabled() {
-    Object metricInfo = config.get("mq.byte.sent");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.byte.sent");
   }
 
   public boolean isMqBuffersReceivedEnabled() {
-    Object metricInfo = config.get("mq.buffers.received");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.buffers.received");
   }
 
   public boolean isMqBuffersSentEnabled() {
-    Object metricInfo = config.get("mq.buffers.sent");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.buffers.sent");
   }
 
   public boolean isMqMessageCountEnabled() {
-    Object metricInfo = config.get("mq.message.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.message.count");
   }
 
   public boolean isMqOpenInputCountEnabled() {
-    Object metricInfo = config.get("mq.open.input.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.open.input.count");
   }
 
   public boolean isMqOpenOutputCountEnabled() {
-    Object metricInfo = config.get("mq.open.output.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.open.output.count");
   }
 
   public boolean isMqHighQueueDepthEnabled() {
-    Object metricInfo = config.get("mq.high.queue.depth");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.high.queue.depth");
   }
 
   public boolean isMqServiceIntervalEnabled() {
-    Object metricInfo = config.get("mq.service.interval");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.service.interval");
   }
 
   public boolean isMqQueueDepthFullEventEnabled() {
-    Object metricInfo = config.get("mq.queue.depth.full.event");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.queue.depth.full.event");
   }
 
   public boolean isMqQueueDepthHighEventEnabled() {
-    Object metricInfo = config.get("mq.queue.depth.high.event");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.queue.depth.high.event");
   }
 
   public boolean isMqQueueDepthLowEventEnabled() {
-    Object metricInfo = config.get("mq.queue.depth.low.event");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.queue.depth.low.event");
   }
 
   public boolean isMqUncommittedMessagesEnabled() {
-    Object metricInfo = config.get("mq.uncommitted.messages");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.uncommitted.messages");
   }
 
   public boolean isMqOldestMsgAgeEnabled() {
-    Object metricInfo = config.get("mq.oldest.msg.age");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.oldest.msg.age");
   }
 
   public boolean isMqCurrentMaxQueueFilesizeEnabled() {
-    Object metricInfo = config.get("mq.current.max.queue.filesize");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.current.max.queue.filesize");
   }
 
   public boolean isMqCurrentQueueFilesizeEnabled() {
-    Object metricInfo = config.get("mq.current.queue.filesize");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.current.queue.filesize");
   }
 
   public boolean isMqInstancesPerClientEnabled() {
-    Object metricInfo = config.get("mq.instances.per.client");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.instances.per.client");
   }
 
   public boolean isMqMessageDeqCountEnabled() {
-    Object metricInfo = config.get("mq.message.deq.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.message.deq.count");
   }
 
   public boolean isMqMessageEnqCountEnabled() {
-    Object metricInfo = config.get("mq.message.enq.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.message.enq.count");
   }
 
   public boolean isMqQueueDepthEnabled() {
-    Object metricInfo = config.get("mq.queue.depth");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.queue.depth");
   }
 
   public boolean isMqServiceIntervalEventEnabled() {
-    Object metricInfo = config.get("mq.service.interval.event");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.service.interval.event");
   }
 
   public boolean isMqReusableLogSizeEnabled() {
-    Object metricInfo = config.get("mq.reusable.log.size");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.reusable.log.size");
   }
 
   public boolean isMqManagerActiveChannelsEnabled() {
-    Object metricInfo = config.get("mq.manager.active.channels");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.manager.active.channels");
   }
 
   public boolean isMqRestartLogSizeEnabled() {
-    Object metricInfo = config.get("mq.restart.log.size");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.restart.log.size");
   }
 
   public boolean isMqMaxQueueDepthEnabled() {
-    Object metricInfo = config.get("mq.max.queue.depth");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.max.queue.depth");
   }
 
   public boolean isMqOnqtime1Enabled() {
-    Object metricInfo = config.get("mq.onqtime.1");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.onqtime.1");
   }
 
   public boolean isMqOnqtime2Enabled() {
-    Object metricInfo = config.get("mq.onqtime.2");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.onqtime.2");
   }
 
   public boolean isMqMessageReceivedCountEnabled() {
-    Object metricInfo = config.get("mq.message.received.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.message.received.count");
   }
 
   public boolean isMqMessageSentCountEnabled() {
-    Object metricInfo = config.get("mq.message.sent.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.message.sent.count");
   }
 
   public boolean isMqMaxInstancesEnabled() {
-    Object metricInfo = config.get("mq.max.instances");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.max.instances");
   }
 
   public boolean isMqConnectionCountEnabled() {
-    Object metricInfo = config.get("mq.connection.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.connection.count");
   }
 
   public boolean isMqManagerStatusEnabled() {
-    Object metricInfo = config.get("mq.manager.status");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.manager.status");
   }
 
   public boolean isMqHeartbeatEnabled() {
-    Object metricInfo = config.get("mq.heartbeat");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.heartbeat");
   }
 
   public boolean isMqArchiveLogSizeEnabled() {
-    Object metricInfo = config.get("mq.archive.log.size");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.archive.log.size");
   }
 
   public boolean isMqManagerMaxActiveChannelsEnabled() {
-    Object metricInfo = config.get("mq.manager.max.active.channels");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.manager.max.active.channels");
   }
 
   public boolean isMqManagerStatisticsIntervalEnabled() {
-    Object metricInfo = config.get("mq.manager.statistics.interval");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.manager.statistics.interval");
   }
 
   public boolean isMqPublishCountEnabled() {
-    Object metricInfo = config.get("mq.publish.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.publish.count");
   }
 
   public boolean isMqSubscriptionCountEnabled() {
-    Object metricInfo = config.get("mq.subscription.count");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.subscription.count");
   }
 
   public boolean isMqListenerStatusEnabled() {
-    Object metricInfo = config.get("mq.listener.status");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.listener.status");
   }
 
   public boolean isMqUnauthorizedEventEnabled() {
-    Object metricInfo = config.get("mq.unauthorized.event");
-    if (!(metricInfo instanceof Map)) {
-      return false;
-    }
-    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
-    if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
-    }
-    return false;
+    return isEnabled("mq.unauthorized.event");
   }
 
   public boolean isMqManagerMaxHandlesEnabled() {
-    Object metricInfo = config.get("mq.manager.max.handles");
+    return isEnabled("mq.manager.max.handles");
+  }
+
+  private boolean isEnabled(String key) {
+    Object metricInfo = config.get(key);
     if (!(metricInfo instanceof Map)) {
       return false;
     }
     Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
     if (enabled instanceof Boolean) {
-      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
+      return (Boolean) enabled;
     }
     return false;
   }
