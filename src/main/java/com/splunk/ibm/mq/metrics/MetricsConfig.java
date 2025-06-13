@@ -568,4 +568,76 @@ public class MetricsConfig {
     }
     return false;
   }
+
+  public boolean isMqChannelActivatedEventEnabled() {
+    Object metricInfo = config.get("mq.channel.activated.event");
+    if (!(metricInfo instanceof Map)) {
+      return false;
+    }
+    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
+    if (enabled instanceof Boolean) {
+      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
+    }
+    return false;
+  }
+
+  public boolean isMqChannelConvErrorEventEnabled() {
+    Object metricInfo = config.get("mq.channel.conv.error.event");
+    if (!(metricInfo instanceof Map)) {
+      return false;
+    }
+    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
+    if (enabled instanceof Boolean) {
+      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
+    }
+    return false;
+  }
+
+  public boolean isMqChannelNotActivatedEventEnabled() {
+    Object metricInfo = config.get("mq.channel.not.activated.event");
+    if (!(metricInfo instanceof Map)) {
+      return false;
+    }
+    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
+    if (enabled instanceof Boolean) {
+      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
+    }
+    return false;
+  }
+
+  public boolean isMqChannelStoppedEventEnabled() {
+    Object metricInfo = config.get("mq.channel.stopped.event");
+    if (!(metricInfo instanceof Map)) {
+      return false;
+    }
+    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
+    if (enabled instanceof Boolean) {
+      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
+    }
+    return false;
+  }
+
+  public boolean isMqChannelStoppedByUserEventEnabled() {
+    Object metricInfo = config.get("mq.channel.stopped.by.user.event");
+    if (!(metricInfo instanceof Map)) {
+      return false;
+    }
+    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
+    if (enabled instanceof Boolean) {
+      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
+    }
+    return false;
+  }
+
+  public boolean isMqChannelBlockedEventEnabled() {
+    Object metricInfo = config.get("mq.channel.blocked.event");
+    if (!(metricInfo instanceof Map)) {
+      return false;
+    }
+    Object enabled = ((Map<?, ?>) metricInfo).get("enabled");
+    if (enabled instanceof Boolean) {
+      return (Boolean) ((Map<?, ?>) metricInfo).get("enabled");
+    }
+    return false;
+  }
 }

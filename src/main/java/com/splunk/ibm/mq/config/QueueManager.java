@@ -38,6 +38,7 @@ public class QueueManager {
   private String configurationQueueName = "SYSTEM.ADMIN.CONFIG.EVENT";
   private String performanceEventsQueueName = "SYSTEM.ADMIN.PERFM.EVENT";
   private String queueManagerEventsQueueName = "SYSTEM.ADMIN.QMGR.EVENT";
+  private String channelEventsQueueName = "SYSTEM.ADMIN.CHANNEL.EVENT";
   private long consumeConfigurationEventInterval;
   private boolean refreshQueueManagerConfigurationEnabled;
   // Config default is 100.
@@ -254,5 +255,13 @@ public class QueueManager {
 
   public void setMaxActiveChannels(int maxActiveChannels) {
     this.maxActiveChannels = maxActiveChannels;
+  }
+
+  public String getChannelEventsQueueName() {
+    return this.channelEventsQueueName;
+  }
+
+  public void setChannelEventsQueueName(String channelEventsQueueName) {
+    this.channelEventsQueueName = channelEventsQueueName;
   }
 }

@@ -76,6 +76,7 @@ public class WMQMonitor {
     jobs.add(new TopicMetricsCollector(meter));
     jobs.add(new ReadConfigurationEventQueueCollector(meter));
     jobs.add(new PerformanceEventQueueCollector(meter));
+    jobs.add(new ChannelEventQueueCollector(meter));
     jobs.add(new QueueManagerEventCollector(meter));
   }
 
