@@ -21,20 +21,7 @@ import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.MQDataException;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
-import com.splunk.ibm.mq.metricscollector.ChannelMetricsCollector;
-import com.splunk.ibm.mq.metricscollector.InquireChannelCmdCollector;
-import com.splunk.ibm.mq.metricscollector.InquireQueueManagerCmdCollector;
-import com.splunk.ibm.mq.metricscollector.JobSubmitterContext;
-import com.splunk.ibm.mq.metricscollector.ListenerMetricsCollector;
-import com.splunk.ibm.mq.metricscollector.MetricsCollectorContext;
-import com.splunk.ibm.mq.metricscollector.MetricsPublisherJob;
-import com.splunk.ibm.mq.metricscollector.PerformanceEventQueueCollector;
-import com.splunk.ibm.mq.metricscollector.QueueCollectorSharedState;
-import com.splunk.ibm.mq.metricscollector.QueueManagerEventCollector;
-import com.splunk.ibm.mq.metricscollector.QueueManagerMetricsCollector;
-import com.splunk.ibm.mq.metricscollector.QueueMetricsCollector;
-import com.splunk.ibm.mq.metricscollector.ReadConfigurationEventQueueCollector;
-import com.splunk.ibm.mq.metricscollector.TopicMetricsCollector;
+import com.splunk.ibm.mq.metricscollector.*;
 import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.opentelemetry.Writer;
 import io.opentelemetry.api.common.AttributeKey;
@@ -177,6 +164,7 @@ public class WMQMonitorTask implements Runnable {
     inquirePerformanceMetrics(mqQueueManager);
 
     inquireQueueManagerEventsMetrics(mqQueueManager);
+    inquireChannelEventsMetrics(mqQueueManager);
 
     // Step 3: enqueue all jobs
     CountDownLatch countDownLatch = new CountDownLatch(pendingJobs.size());
@@ -270,6 +258,12 @@ public class WMQMonitorTask implements Runnable {
 
     QueueManagerEventCollector collector =
         new QueueManagerEventCollector(mqQueueManager, queueManager, metricWriteHelper);
+    pendingJobs.add(collector);
+  }
+
+  private void inquireChannelEventsMetrics(MQQueueManager mqQueueManager) {
+    ChannelEventQueueCollector collector =
+        new ChannelEventQueueCollector(mqQueueManager, queueManager, metricWriteHelper);
     pendingJobs.add(collector);
   }
 

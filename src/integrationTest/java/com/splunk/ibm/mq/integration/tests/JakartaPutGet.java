@@ -17,11 +17,12 @@ package com.splunk.ibm.mq.integration.tests;
 
 import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
+import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.constants.CMQXC;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
-import com.ibm.mq.pcf.CMQC;
 import com.ibm.msg.client.jakarta.jms.JmsConnectionFactory;
 import com.ibm.msg.client.jakarta.jms.JmsFactoryFactory;
 import com.ibm.msg.client.jakarta.wmq.WMQConstants;
@@ -75,6 +76,40 @@ public class JakartaPutGet {
     request.addParameter(CMQC.MQIA_Q_DEPTH_HIGH_EVENT, CMQCFC.MQEVR_ENABLED);
     request.addParameter(CMQC.MQIA_Q_DEPTH_LOW_EVENT, CMQCFC.MQEVR_ENABLED);
     request.addParameter(CMQC.MQIA_Q_DEPTH_MAX_EVENT, CMQCFC.MQEVR_ENABLED);
+    try {
+      agent.send(request);
+    } catch (PCFException e) {
+      if (e.reasonCode == CMQCFC.MQRCCF_OBJECT_ALREADY_EXISTS) {
+        return;
+      }
+      throw new RuntimeException(e);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static void createRestrictedChannel(QueueManager manager, String channelName) {
+    MQQueueManager ibmQueueManager = WMQMonitorTask.connectToQueueManager(manager);
+    PCFMessageAgent agent = WMQMonitorTask.initPCFMessageAgent(manager, ibmQueueManager);
+    PCFMessage request = new PCFMessage(CMQCFC.MQCMD_CREATE_CHANNEL);
+    request.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, channelName);
+    request.addParameter(CMQCFC.MQIACH_CHANNEL_TYPE, CMQXC.MQCHT_SVRCONN);
+    try {
+      agent.send(request);
+    } catch (PCFException e) {
+      if (e.reasonCode == CMQCFC.MQRCCF_OBJECT_ALREADY_EXISTS) {
+        return;
+      }
+      throw new RuntimeException(e);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+
+    request = new PCFMessage(CMQCFC.MQCMD_SET_CHLAUTH_REC);
+    request.addParameter(CMQCFC.MQIACF_ACTION, CMQCFC.MQACT_ADD);
+    request.addParameter(CMQCFC.MQCACH_CHANNEL_NAME, channelName);
+    request.addParameter(CMQCFC.MQIACF_CHLAUTH_TYPE, CMQCFC.MQCAUT_BLOCKADDR);
+    request.addParameter(CMQCFC.MQCACH_CONNECTION_NAME_LIST, "*");
     try {
       agent.send(request);
     } catch (PCFException e) {
@@ -292,6 +327,46 @@ public class JakartaPutGet {
       if (e.getCause() instanceof MQException) {
         MQException mqe = (MQException) e.getCause();
         if (mqe.getReason() == 2035) { // bad password
+          return;
+        }
+      }
+      throw new RuntimeException(e);
+    } finally {
+      if (context != null) {
+        context.close();
+      }
+    }
+  }
+
+  public static void accessChannelWithoutPermissions(QueueManager manager, String channelName) {
+
+    JMSContext context = null;
+    try {
+      // Create a connection factory
+      JmsFactoryFactory ff = JmsFactoryFactory.getInstance(WMQConstants.JAKARTA_WMQ_PROVIDER);
+      JmsConnectionFactory cf = ff.createConnectionFactory();
+
+      // Set the properties
+      cf.setStringProperty(WMQConstants.WMQ_HOST_NAME, manager.getHost());
+      cf.setIntProperty(WMQConstants.WMQ_PORT, manager.getPort());
+      cf.setStringProperty(WMQConstants.WMQ_CHANNEL, channelName);
+      cf.setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT);
+      cf.setStringProperty(WMQConstants.WMQ_QUEUE_MANAGER, manager.getName());
+      cf.setStringProperty(WMQConstants.WMQ_APPLICATIONNAME, "No access");
+      cf.setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, true);
+      cf.setStringProperty(WMQConstants.USERID, manager.getUsername());
+      cf.setStringProperty(WMQConstants.PASSWORD, manager.getPassword());
+      // cf.setStringProperty(WMQConstants.WMQ_SSL_CIPHER_SUITE, "*TLS12ORHIGHER");
+      // cf.setIntProperty(MQConstants.CERTIFICATE_VALIDATION_POLICY,
+      // MQConstants.MQ_CERT_VAL_POLICY_NONE);
+
+      context = cf.createContext();
+    } catch (JMSException e) {
+      throw new RuntimeException(e);
+    } catch (JMSRuntimeException e) {
+      if (e.getCause() instanceof MQException) {
+        MQException mqe = (MQException) e.getCause();
+        if (mqe.getReason() == 2035) { // no access
           return;
         }
       }
