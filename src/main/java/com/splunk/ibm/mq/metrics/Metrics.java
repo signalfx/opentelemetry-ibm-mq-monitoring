@@ -15,9 +15,7 @@
  */
 package com.splunk.ibm.mq.metrics;
 
-import io.opentelemetry.api.metrics.LongCounter;
-import io.opentelemetry.api.metrics.LongGauge;
-import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.*;
 
 // This file is generated using weaver. Do not edit manually.
 
@@ -25,10 +23,9 @@ import io.opentelemetry.api.metrics.Meter;
 public final class Metrics {
   private Metrics() {}
 
-  public static LongGauge createMqMessageRetryCount(Meter meter) {
+  public static LongUpDownCounter createMqMessageRetryCount(Meter meter) {
     return meter
-        .gaugeBuilder("mq.message.retry.count")
-        .ofLongs()
+        .upDownCounterBuilder("mq.message.retry.count")
         .setUnit("{messages}")
         .setDescription("Number of message retries")
         .build();
@@ -61,46 +58,41 @@ public final class Metrics {
         .build();
   }
 
-  public static LongGauge createMqByteReceived(Meter meter) {
+  public static LongUpDownCounter createMqByteReceived(Meter meter) {
     return meter
-        .gaugeBuilder("mq.byte.received")
-        .ofLongs()
+        .upDownCounterBuilder("mq.byte.received")
         .setUnit("{bytes}")
         .setDescription("Number of bytes received")
         .build();
   }
 
-  public static LongGauge createMqByteSent(Meter meter) {
+  public static LongUpDownCounter createMqByteSent(Meter meter) {
     return meter
-        .gaugeBuilder("mq.byte.sent")
-        .ofLongs()
+        .upDownCounterBuilder("mq.byte.sent")
         .setUnit("{bytes}")
         .setDescription("Number of bytes sent")
         .build();
   }
 
-  public static LongGauge createMqBuffersReceived(Meter meter) {
+  public static LongUpDownCounter createMqBuffersReceived(Meter meter) {
     return meter
-        .gaugeBuilder("mq.buffers.received")
-        .ofLongs()
+        .upDownCounterBuilder("mq.buffers.received")
         .setUnit("{buffers}")
         .setDescription("Buffers received")
         .build();
   }
 
-  public static LongGauge createMqBuffersSent(Meter meter) {
+  public static LongUpDownCounter createMqBuffersSent(Meter meter) {
     return meter
-        .gaugeBuilder("mq.buffers.sent")
-        .ofLongs()
+        .upDownCounterBuilder("mq.buffers.sent")
         .setUnit("{buffers}")
         .setDescription("Buffers sent")
         .build();
   }
 
-  public static LongGauge createMqMessageCount(Meter meter) {
+  public static LongUpDownCounter createMqMessageCount(Meter meter) {
     return meter
-        .gaugeBuilder("mq.message.count")
-        .ofLongs()
+        .upDownCounterBuilder("mq.message.count")
         .setUnit("{messages}")
         .setDescription("Message count")
         .build();
@@ -211,19 +203,17 @@ public final class Metrics {
         .build();
   }
 
-  public static LongGauge createMqMessageDeqCount(Meter meter) {
+  public static LongUpDownCounter createMqMessageDeqCount(Meter meter) {
     return meter
-        .gaugeBuilder("mq.message.deq.count")
-        .ofLongs()
+        .upDownCounterBuilder("mq.message.deq.count")
         .setUnit("{messages}")
         .setDescription("Message dequeue count")
         .build();
   }
 
-  public static LongGauge createMqMessageEnqCount(Meter meter) {
+  public static LongUpDownCounter createMqMessageEnqCount(Meter meter) {
     return meter
-        .gaugeBuilder("mq.message.enq.count")
-        .ofLongs()
+        .upDownCounterBuilder("mq.message.enq.count")
         .setUnit("{messages}")
         .setDescription("Message enqueue count")
         .build();
@@ -304,19 +294,17 @@ public final class Metrics {
         .build();
   }
 
-  public static LongGauge createMqMessageReceivedCount(Meter meter) {
+  public static LongUpDownCounter createMqMessageReceivedCount(Meter meter) {
     return meter
-        .gaugeBuilder("mq.message.received.count")
-        .ofLongs()
+        .upDownCounterBuilder("mq.message.received.count")
         .setUnit("{messages}")
         .setDescription("Number of messages received")
         .build();
   }
 
-  public static LongGauge createMqMessageSentCount(Meter meter) {
+  public static LongUpDownCounter createMqMessageSentCount(Meter meter) {
     return meter
-        .gaugeBuilder("mq.message.sent.count")
-        .ofLongs()
+        .upDownCounterBuilder("mq.message.sent.count")
         .setUnit("{messages}")
         .setDescription("Number of messages sent")
         .build();

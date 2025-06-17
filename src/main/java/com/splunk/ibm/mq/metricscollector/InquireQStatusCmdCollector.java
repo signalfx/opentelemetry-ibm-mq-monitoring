@@ -17,7 +17,11 @@ package com.splunk.ibm.mq.metricscollector;
 
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
+import com.ibm.mq.headers.pcf.PCFConstants;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
+import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.Set;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -50,15 +54,28 @@ final class InquireQStatusCmdCollector implements Consumer<MetricsCollectorConte
         CMQCFC.MQIACF_OLDEST_MSG_AGE,
         CMQCFC.MQIACF_UNCOMMITTED_MSGS,
         CMQCFC.MQIACF_Q_TIME_INDICATOR,
-        CMQC.MQIA_CURRENT_Q_DEPTH,
       };
 
   private static final Logger logger = LoggerFactory.getLogger(InquireQStatusCmdCollector.class);
 
   private final QueueCollectionBuddy queueBuddy;
+  private final LongGauge currentQueueFilesizeGauge;
+  private final LongGauge currentMaxFilesizeGauge;
+  private final LongGauge oldestMessageAgeGauge;
+  private final LongGauge uncommittedMessagesGauge;
+  private final LongGauge onqtime1Gauge;
+  private final LongGauge onqtime2Gauge;
+  private final LongGauge currentQueueDepthGauge;
 
-  InquireQStatusCmdCollector(QueueCollectionBuddy queueBuddy) {
+  InquireQStatusCmdCollector(QueueCollectionBuddy queueBuddy, Meter meter) {
     this.queueBuddy = queueBuddy;
+    this.currentQueueDepthGauge = Metrics.createMqQueueDepth(meter);
+    this.currentQueueFilesizeGauge = Metrics.createMqCurrentQueueFilesize(meter);
+    this.currentMaxFilesizeGauge = Metrics.createMqCurrentMaxQueueFilesize(meter);
+    this.oldestMessageAgeGauge = Metrics.createMqOldestMsgAge(meter);
+    this.uncommittedMessagesGauge = Metrics.createMqUncommittedMessages(meter);
+    this.onqtime1Gauge = Metrics.createMqOnqtime1(meter);
+    this.onqtime2Gauge = Metrics.createMqOnqtime2(meter);
   }
 
   @Override
@@ -74,7 +91,38 @@ final class InquireQStatusCmdCollector implements Consumer<MetricsCollectorConte
       request.addParameter(CMQC.MQCA_Q_NAME, queueGenericName);
       request.addParameter(CMQCFC.MQIACF_Q_STATUS_ATTRS, ATTRIBUTES);
       queueBuddy.processPCFRequestAndPublishQMetrics(
-          context, request, queueGenericName, ATTRIBUTES);
+          context,
+          request,
+          queueGenericName,
+          ((message, attributes) -> {
+            if (context.getMetricsConfig().isMqQueueDepthEnabled()) {
+              currentQueueDepthGauge.set(
+                  message.getIntParameterValue(CMQC.MQIA_CURRENT_Q_DEPTH), attributes);
+            }
+            if (context.getMetricsConfig().isMqCurrentQueueFilesizeEnabled()) {
+              this.currentQueueFilesizeGauge.set(
+                  message.getIntParameterValue(CMQCFC.MQIACF_CUR_Q_FILE_SIZE), attributes);
+            }
+            if (context.getMetricsConfig().isMqCurrentMaxQueueFilesizeEnabled()) {
+              this.currentMaxFilesizeGauge.set(
+                  message.getIntParameterValue(CMQCFC.MQIACF_CUR_MAX_FILE_SIZE), attributes);
+            }
+            if (context.getMetricsConfig().isMqOldestMsgAgeEnabled()) {
+              this.oldestMessageAgeGauge.set(
+                  message.getIntParameterValue(CMQCFC.MQIACF_OLDEST_MSG_AGE), attributes);
+            }
+            if (context.getMetricsConfig().isMqUncommittedMessagesEnabled()) {
+              this.uncommittedMessagesGauge.set(
+                  message.getIntParameterValue(CMQCFC.MQIACF_UNCOMMITTED_MSGS), attributes);
+            }
+            int[] onqtime = message.getIntListParameterValue(PCFConstants.MQIACF_Q_TIME_INDICATOR);
+            if (context.getMetricsConfig().isMqOnqtime1Enabled()) {
+              this.onqtime1Gauge.set(onqtime[0], attributes);
+            }
+            if (context.getMetricsConfig().isMqOnqtime2Enabled()) {
+              this.onqtime2Gauge.set(onqtime[1], attributes);
+            }
+          }));
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(

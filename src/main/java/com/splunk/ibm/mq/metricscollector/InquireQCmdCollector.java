@@ -18,6 +18,9 @@ package com.splunk.ibm.mq.metricscollector;
 import com.ibm.mq.constants.CMQC;
 import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.pcf.PCFMessage;
+import com.splunk.ibm.mq.metrics.Metrics;
+import io.opentelemetry.api.metrics.LongGauge;
+import io.opentelemetry.api.metrics.Meter;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -33,7 +36,6 @@ final class InquireQCmdCollector implements Consumer<MetricsCollectorContext> {
         CMQC.MQCA_Q_NAME,
         CMQC.MQIA_USAGE,
         CMQC.MQIA_Q_TYPE,
-        CMQC.MQIA_CURRENT_Q_DEPTH,
         CMQC.MQIA_MAX_Q_DEPTH,
         CMQC.MQIA_OPEN_INPUT_COUNT,
         CMQC.MQIA_OPEN_OUTPUT_COUNT,
@@ -43,9 +45,19 @@ final class InquireQCmdCollector implements Consumer<MetricsCollectorContext> {
 
   static final String COMMAND = "MQCMD_INQUIRE_Q";
   private final QueueCollectionBuddy queueBuddy;
+  private final LongGauge maxQueueDepthGauge;
+  private final LongGauge openInputCountGauge;
+  private final LongGauge openOutputCountGauge;
+  private final LongGauge serviceIntervalGauge;
+  private final LongGauge serviceIntervalEventGauge;
 
-  public InquireQCmdCollector(QueueCollectionBuddy queueBuddy) {
+  public InquireQCmdCollector(QueueCollectionBuddy queueBuddy, Meter meter) {
     this.queueBuddy = queueBuddy;
+    this.maxQueueDepthGauge = Metrics.createMqMaxQueueDepth(meter);
+    this.openInputCountGauge = Metrics.createMqOpenInputCount(meter);
+    this.openOutputCountGauge = Metrics.createMqOpenOutputCount(meter);
+    this.serviceIntervalGauge = Metrics.createMqServiceInterval(meter);
+    this.serviceIntervalEventGauge = Metrics.createMqServiceIntervalEvent(meter);
   }
 
   @Override
@@ -68,7 +80,40 @@ final class InquireQCmdCollector implements Consumer<MetricsCollectorContext> {
       request.addParameter(CMQCFC.MQIACF_Q_ATTRS, ATTRIBUTES);
 
       queueBuddy.processPCFRequestAndPublishQMetrics(
-          context, request, queueGenericName, ATTRIBUTES);
+          context,
+          request,
+          queueGenericName,
+          ((pcfMessage, attributes) -> {
+            if (context.getMetricsConfig().isMqMaxQueueDepthEnabled()) {
+              maxQueueDepthGauge.set(
+                  pcfMessage.getIntParameterValue(CMQC.MQIA_MAX_Q_DEPTH), attributes);
+            }
+            if (context.getMetricsConfig().isMqOpenInputCountEnabled()) {
+              if (pcfMessage.getParameter(CMQC.MQIA_OPEN_INPUT_COUNT) != null) {
+                openInputCountGauge.set(
+                    pcfMessage.getIntParameterValue(CMQC.MQIA_OPEN_INPUT_COUNT), attributes);
+              }
+            }
+            if (context.getMetricsConfig().isMqOpenOutputCountEnabled()) {
+              if (pcfMessage.getParameter(CMQC.MQIA_OPEN_OUTPUT_COUNT) != null) {
+                openOutputCountGauge.set(
+                    pcfMessage.getIntParameterValue(CMQC.MQIA_OPEN_OUTPUT_COUNT), attributes);
+              }
+            }
+            if (context.getMetricsConfig().isMqServiceIntervalEnabled()) {
+              if (pcfMessage.getParameter(CMQC.MQIA_Q_SERVICE_INTERVAL) != null) {
+                serviceIntervalGauge.set(
+                    pcfMessage.getIntParameterValue(CMQC.MQIA_Q_SERVICE_INTERVAL), attributes);
+              }
+            }
+            if (context.getMetricsConfig().isMqServiceIntervalEventEnabled()) {
+              if (pcfMessage.getParameter(CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT) != null) {
+                serviceIntervalEventGauge.set(
+                    pcfMessage.getIntParameterValue(CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT),
+                    attributes);
+              }
+            }
+          }));
     }
     long exitTime = System.currentTimeMillis() - entryTime;
     logger.debug(

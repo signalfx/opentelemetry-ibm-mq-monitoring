@@ -18,26 +18,22 @@ package com.splunk.ibm.mq.metricscollector;
 import static com.ibm.mq.constants.CMQC.*;
 
 import com.ibm.mq.constants.CMQC;
-import com.ibm.mq.constants.CMQCFC;
 import com.ibm.mq.headers.MQDataException;
-import com.ibm.mq.headers.pcf.MQCFIL;
-import com.ibm.mq.headers.pcf.MQCFIN;
 import com.ibm.mq.headers.pcf.PCFException;
 import com.ibm.mq.headers.pcf.PCFMessage;
-import com.ibm.mq.headers.pcf.PCFParameter;
-import com.splunk.ibm.mq.metrics.Metrics;
-import com.splunk.ibm.mq.metrics.MetricsConfig;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.metrics.LongGauge;
-import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.*;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+@FunctionalInterface
+interface MetricCallback {
+
+  void accept(PCFMessage message, Attributes attributes) throws PCFException;
+}
 
 /**
  * A collaborator buddy of the queue collectors that helps them to send a message, process the
@@ -45,103 +41,24 @@ import org.slf4j.LoggerFactory;
  */
 final class QueueCollectionBuddy {
   private static final Logger logger = LoggerFactory.getLogger(QueueCollectionBuddy.class);
-  private Map<Integer, AllowedGauge> gauges;
 
   private final QueueCollectorSharedState sharedState;
-  private final LongGauge onqtimeShort;
-  private final LongGauge onqtimeLong;
 
-  @FunctionalInterface
-  private interface AllowedGauge {
-
-    void set(MetricsCollectorContext context, Integer value, Attributes attributes);
-  }
-
-  private AllowedGauge createAllowedGauge(
-      LongGauge gauge, Function<MetricsConfig, Boolean> allowed) {
-    return (context, val, attributes) -> {
-      if (allowed.apply(context.getMetricsConfig())) {
-        gauge.set(val, attributes);
-      }
-    };
-  }
-
-  QueueCollectionBuddy(Meter meter, QueueCollectorSharedState sharedState) {
+  QueueCollectionBuddy(QueueCollectorSharedState sharedState) {
     this.sharedState = sharedState;
-    this.gauges = new HashMap<>();
-    gauges.put(
-        CMQC.MQIA_CURRENT_Q_DEPTH,
-        createAllowedGauge(
-            Metrics.createMqQueueDepth(meter), MetricsConfig::isMqQueueDepthEnabled));
-    gauges.put(
-        CMQC.MQIA_MAX_Q_DEPTH,
-        createAllowedGauge(
-            Metrics.createMqMaxQueueDepth(meter), MetricsConfig::isMqMaxQueueDepthEnabled));
-    gauges.put(
-        CMQC.MQIA_OPEN_INPUT_COUNT,
-        createAllowedGauge(
-            Metrics.createMqOpenInputCount(meter), MetricsConfig::isMqOpenInputCountEnabled));
-    gauges.put(
-        CMQC.MQIA_OPEN_OUTPUT_COUNT,
-        createAllowedGauge(
-            Metrics.createMqOpenOutputCount(meter), MetricsConfig::isMqOpenOutputCountEnabled));
-    gauges.put(
-        CMQC.MQIA_Q_SERVICE_INTERVAL,
-        createAllowedGauge(
-            Metrics.createMqServiceInterval(meter), MetricsConfig::isMqServiceIntervalEnabled));
-    gauges.put(
-        CMQC.MQIA_Q_SERVICE_INTERVAL_EVENT,
-        createAllowedGauge(
-            Metrics.createMqServiceIntervalEvent(meter),
-            MetricsConfig::isMqServiceIntervalEventEnabled));
-    gauges.put(
-        CMQCFC.MQIACF_OLDEST_MSG_AGE,
-        createAllowedGauge(
-            Metrics.createMqOldestMsgAge(meter), MetricsConfig::isMqOldestMsgAgeEnabled));
-    gauges.put(
-        CMQCFC.MQIACF_UNCOMMITTED_MSGS,
-        createAllowedGauge(
-            Metrics.createMqUncommittedMessages(meter),
-            MetricsConfig::isMqUncommittedMessagesEnabled));
-    gauges.put(
-        CMQC.MQIA_MSG_DEQ_COUNT,
-        createAllowedGauge(
-            Metrics.createMqMessageDeqCount(meter), MetricsConfig::isMqMessageDeqCountEnabled));
-    gauges.put(
-        CMQC.MQIA_MSG_ENQ_COUNT,
-        createAllowedGauge(
-            Metrics.createMqMessageEnqCount(meter), MetricsConfig::isMqMessageEnqCountEnabled));
-    gauges.put(
-        CMQC.MQIA_HIGH_Q_DEPTH,
-        createAllowedGauge(
-            Metrics.createMqHighQueueDepth(meter), MetricsConfig::isMqHighQueueDepthEnabled));
-    gauges.put(
-        CMQCFC.MQIACF_CUR_Q_FILE_SIZE,
-        createAllowedGauge(
-            Metrics.createMqCurrentQueueFilesize(meter),
-            MetricsConfig::isMqCurrentQueueFilesizeEnabled));
-    gauges.put(
-        CMQCFC.MQIACF_CUR_MAX_FILE_SIZE,
-        createAllowedGauge(
-            Metrics.createMqCurrentMaxQueueFilesize(meter),
-            MetricsConfig::isMqCurrentMaxQueueFilesizeEnabled));
-
-    this.onqtimeShort = Metrics.createMqOnqtime1(meter);
-    this.onqtimeLong = Metrics.createMqOnqtime2(meter);
-
-    initialize(meter);
   }
-
-  private void initialize(Meter meter) {}
 
   /**
    * Sends a PCFMessage request, reads the response, and generates metrics from the response. It
    * handles all exceptions.
    */
   void processPCFRequestAndPublishQMetrics(
-      MetricsCollectorContext context, PCFMessage request, String queueGenericName, int[] fields) {
+      MetricsCollectorContext context,
+      PCFMessage request,
+      String queueGenericName,
+      MetricCallback callback) {
     try {
-      doProcessPCFRequestAndPublishQMetrics(context, request, queueGenericName, fields);
+      doProcessPCFRequestAndPublishQMetrics(context, request, queueGenericName, callback);
     } catch (PCFException pcfe) {
       logger.error(
           "PCFException caught while collecting metric for Queue: {}", queueGenericName, pcfe);
@@ -163,7 +80,10 @@ final class QueueCollectionBuddy {
   }
 
   private void doProcessPCFRequestAndPublishQMetrics(
-      MetricsCollectorContext context, PCFMessage request, String queueGenericName, int[] fields)
+      MetricsCollectorContext context,
+      PCFMessage request,
+      String queueGenericName,
+      MetricCallback callback)
       throws IOException, MQDataException {
     logger.debug(
         "sending PCF agent request to query metrics for generic queue {}", queueGenericName);
@@ -186,11 +106,12 @@ final class QueueCollectionBuddy {
             .filter(response);
 
     for (PCFMessage message : messages) {
-      handleMessage(context, message, fields);
+      handleMessage(context, message, callback);
     }
   }
 
-  private void handleMessage(MetricsCollectorContext context, PCFMessage message, int[] fields)
+  private void handleMessage(
+      MetricsCollectorContext context, PCFMessage message, MetricCallback callback)
       throws PCFException {
     String queueName = MessageBuddy.queueName(message);
     String queueType = getQueueTypeFromName(message, queueName);
@@ -200,7 +121,16 @@ final class QueueCollectionBuddy {
     }
 
     logger.debug("Pulling out metrics for queue name {}", queueName);
-    getMetrics(context, message, queueName, queueType, fields);
+
+    Attributes attributes =
+        Attributes.of(
+            AttributeKey.stringKey("queue.name"),
+            queueName,
+            AttributeKey.stringKey("queue.type"),
+            queueType,
+            AttributeKey.stringKey("queue.manager"),
+            context.getQueueManagerName());
+    callback.accept(message, attributes);
   }
 
   private String getQueueTypeFromName(PCFMessage message, String queueName) throws PCFException {
@@ -247,57 +177,5 @@ final class QueueCollectionBuddy {
     }
     logger.warn("Unknown type of queue {}", message.getIntParameterValue(CMQC.MQIA_Q_TYPE));
     return "unknown";
-  }
-
-  private void getMetrics(
-      MetricsCollectorContext context,
-      PCFMessage pcfMessage,
-      String queueName,
-      String queueType,
-      int[] fields)
-      throws PCFException {
-
-    for (int field : fields) {
-      if (field == CMQC.MQCA_Q_NAME || field == CMQC.MQIA_USAGE || field == CMQC.MQIA_Q_TYPE) {
-        continue;
-      }
-      updateMetrics(context, pcfMessage, queueName, queueType, field);
-    }
-  }
-
-  private void updateMetrics(
-      MetricsCollectorContext context,
-      PCFMessage pcfMessage,
-      String queueName,
-      String queueType,
-      int constantValue)
-      throws PCFException {
-    PCFParameter pcfParam = pcfMessage.getParameter(constantValue);
-    Attributes attributes =
-        Attributes.of(
-            AttributeKey.stringKey("queue.name"),
-            queueName,
-            AttributeKey.stringKey("queue.type"),
-            queueType,
-            AttributeKey.stringKey("queue.manager"),
-            context.getQueueManagerName());
-
-    if (pcfParam instanceof MQCFIN) {
-      AllowedGauge g = this.gauges.get(constantValue);
-      if (g == null) {
-        throw new IllegalArgumentException("Unknown constantValue " + constantValue);
-      }
-      int metricVal = pcfMessage.getIntParameterValue(constantValue);
-      g.set(context, metricVal, attributes);
-    }
-    if (pcfParam instanceof MQCFIL) {
-      int[] metricVals = pcfMessage.getIntListParameterValue(constantValue);
-      if (context.getMetricsConfig().isMqOnqtime1Enabled()) {
-        onqtimeShort.set(metricVals[0], attributes);
-      }
-      if (context.getMetricsConfig().isMqOnqtime2Enabled()) {
-        onqtimeLong.set(metricVals[1], attributes);
-      }
-    }
   }
 }
