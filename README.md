@@ -1,4 +1,8 @@
-:warning: This software is under development. Please open a [support case](https://splunk.my.site.com/customer/s/need-help/create-case) to get in touch, request information and learn more.
+:warning: This software has been donated to the [OpenTelemetry Java Contrib project](https://github.com/open-telemetry/opentelemetry-java-contrib).
+
+New use cases and feature requests are now addressed with the OpenTelemetry project. This project continues to be maintained for specific customers.
+
+Please open a [support case](https://splunk.my.site.com/customer/s/need-help/create-case) to get in touch, request information and learn more.
 
 # IBM MQ Monitoring
 
