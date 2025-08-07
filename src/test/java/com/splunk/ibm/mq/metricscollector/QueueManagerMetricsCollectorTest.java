@@ -126,6 +126,7 @@ class QueueManagerMetricsCollectorTest {
     response1.addParameter(CMQCFC.MQIACF_CMD_SERVER_STATUS, 2);
     response1.addParameter(CMQCFC.MQIACF_CONNECTION_COUNT, 23);
     response1.addParameter(CMQCFC.MQCACF_CURRENT_LOG_EXTENT_NAME, "");
+    response1.addParameter(CMQCFC.MQIACF_PERMIT_STANDBY, CMQCFC.MQSTDBY_NOT_PERMITTED);
     response1.addParameter(CMQCFC.MQCACF_LOG_PATH, "/var/mqm/log/QM1/active/");
     response1.addParameter(CMQCFC.MQCACF_MEDIA_LOG_EXTENT_NAME, "");
     response1.addParameter(CMQCFC.MQCACF_RESTART_LOG_EXTENT_NAME, "");
