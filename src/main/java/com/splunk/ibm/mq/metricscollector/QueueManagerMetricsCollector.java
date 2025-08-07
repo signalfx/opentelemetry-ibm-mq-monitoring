@@ -38,6 +38,7 @@ public final class QueueManagerMetricsCollector implements Consumer<MetricsColle
   private final LongGauge archiveLogSizeGauge;
   private final LongGauge maxActiveChannelsGauge;
   private final LongGauge standbyGauge;
+  private final LongGauge roleGauge;
 
   public QueueManagerMetricsCollector(Meter meter) {
     this.statusGauge = meter.gaugeBuilder("mq.manager.status").ofLongs().build();
@@ -48,6 +49,7 @@ public final class QueueManagerMetricsCollector implements Consumer<MetricsColle
     this.maxActiveChannelsGauge =
         meter.gaugeBuilder("mq.manager.max.active.channels").ofLongs().build();
     this.standbyGauge = meter.gaugeBuilder("mq.manager.standby").ofLongs().build();
+    this.roleGauge = meter.gaugeBuilder("mq.manager.role").ofLongs().build();
   }
 
   @Override
@@ -87,6 +89,15 @@ public final class QueueManagerMetricsCollector implements Consumer<MetricsColle
         standbyGauge.set(
             standby,
             Attributes.of(AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
+      }
+      {
+        if (responses.get(0).getParameter(CMQCFC.MQIACF_NHA_INSTANCE_ROLE) != null) {
+          int role = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_NHA_INSTANCE_ROLE);
+          roleGauge.set(
+              role,
+              Attributes.of(
+                  AttributeKey.stringKey("queue.manager"), context.getQueueManagerName()));
+        }
       }
       {
         int count = responses.get(0).getIntParameterValue(CMQCFC.MQIACF_CONNECTION_COUNT);
