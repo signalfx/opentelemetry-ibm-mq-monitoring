@@ -133,6 +133,7 @@ class QueueManagerMetricsCollectorTest {
     response1.addParameter(CMQCFC.MQIACF_RESTART_LOG_SIZE, 42);
     response1.addParameter(CMQCFC.MQIACF_REUSABLE_LOG_SIZE, 42);
     response1.addParameter(CMQCFC.MQIACF_ARCHIVE_LOG_SIZE, 42);
+    response1.addParameter(CMQCFC.MQIACF_NHA_INSTANCE_ROLE, CMQCFC.MQNHAROLE_ACTIVE);
 
     return new PCFMessage[] {response1};
   }
