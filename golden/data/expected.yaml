@@ -6,6 +6,150 @@ resourceMetrics:
               dataPoints:
                 - asInt: "0"
                   attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.uncommitted.messages
+          - gauge:
+              dataPoints:
+                - asInt: "60532"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1754586936"
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000087E00000003"
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.byte.sent
+            unit: "1"
+          - gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.onqtime.2
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.manager.active.channels
+            unit: "1"
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
@@ -30,30 +174,7 @@ resourceMetrics:
                         stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.message.retry.count
-          - gauge:
-              dataPoints:
-                - asInt: "3"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.ADMIN.SVRCONN
-                    - key: channel.start.time
-                      value:
-                        intValue: "1748462702"
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: job.name
-                      value:
-                        stringValue: "0000074900000003"
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.status
-            unit: "1"
+            name: mq.message.sent.count
           - gauge:
               dataPoints:
                 - asInt: "0"
@@ -108,203 +229,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.open.output.count
-          - gauge:
-              dataPoints:
-                - asInt: "2088960"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.DEAD.LETTER.QUEUE
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "2088960"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.1
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "2088960"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.2
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "2088960"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.3
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.current.max.queue.filesize
-          - gauge:
-              dataPoints:
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.DEAD.LETTER.QUEUE
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.1
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.2
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.3
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.message.deq.count
-          - gauge:
-              dataPoints:
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.DEAD.LETTER.QUEUE
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.1
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.2
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.3
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.queue.depth
-          - gauge:
-              dataPoints:
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.reusable.log.size
-          - gauge:
-              dataPoints:
-                - asInt: "1"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.manager.active.channels
-            unit: "1"
-          - gauge:
-              dataPoints:
-                - asInt: "1"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.restart.log.size
+            name: mq.open.input.count
           - gauge:
               dataPoints:
                 - asInt: "5000"
@@ -375,90 +300,6 @@ resourceMetrics:
             name: mq.max.queue.depth
           - gauge:
               dataPoints:
-                - asInt: "-1"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.DEAD.LETTER.QUEUE
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "-1"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.1
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "-1"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.2
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "-1"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.3
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.onqtime.2
-          - gauge:
-              dataPoints:
-                - asInt: "0"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.ADMIN.SVRCONN
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.APP.SVRCONN
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.message.received.count
-          - gauge:
-              dataPoints:
                 - asInt: "0"
                   attributes:
                     - key: queue.manager
@@ -511,264 +352,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.message.enq.count
-          - gauge:
-              dataPoints:
-                - asInt: "0"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.ADMIN.SVRCONN
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.APP.SVRCONN
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.message.sent.count
-          - gauge:
-              dataPoints:
-                - asInt: "1"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.DEAD.LETTER.QUEUE
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "1"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.1
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "1"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.2
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "1"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.3
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.current.queue.filesize
-          - gauge:
-              dataPoints:
-                - asInt: "999999999"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.ADMIN.SVRCONN
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "999999999"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.APP.SVRCONN
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.instances.per.client
-          - gauge:
-              dataPoints:
-                - asInt: "10"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.ADMIN.SVRCONN
-                    - key: channel.start.time
-                      value:
-                        intValue: "1748462702"
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: job.name
-                      value:
-                        stringValue: "0000074900000003"
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.max.sharing.conversations
-            unit: "1"
-          - gauge:
-              dataPoints:
-                - asInt: "25"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.connection.count
-          - gauge:
-              dataPoints:
-                - asInt: "11612"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.ADMIN.SVRCONN
-                    - key: channel.start.time
-                      value:
-                        intValue: "1748462702"
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: job.name
-                      value:
-                        stringValue: "0000074900000003"
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.byte.received
-            unit: "1"
-          - gauge:
-              dataPoints:
-                - asInt: "2"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.manager.status
-          - gauge:
-              dataPoints:
-                - asInt: "30284"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.ADMIN.SVRCONN
-                    - key: channel.start.time
-                      value:
-                        intValue: "1748462702"
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: job.name
-                      value:
-                        stringValue: "0000074900000003"
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.byte.sent
-            unit: "1"
-          - gauge:
-              dataPoints:
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.DEAD.LETTER.QUEUE
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.1
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.2
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-                - asInt: "0"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.QUEUE.3
-                    - key: queue.type
-                      value:
-                        stringValue: local-normal
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.uncommitted.messages
+            name: mq.high.queue.depth
           - gauge:
               dataPoints:
                 - asInt: "-1"
@@ -826,6 +410,136 @@ resourceMetrics:
             name: mq.oldest.msg.age
           - gauge:
               dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.archive.log.size
+          - gauge:
+              dataPoints:
+                - asInt: "1800"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.manager.statistics.interval
+          - gauge:
+              dataPoints:
+                - asInt: "2088960"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "2088960"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "2088960"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "2088960"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.current.max.queue.filesize
+          - gauge:
+              dataPoints:
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "-1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.onqtime.1
+          - gauge:
+              dataPoints:
                 - asInt: "1"
                   attributes:
                     - key: queue.manager
@@ -837,14 +551,37 @@ resourceMetrics:
             unit: "1"
           - gauge:
               dataPoints:
-                - asInt: "0"
+                - asInt: "52"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1754586936"
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000087E00000003"
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.buffers.received
+            unit: "1"
+          - gauge:
+              dataPoints:
+                - asInt: "1"
                   attributes:
                     - key: queue.manager
                       value:
                         stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.archive.log.size
+            name: mq.restart.log.size
           - gauge:
               dataPoints:
                 - asInt: "0"
@@ -899,7 +636,30 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.high.queue.depth
+            name: mq.message.deq.count
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1754586936"
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000087E00000003"
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.current.sharing.conversations
+            unit: "1"
           - gauge:
               dataPoints:
                 - asInt: "0"
@@ -925,6 +685,74 @@ resourceMetrics:
             name: mq.publish.count
           - gauge:
               dataPoints:
+                - asInt: "999999999"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "999999999"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.APP.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.max.instances
+          - gauge:
+              dataPoints:
+                - asInt: "2"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.manager.status
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.APP.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.retry.count
+          - gauge:
+              dataPoints:
                 - asInt: "0"
                   attributes:
                     - key: queue.manager
@@ -948,20 +776,63 @@ resourceMetrics:
             name: mq.subscription.count
           - gauge:
               dataPoints:
-                - asInt: "999999999"
+                - asInt: "3"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1754586936"
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000087E00000003"
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.status
+            unit: "1"
+          - gauge:
+              dataPoints:
+                - asInt: "25"
                   attributes:
                     - key: queue.manager
                       value:
                         stringValue: QM1
-                    - key: queue.name
-                      value:
-                        stringValue: DEV.APP.MODEL.QUEUE
-                    - key: queue.type
-                      value:
-                        stringValue: model-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "999999999"
+            name: mq.connection.count
+          - gauge:
+              dataPoints:
+                - asInt: "10"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1754586936"
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000087E00000003"
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.max.sharing.conversations
+            unit: "1"
+          - gauge:
+              dataPoints:
+                - asInt: "1"
                   attributes:
                     - key: queue.manager
                       value:
@@ -974,7 +845,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "999999999"
+                - asInt: "1"
                   attributes:
                     - key: queue.manager
                       value:
@@ -987,7 +858,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "999999999"
+                - asInt: "1"
                   attributes:
                     - key: queue.manager
                       value:
@@ -1000,7 +871,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "999999999"
+                - asInt: "1"
                   attributes:
                     - key: queue.manager
                       value:
@@ -1013,63 +884,72 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.service.interval
+            name: mq.current.queue.filesize
           - gauge:
               dataPoints:
-                - asInt: "50"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.ADMIN.SVRCONN
-                    - key: channel.start.time
-                      value:
-                        intValue: "1748462702"
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: job.name
-                      value:
-                        stringValue: "0000074900000003"
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.buffers.received
-            unit: "1"
-          - gauge:
-              dataPoints:
-                - asInt: "1"
-                  attributes:
-                    - key: channel.name
-                      value:
-                        stringValue: DEV.ADMIN.SVRCONN
-                    - key: channel.start.time
-                      value:
-                        intValue: "1748462702"
-                    - key: channel.type
-                      value:
-                        stringValue: server-connection
-                    - key: job.name
-                      value:
-                        stringValue: "0000074900000003"
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.current.sharing.conversations
-            unit: "1"
-          - gauge:
-              dataPoints:
-                - asInt: "1800"
+                - asInt: "4200"
                   attributes:
                     - key: queue.manager
                       value:
                         stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.manager.statistics.interval
+            name: mq.manager.max.active.channels
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.open.output.count
           - gauge:
               dataPoints:
                 - asInt: "0"
@@ -1140,7 +1020,7 @@ resourceMetrics:
             name: mq.service.interval.event
           - gauge:
               dataPoints:
-                - asInt: "-1"
+                - asInt: "0"
                   attributes:
                     - key: queue.manager
                       value:
@@ -1153,7 +1033,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "-1"
+                - asInt: "0"
                   attributes:
                     - key: queue.manager
                       value:
@@ -1166,7 +1046,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "-1"
+                - asInt: "0"
                   attributes:
                     - key: queue.manager
                       value:
@@ -1179,7 +1059,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "-1"
+                - asInt: "0"
                   attributes:
                     - key: queue.manager
                       value:
@@ -1192,7 +1072,111 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.onqtime.1
+            name: mq.queue.depth
+          - gauge:
+              dataPoints:
+                - asInt: "1"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.manager.standby
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.APP.SVRCONN
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.received.count
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.reusable.log.size
+          - gauge:
+              dataPoints:
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.DEAD.LETTER.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.1
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.2
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "0"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.QUEUE.3
+                    - key: queue.type
+                      value:
+                        stringValue: local-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.enq.count
           - gauge:
               dataPoints:
                 - asInt: "999999999"
@@ -1221,33 +1205,46 @@ resourceMetrics:
                         stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.max.instances
+            name: mq.instances.per.client
           - gauge:
               dataPoints:
-                - asInt: "45"
+                - asInt: "51"
                   attributes:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
                     - key: channel.start.time
                       value:
-                        intValue: "1748462702"
+                        intValue: "1754586936"
                     - key: channel.type
                       value:
                         stringValue: server-connection
                     - key: job.name
                       value:
-                        stringValue: "0000074900000003"
+                        stringValue: "0000087E00000003"
                     - key: queue.manager
                       value:
                         stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.message.count
+            name: mq.buffers.sent
             unit: "1"
           - gauge:
               dataPoints:
-                - asInt: "0"
+                - asInt: "999999999"
+                  attributes:
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                    - key: queue.name
+                      value:
+                        stringValue: DEV.APP.MODEL.QUEUE
+                    - key: queue.type
+                      value:
+                        stringValue: model-normal
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+                - asInt: "999999999"
                   attributes:
                     - key: queue.manager
                       value:
@@ -1260,7 +1257,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "0"
+                - asInt: "999999999"
                   attributes:
                     - key: queue.manager
                       value:
@@ -1273,7 +1270,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "0"
+                - asInt: "999999999"
                   attributes:
                     - key: queue.manager
                       value:
@@ -1286,7 +1283,7 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-                - asInt: "0"
+                - asInt: "999999999"
                   attributes:
                     - key: queue.manager
                       value:
@@ -1299,39 +1296,52 @@ resourceMetrics:
                         stringValue: local-normal
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.open.input.count
+            name: mq.service.interval
           - gauge:
               dataPoints:
-                - asInt: "4200"
-                  attributes:
-                    - key: queue.manager
-                      value:
-                        stringValue: QM1
-                  startTimeUnixNano: "1000000"
-                  timeUnixNano: "2000000"
-            name: mq.manager.max.active.channels
-          - gauge:
-              dataPoints:
-                - asInt: "49"
+                - asInt: "11784"
                   attributes:
                     - key: channel.name
                       value:
                         stringValue: DEV.ADMIN.SVRCONN
                     - key: channel.start.time
                       value:
-                        intValue: "1748462702"
+                        intValue: "1754586936"
                     - key: channel.type
                       value:
                         stringValue: server-connection
                     - key: job.name
                       value:
-                        stringValue: "0000074900000003"
+                        stringValue: "0000087E00000003"
                     - key: queue.manager
                       value:
                         stringValue: QM1
                   startTimeUnixNano: "1000000"
                   timeUnixNano: "2000000"
-            name: mq.buffers.sent
+            name: mq.byte.received
+            unit: "1"
+          - gauge:
+              dataPoints:
+                - asInt: "47"
+                  attributes:
+                    - key: channel.name
+                      value:
+                        stringValue: DEV.ADMIN.SVRCONN
+                    - key: channel.start.time
+                      value:
+                        intValue: "1754586936"
+                    - key: channel.type
+                      value:
+                        stringValue: server-connection
+                    - key: job.name
+                      value:
+                        stringValue: "0000087E00000003"
+                    - key: queue.manager
+                      value:
+                        stringValue: QM1
+                  startTimeUnixNano: "1000000"
+                  timeUnixNano: "2000000"
+            name: mq.message.count
             unit: "1"
         scope:
           name: websphere/mq

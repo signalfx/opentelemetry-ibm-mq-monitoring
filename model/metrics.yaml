@@ -484,6 +484,16 @@ groups:
     attributes:
       - ref: queue.manager
         requirement_level: required
+  - id: mq.manager.standby
+    type: metric
+    metric_name: mq.manager.standby
+    stability: development
+    brief: "Whether a standby instance is permitted"
+    instrument: gauge
+    unit: "1"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
   - id: mq.archive.log.size
     type: metric
     metric_name: mq.archive.log.size

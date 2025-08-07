@@ -583,6 +583,21 @@
 
 
 
+## Metric `mq.manager.standby`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.manager.standby` | Gauge | `1` | Queue manager standby status | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.manager.standby` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
 ## Metric `mq.archive.log.size`
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
