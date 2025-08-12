@@ -74,7 +74,7 @@ public class WMQUtil {
       ibmQueueManager = new MQQueueManager(queueManager.getName(), env);
     } catch (MQException mqe) {
       logger.error(mqe.getMessage(), mqe);
-      throw new RuntimeException(mqe.getMessage());
+      throw new RuntimeException(mqe);
     }
     logger.debug(
         "MQQueueManager connection initiated for queueManager {} in thread {}",
