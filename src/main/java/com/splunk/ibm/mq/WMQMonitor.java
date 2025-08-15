@@ -26,7 +26,7 @@ import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.util.WMQUtil;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 import java.util.ArrayList;
@@ -46,6 +46,7 @@ public class WMQMonitor {
   private final List<QueueManager> queueManagers;
   private final List<Consumer<MetricsCollectorContext>> jobs = new ArrayList<>();
   private final LongGauge heartbeatGauge;
+  private final LongCounter errorCodesCounter;
   private final ExecutorService threadPool;
 
   public WMQMonitor(ConfigWrapper config, ExecutorService threadPool, Meter meter) {
@@ -64,6 +65,7 @@ public class WMQMonitor {
     }
 
     this.heartbeatGauge = meter.gaugeBuilder("mq.heartbeat").setUnit("1").ofLongs().build();
+    this.errorCodesCounter = meter.counterBuilder("mq.connection.errors").setUnit("{errors}").build();
     this.threadPool = threadPool;
 
     jobs.add(new QueueManagerMetricsCollector(meter));
@@ -101,7 +103,6 @@ public class WMQMonitor {
     MQQueueManager ibmQueueManager = null;
     PCFMessageAgent agent = null;
     int heartBeatMetricValue = 0;
-    String errorCode = null;
     try {
       ibmQueueManager = WMQUtil.connectToQueueManager(queueManager);
       heartBeatMetricValue = 1;
@@ -116,15 +117,13 @@ public class WMQMonitor {
           e);
       if (e.getCause() instanceof MQException) {
         MQException mqe = (MQException) e.getCause();
-        errorCode = String.valueOf(mqe.getReason());
+        String errorCode = String.valueOf(mqe.getReason());
+        errorCodesCounter.add(1, Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName, AttributeKey.stringKey("error.code"), errorCode));
       }
     } finally {
-      AttributesBuilder attrsBuilder =
-          Attributes.builder().put(AttributeKey.stringKey("queue.manager"), queueManagerName);
-      if (errorCode != null) {
-        attrsBuilder.put("reason.code", errorCode);
-      }
-      heartbeatGauge.set(heartBeatMetricValue, attrsBuilder.build());
+      heartbeatGauge.set(
+          heartBeatMetricValue,
+          Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName));
       cleanUp(ibmQueueManager, agent);
       long endTime = System.currentTimeMillis() - startTime;
       logger.debug(

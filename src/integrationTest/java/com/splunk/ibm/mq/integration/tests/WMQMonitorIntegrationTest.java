@@ -34,6 +34,7 @@ import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
 import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
+import io.opentelemetry.sdk.metrics.data.SumData;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
 import java.io.File;
@@ -301,16 +302,16 @@ class WMQMonitorIntegrationTest {
     logger.info("\n\n\n\n\n\nRunning test: test_bad_connection");
     TestResultMetricExporter testExporter = new TestResultMetricExporter();
     MetricReader reader =
-        PeriodicMetricReader.builder(testExporter)
-            .setExecutor(Executors.newScheduledThreadPool(1))
-            .build();
+            PeriodicMetricReader.builder(testExporter)
+                    .setExecutor(Executors.newScheduledThreadPool(1))
+                    .build();
     SdkMeterProvider meterProvider =
-        SdkMeterProvider.builder().registerMetricReader(reader).build();
+            SdkMeterProvider.builder().registerMetricReader(reader).build();
     String configFile = getConfigFile("conf/test-bad-config.yml");
     ConfigWrapper config = ConfigWrapper.parse(configFile);
 
     TestWMQMonitor monitor =
-        new TestWMQMonitor(config, meterProvider.get("opentelemetry.io/mq"), service);
+            new TestWMQMonitor(config, meterProvider.get("opentelemetry.io/mq"), service);
     monitor.runTest();
 
     reader.forceFlush().join(5, TimeUnit.SECONDS);
@@ -318,9 +319,19 @@ class WMQMonitorIntegrationTest {
     List<MetricData> data = testExporter.getExportedMetrics();
 
     assertThat(data).isNotEmpty();
-    assertThat(data).hasSize(1);
-    LongPointData metricPoint = data.get(0).getLongGaugeData().getPoints().iterator().next();
-    String value = metricPoint.getAttributes().get(AttributeKey.stringKey("reason.code"));
+    assertThat(data).hasSize(2);
+
+    SumData<LongPointData> connectionErrors = null;
+    for (MetricData metricData : data) {
+      if ("mq.connection.errors".equals(metricData.getName())) {
+        connectionErrors = (SumData<LongPointData>) metricData;
+      }
+    }
+
+    assertThat(connectionErrors).isNotNull();
+
+    LongPointData metricPoint = connectionErrors.getPoints().iterator().next();
+    String value = metricPoint.getAttributes().get(AttributeKey.stringKey("error.code"));
 
     assertThat(value).isEqualTo("2538");
   }
