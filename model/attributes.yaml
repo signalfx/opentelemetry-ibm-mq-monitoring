@@ -69,3 +69,9 @@ groups:
           The application name
         stability: development
         examples: [ "Wordle", "JMSService" ]
+      - id: blocked.reason
+        type: string
+        brief: >
+          The channel blocked event qualifier
+        stability: development
+        examples: [ "noaccess", "address", "userid" ]
