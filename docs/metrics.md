@@ -587,7 +587,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.manager.standby` | Gauge | `1` | Queue manager standby status | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.manager.standby` | Gauge | `1` | Whether a standby instance is permitted | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.manager.standby` Attributes
@@ -672,5 +672,21 @@
 |---|---|---|---|---|---|
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 | `topic.name` | string | The name of the topic | `dev/` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.connection.errors`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.connection.errors` | Counter | `{errors}` | Number of connection errors | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.connection.errors` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `error.code` | string | The reason code associated with an error | `2038`; `2543`; `2009` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 
 

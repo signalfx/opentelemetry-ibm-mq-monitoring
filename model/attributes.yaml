@@ -51,3 +51,9 @@ groups:
           The queue type
         stability: development
         examples: [ "local-normal" ]
+      - id: error.code
+        type: string
+        brief: >
+          The reason code associated with an error
+        stability: development
+        examples: [ "2038", "2543", "2009" ]

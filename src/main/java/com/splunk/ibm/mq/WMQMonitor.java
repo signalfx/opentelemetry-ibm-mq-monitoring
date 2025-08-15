@@ -17,6 +17,7 @@ package com.splunk.ibm.mq;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
@@ -25,6 +26,7 @@ import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.util.WMQUtil;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.metrics.LongCounter;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 import java.util.ArrayList;
@@ -44,6 +46,7 @@ public class WMQMonitor {
   private final List<QueueManager> queueManagers;
   private final List<Consumer<MetricsCollectorContext>> jobs = new ArrayList<>();
   private final LongGauge heartbeatGauge;
+  private final LongCounter errorCodesCounter;
   private final ExecutorService threadPool;
 
   public WMQMonitor(ConfigWrapper config, ExecutorService threadPool, Meter meter) {
@@ -62,6 +65,7 @@ public class WMQMonitor {
     }
 
     this.heartbeatGauge = meter.gaugeBuilder("mq.heartbeat").setUnit("1").ofLongs().build();
+    this.errorCodesCounter = meter.counterBuilder("mq.connection.errors").setUnit("{errors}").build();
     this.threadPool = threadPool;
 
     jobs.add(new QueueManagerMetricsCollector(meter));
@@ -111,6 +115,11 @@ public class WMQMonitor {
           Thread.currentThread().getName(),
           e.getMessage(),
           e);
+      if (e.getCause() instanceof MQException) {
+        MQException mqe = (MQException) e.getCause();
+        String errorCode = String.valueOf(mqe.getReason());
+        errorCodesCounter.add(1, Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName, AttributeKey.stringKey("error.code"), errorCode));
+      }
     } finally {
       heartbeatGauge.set(
           heartBeatMetricValue,
