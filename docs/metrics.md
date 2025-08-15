@@ -587,7 +587,7 @@
 
 | Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
 | -------- | --------------- | ----------- | -------------- | --------- |
-| `mq.manager.standby` | Gauge | `1` | Whether a standby instance is permitted | ![Development](https://img.shields.io/badge/-development-blue) |
+| `mq.manager.standby` | Gauge | `1` | Queue manager standby status | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
 ### `mq.manager.standby` Attributes

@@ -17,7 +17,6 @@ package com.splunk.ibm.mq;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import com.ibm.mq.MQException;
 import com.ibm.mq.MQQueueManager;
 import com.ibm.mq.headers.pcf.PCFMessageAgent;
 import com.splunk.ibm.mq.config.QueueManager;
@@ -26,7 +25,6 @@ import com.splunk.ibm.mq.opentelemetry.ConfigWrapper;
 import com.splunk.ibm.mq.util.WMQUtil;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.api.metrics.LongGauge;
 import io.opentelemetry.api.metrics.Meter;
 import java.util.ArrayList;
@@ -101,7 +99,6 @@ public class WMQMonitor {
     MQQueueManager ibmQueueManager = null;
     PCFMessageAgent agent = null;
     int heartBeatMetricValue = 0;
-    String errorCode = null;
     try {
       ibmQueueManager = WMQUtil.connectToQueueManager(queueManager);
       heartBeatMetricValue = 1;
@@ -114,17 +111,10 @@ public class WMQMonitor {
           Thread.currentThread().getName(),
           e.getMessage(),
           e);
-      if (e.getCause() instanceof MQException) {
-        MQException mqe = (MQException) e.getCause();
-        errorCode = String.valueOf(mqe.getReason());
-      }
     } finally {
-      AttributesBuilder attrsBuilder =
-          Attributes.builder().put(AttributeKey.stringKey("queue.manager"), queueManagerName);
-      if (errorCode != null) {
-        attrsBuilder.put("reason.code", errorCode);
-      }
-      heartbeatGauge.set(heartBeatMetricValue, attrsBuilder.build());
+      heartbeatGauge.set(
+          heartBeatMetricValue,
+          Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName));
       cleanUp(ibmQueueManager, agent);
       long endTime = System.currentTimeMillis() - startTime;
       logger.debug(

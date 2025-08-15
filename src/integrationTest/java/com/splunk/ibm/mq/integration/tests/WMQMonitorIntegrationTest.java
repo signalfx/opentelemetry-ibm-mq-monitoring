@@ -32,7 +32,6 @@ import com.splunk.ibm.mq.opentelemetry.Main;
 import com.splunk.ibm.mq.util.WMQUtil;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.sdk.metrics.SdkMeterProvider;
-import io.opentelemetry.sdk.metrics.data.LongPointData;
 import io.opentelemetry.sdk.metrics.data.MetricData;
 import io.opentelemetry.sdk.metrics.export.MetricReader;
 import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader;
@@ -294,34 +293,5 @@ class WMQMonitorIntegrationTest {
     assertThat(metricNames).contains("mq.queue.depth.low.event");
     // reads a value from the heartbeat gauge
     assertThat(metricNames).contains("mq.heartbeat");
-  }
-
-  @Test
-  void test_bad_connection() throws Exception {
-    logger.info("\n\n\n\n\n\nRunning test: test_bad_connection");
-    TestResultMetricExporter testExporter = new TestResultMetricExporter();
-    MetricReader reader =
-        PeriodicMetricReader.builder(testExporter)
-            .setExecutor(Executors.newScheduledThreadPool(1))
-            .build();
-    SdkMeterProvider meterProvider =
-        SdkMeterProvider.builder().registerMetricReader(reader).build();
-    String configFile = getConfigFile("conf/test-bad-config.yml");
-    ConfigWrapper config = ConfigWrapper.parse(configFile);
-
-    TestWMQMonitor monitor =
-        new TestWMQMonitor(config, meterProvider.get("opentelemetry.io/mq"), service);
-    monitor.runTest();
-
-    reader.forceFlush().join(5, TimeUnit.SECONDS);
-    meterProvider.close();
-    List<MetricData> data = testExporter.getExportedMetrics();
-
-    assertThat(data).isNotEmpty();
-    assertThat(data).hasSize(1);
-    LongPointData metricPoint = data.get(0).getLongGaugeData().getPoints().iterator().next();
-    String value = metricPoint.getAttributes().get(AttributeKey.stringKey("reason.code"));
-
-    assertThat(value).isEqualTo("2538");
   }
 }
