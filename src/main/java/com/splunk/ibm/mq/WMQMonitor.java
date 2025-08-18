@@ -65,7 +65,8 @@ public class WMQMonitor {
     }
 
     this.heartbeatGauge = meter.gaugeBuilder("mq.heartbeat").setUnit("1").ofLongs().build();
-    this.errorCodesCounter = meter.counterBuilder("mq.connection.errors").setUnit("{errors}").build();
+    this.errorCodesCounter =
+        meter.counterBuilder("mq.connection.errors").setUnit("{errors}").build();
     this.threadPool = threadPool;
 
     jobs.add(new QueueManagerMetricsCollector(meter));
@@ -76,6 +77,7 @@ public class WMQMonitor {
     jobs.add(new ListenerMetricsCollector(meter));
     jobs.add(new TopicMetricsCollector(meter));
     jobs.add(new ReadConfigurationEventQueueCollector(meter));
+    jobs.add(new ChannelEventQueueCollector(meter));
     jobs.add(new PerformanceEventQueueCollector(meter));
     jobs.add(new QueueManagerEventCollector(meter));
   }
@@ -118,7 +120,13 @@ public class WMQMonitor {
       if (e.getCause() instanceof MQException) {
         MQException mqe = (MQException) e.getCause();
         String errorCode = String.valueOf(mqe.getReason());
-        errorCodesCounter.add(1, Attributes.of(AttributeKey.stringKey("queue.manager"), queueManagerName, AttributeKey.stringKey("error.code"), errorCode));
+        errorCodesCounter.add(
+            1,
+            Attributes.of(
+                AttributeKey.stringKey("queue.manager"),
+                queueManagerName,
+                AttributeKey.stringKey("error.code"),
+                errorCode));
       }
     } finally {
       heartbeatGauge.set(

@@ -560,3 +560,77 @@ groups:
         requirement_level: required
       - ref: error.code
         requirement_level: required
+  - id: mq.channel.activated.event
+    type: metric
+    metric_name: mq.channel.activated.event
+    stability: development
+    brief: "Channel activated event"
+    instrument: counter
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: channel.name
+        requirement_level: required
+  - id: mq.channel.conv.error.event
+    type: metric
+    metric_name: mq.channel.conv.error.event
+    stability: development
+    brief: "Channel Conv Error event"
+    instrument: counter
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: channel.name
+        requirement_level: required
+  - id: mq.channel.not.activated.event
+    type: metric
+    metric_name: mq.channel.not.activated.event
+    stability: development
+    brief: "Channel Not Activated event"
+    instrument: counter
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: channel.name
+        requirement_level: required
+  - id: mq.channel.stopped.event
+    type: metric
+    metric_name: mq.channel.stopped.event
+    stability: development
+    brief: "Channel Stopped event"
+    instrument: counter
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: channel.name
+        requirement_level: required
+  - id: mq.channel.stopped.by.user.event
+    type: metric
+    metric_name: mq.channel.stopped.by.user.event
+    stability: development
+    brief: "Channel Stopped By User event"
+    instrument: counter
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: channel.name
+        requirement_level: required
+  - id: mq.channel.blocked.event
+    type: metric
+    metric_name: mq.channel.blocked.event
+    stability: development
+    brief: "Channel Blocked event"
+    instrument: counter
+    unit: "{events}"
+    attributes:
+      - ref: queue.manager
+        requirement_level: required
+      - ref: channel.name
+        requirement_level: required
+      - ref: blocked.reason
+        requirement_level: required
