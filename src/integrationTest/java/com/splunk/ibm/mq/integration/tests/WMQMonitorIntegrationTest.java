@@ -211,6 +211,20 @@ class WMQMonitorIntegrationTest {
     // this value is read from the performance event queue.
     assertThat(metricNames).contains("mq.queue.depth.high.event");
     assertThat(metricNames).contains("mq.queue.depth.low.event");
+    // this value is read from the channel event queue.
+    assertThat(metricNames).contains("mq.channel.blocked.event");
+    if (metrics.get("mq.channel.blocked.event") != null) {
+      Set<String> channelNames =
+          metrics.get("mq.channel.blocked.event").getLongSumData().getPoints().stream()
+              .map(pt -> pt.getAttributes().get(AttributeKey.stringKey("channel.name")))
+              .collect(Collectors.toSet());
+      assertThat(channelNames).contains("noaccesschannel");
+      Set<String> blockedReason =
+          metrics.get("mq.channel.blocked.event").getLongSumData().getPoints().stream()
+              .map(pt -> pt.getAttributes().get(AttributeKey.stringKey("blocked.reason")))
+              .collect(Collectors.toSet());
+      assertThat(blockedReason).contains("noaccess");
+    }
     // reads a value from the heartbeat gauge
     assertThat(metricNames).contains("mq.heartbeat");
     assertThat(metricNames).contains("mq.oldest.msg.age");
@@ -302,16 +316,16 @@ class WMQMonitorIntegrationTest {
     logger.info("\n\n\n\n\n\nRunning test: test_bad_connection");
     TestResultMetricExporter testExporter = new TestResultMetricExporter();
     MetricReader reader =
-            PeriodicMetricReader.builder(testExporter)
-                    .setExecutor(Executors.newScheduledThreadPool(1))
-                    .build();
+        PeriodicMetricReader.builder(testExporter)
+            .setExecutor(Executors.newScheduledThreadPool(1))
+            .build();
     SdkMeterProvider meterProvider =
-            SdkMeterProvider.builder().registerMetricReader(reader).build();
+        SdkMeterProvider.builder().registerMetricReader(reader).build();
     String configFile = getConfigFile("conf/test-bad-config.yml");
     ConfigWrapper config = ConfigWrapper.parse(configFile);
 
     TestWMQMonitor monitor =
-            new TestWMQMonitor(config, meterProvider.get("opentelemetry.io/mq"), service);
+        new TestWMQMonitor(config, meterProvider.get("opentelemetry.io/mq"), service);
     monitor.runTest();
 
     reader.forceFlush().join(5, TimeUnit.SECONDS);

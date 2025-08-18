@@ -57,3 +57,9 @@ groups:
           The reason code associated with an error
         stability: development
         examples: [ "2038", "2543", "2009" ]
+      - id: blocked.reason
+        type: string
+        brief: >
+          The channel blocked event qualifier
+        stability: development
+        examples: [ "noaccess", "address", "userid" ]

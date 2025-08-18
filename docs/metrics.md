@@ -690,3 +690,100 @@
 | `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
 
 
+
+## Metric `mq.channel.activated.event`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.channel.activated.event` | Counter | `{events}` | Channel activated event | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.channel.activated.event` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.channel.conv.error.event`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.channel.conv.error.event` | Counter | `{events}` | Channel Conv Error event | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.channel.conv.error.event` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.channel.not.activated.event`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.channel.not.activated.event` | Counter | `{events}` | Channel Not Activated event | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.channel.not.activated.event` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.channel.stopped.event`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.channel.stopped.event` | Counter | `{events}` | Channel Stopped event | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.channel.stopped.event` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.channel.stopped.by.user.event`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.channel.stopped.by.user.event` | Counter | `{events}` | Channel Stopped By User event | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.channel.stopped.by.user.event` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+
+## Metric `mq.channel.blocked.event`
+
+| Name     | Instrument Type | Unit (UCUM) | Description    | Stability |
+| -------- | --------------- | ----------- | -------------- | --------- |
+| `mq.channel.blocked.event` | Counter | `{events}` | Channel Blocked event | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
+### `mq.channel.blocked.event` Attributes
+
+| Attribute  | Type | Description  | Examples  | [Requirement Level](https://opentelemetry.io/docs/specs/semconv/general/attribute-requirement-level/) | Stability |
+|---|---|---|---|---|---|
+| `blocked.reason` | string | The channel blocked event qualifier | `noaccess`; `address`; `userid` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `channel.name` | string | The name of the channel | `DEV.ADMIN.SVRCONN` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+| `queue.manager` | string | The name of the queue manager | `MQ1` | `Required` | ![Development](https://img.shields.io/badge/-development-blue) |
+
+
