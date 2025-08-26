@@ -17,7 +17,7 @@ groups:
     type: metric
     metric_name: mq.status
     stability: development
-    brief: "Channel status"
+    brief: "Channel thread status"
     instrument: gauge
     unit: "1"
     attributes:
@@ -30,6 +30,20 @@ groups:
       - ref: job.name
         requirement_level: required
       - ref: channel.start.time
+        requirement_level: required
+  - id: mq.channel.status
+    type: metric
+    metric_name: mq.channel.status
+    stability: development
+    brief: "Channel status"
+    instrument: gauge
+    unit: "1"
+    attributes:
+      - ref: channel.name
+        requirement_level: required
+      - ref: channel.type
+        requirement_level: required
+      - ref: queue.manager
         requirement_level: required
   - id: mq.max.sharing.conversations
     type: metric
