@@ -40,6 +40,7 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
   private static final Logger logger = LoggerFactory.getLogger(ChannelMetricsCollector.class);
 
   private final LongGauge activeChannelsGauge;
+  private final LongGauge channelJobStatusGauge;
   private final LongGauge channelStatusGauge;
   private final LongGauge messageCountGauge;
   private final LongGauge byteSentGauge;
@@ -55,7 +56,8 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
   public ChannelMetricsCollector(Meter meter) {
     this.activeChannelsGauge =
         meter.gaugeBuilder("mq.manager.active.channels").ofLongs().setUnit("1").build();
-    this.channelStatusGauge = meter.gaugeBuilder("mq.status").ofLongs().setUnit("1").build();
+    this.channelJobStatusGauge = meter.gaugeBuilder("mq.status").ofLongs().setUnit("1").build();
+    this.channelStatusGauge = meter.gaugeBuilder("mq.channel.status").ofLongs().setUnit("1").build();
     this.messageCountGauge = meter.gaugeBuilder("mq.message.count").ofLongs().setUnit("1").build();
     this.byteSentGauge = meter.gaugeBuilder("mq.byte.sent").ofLongs().setUnit("1").build();
     this.byteReceivedGauge = meter.gaugeBuilder("mq.byte.received").ofLongs().setUnit("1").build();
@@ -195,10 +197,16 @@ public final class ChannelMetricsCollector implements Consumer<MetricsCollectorC
             .put("channel.start.time", channelStartTime)
             .put("job.name", jobName)
             .build();
+    Attributes channelAttributes = Attributes.builder()
+            .put("channel.name", channelName)
+            .put("channel.type", channelType)
+            .put("queue.manager", context.getQueueManagerName())
+            .build();
     int received = message.getIntParameterValue(CMQCFC.MQIACH_MSGS);
     messageCountGauge.set(received, attributes);
     int status = message.getIntParameterValue(CMQCFC.MQIACH_CHANNEL_STATUS);
-    channelStatusGauge.set(status, attributes);
+    channelJobStatusGauge.set(status, attributes);
+    channelStatusGauge.set(status, channelAttributes);
     // We follow the definition of active channel as documented in
     // https://www.ibm.com/docs/en/ibm-mq/9.2.x?topic=states-current-active
     if (status != CMQCFC.MQCHS_RETRYING
